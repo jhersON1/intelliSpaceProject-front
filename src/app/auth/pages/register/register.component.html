@@ -1,0 +1,256 @@
+<!-- registro.component.html -->
+<div class="flex justify-center items-center min-h-screen bg-gray-50 p-4">
+  <div class="w-full max-w-lg bg-white p-6 sm:p-8 rounded-sm shadow-sm border border-gray-100">
+    <div class="mb-6 sm:mb-8">
+      <h2 class="text-xl sm:text-2xl font-light mb-1 text-gray-800">Crear cuenta</h2>
+      <p class="text-sm text-gray-500">Encuentra tu producto perfecto</p>
+    </div>
+    
+    <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" class="contents">
+      <!-- Email -->
+      <div class="mb-4 sm:mb-5">
+        <label for="email" class="block text-gray-700 text-sm mb-2 font-light">
+          Correo electrónico
+        </label>
+        <input 
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          id="email"
+          formControlName="email"
+          class="w-full px-3 py-3 bg-gray-50 border-0 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
+          [ngClass]="{'bg-red-50': hasFieldError('email')()}"
+        />
+        @if (hasFieldError('email')()) {
+          <span class="text-red-500 text-xs mt-1">Por favor ingresa un correo electrónico válido</span>
+        }
+      </div>
+      
+      <!-- Password -->
+      <div class="mb-4 sm:mb-5">
+        <label for="password" class="block text-gray-700 text-sm mb-2 font-light">
+          Contraseña
+        </label>
+        <input 
+          type="password"
+          autocomplete="new-password"
+          id="password"
+          formControlName="password"
+          class="w-full px-3 py-3 bg-gray-50 border-0 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
+          [ngClass]="{'bg-red-50': hasFieldError('password')()}"
+        />
+        @if (hasFieldError('password')()) {
+          <span class="text-red-500 text-xs mt-1">La contraseña debe tener al menos 6 caracteres</span>
+        }
+      </div>
+      
+      <!-- Confirm Password -->
+      <div class="mb-5 sm:mb-6">
+        <label for="confirmPassword" class="block text-gray-700 text-sm mb-2 font-light">
+          Confirmar contraseña
+        </label>
+        <input 
+          type="password"
+          autocomplete="new-password"
+          id="confirmPassword"
+          formControlName="confirmPassword"
+          class="w-full px-3 py-3 bg-gray-50 border-0 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
+          [ngClass]="{'bg-red-50': hasFieldError('confirmPassword')() || passwordsDontMatch()}"
+        />
+        @if (hasFieldError('confirmPassword')() && !passwordsDontMatch()) {
+          <span class="text-red-500 text-xs mt-1">Confirma tu contraseña</span>
+        } @else if (passwordsDontMatch()) {
+          <span class="text-red-500 text-xs mt-1">Las contraseñas no coinciden</span>
+        }
+      </div>
+      
+      <!-- Nombre y Apellido - Para todos los usuarios -->
+      <div class="mb-4 sm:mb-5">
+        <label for="nombre" class="block text-gray-700 text-sm mb-2 font-light">
+          Nombre
+        </label>
+        <input
+          type="text"
+          autocomplete="given-name"
+          id="nombre"
+          formControlName="nombre"
+          class="w-full px-3 py-3 bg-gray-50 border-0 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
+          [ngClass]="{'bg-red-50': hasFieldError('nombre')()}"
+        />
+        @if (hasFieldError('nombre')()) {
+          <span class="text-red-500 text-xs mt-1">El nombre es obligatorio</span>
+        }
+      </div>
+      
+      <div class="mb-5 sm:mb-6">
+        <label for="apellido" class="block text-gray-700 text-sm mb-2 font-light">
+          Apellido
+        </label>
+        <input
+          type="text"
+          autocomplete="family-name"
+          id="apellido"
+          formControlName="apellido"
+          class="w-full px-3 py-3 bg-gray-50 border-0 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
+          [ngClass]="{'bg-red-50': hasFieldError('apellido')()}"
+        />
+        @if (hasFieldError('apellido')()) {
+          <span class="text-red-500 text-xs mt-1">El apellido es obligatorio</span>
+        }
+      </div>
+      
+      <!-- Role Selector -->
+      <div class="mb-5 sm:mb-6">
+        <p class="block text-gray-700 text-sm mb-3 font-light">
+          Selecciona tu rol
+        </p>
+        <div class="flex gap-6">
+          <label class="inline-flex items-center">
+            <input
+              type="radio"
+              class="form-radio text-gray-800 h-5 w-5"
+              [checked]="isConsumer()"
+              (change)="cambiarRol('consumidor')"
+              aria-label="Consumidor"
+            />
+            <span class="ml-2 text-sm text-gray-700">Consumidor</span>
+          </label>
+          <label class="inline-flex items-center">
+            <input
+              type="radio"
+              class="form-radio text-gray-800 h-5 w-5"
+              [checked]="isVendor()"
+              (change)="cambiarRol('vendedor')"
+              aria-label="Vendedor"
+            />
+            <span class="ml-2 text-sm text-gray-700">Vendedor</span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Role-specific fields -->
+      @if (isConsumer()) {
+        <div class="mb-5 sm:mb-6 p-4 sm:p-5 bg-gray-50 rounded-sm">
+          <h3 class="text-sm mb-4 text-gray-700 font-medium">Información adicional del consumidor</h3>
+          
+          <!-- Dirección -->
+          <div class="mb-1">
+            <label for="direccion" class="block text-gray-700 text-sm mb-2 font-light">
+              Dirección
+            </label>
+            <input
+              type="text"
+              autocomplete="street-address"
+              id="direccion"
+              formControlName="direccion"
+              class="w-full px-3 py-3 bg-white border border-gray-100 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
+              [ngClass]="{'bg-red-50': hasFieldError('direccion')()}"
+            />
+            @if (hasFieldError('direccion')()) {
+              <span class="text-red-500 text-xs mt-1">La dirección es obligatoria</span>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="mb-5 sm:mb-6 p-4 sm:p-5 bg-gray-50 rounded-sm">
+          <h3 class="text-sm mb-4 text-gray-700 font-medium">Información adicional del vendedor</h3>
+          
+          <!-- Nombre de Negocio -->
+          <div class="mb-4">
+            <label for="nombreNegocio" class="block text-gray-700 text-sm mb-2 font-light">
+              Nombre del negocio
+            </label>
+            <input
+              type="text"
+              autocomplete="organization"
+              id="nombreNegocio"
+              formControlName="nombreNegocio"
+              class="w-full px-3 py-3 bg-white border border-gray-100 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
+              [ngClass]="{'bg-red-50': hasFieldError('nombreNegocio')()}"
+            />
+            @if (hasFieldError('nombreNegocio')()) {
+              <span class="text-red-500 text-xs mt-1">El nombre del negocio es obligatorio</span>
+            }
+          </div>
+          
+          <!-- Descripción -->
+          <div class="mb-4">
+            <label for="descripcion" class="block text-gray-700 text-sm mb-2 font-light">
+              Descripción
+            </label>
+            <textarea
+              id="descripcion"
+              rows="2"
+              formControlName="descripcion"
+              class="w-full px-3 py-3 bg-white border border-gray-100 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation resize-none"
+              [ngClass]="{'bg-red-50': hasFieldError('descripcion')()}"
+            ></textarea>
+            @if (hasFieldError('descripcion')()) {
+              <span class="text-red-500 text-xs mt-1">La descripción es obligatoria</span>
+            }
+          </div>
+          
+          <!-- Tipo de Vendedor -->
+          <div class="mb-1">
+            <label for="tipoVendedor" class="block text-gray-700 text-sm mb-2 font-light">
+              Tipo de vendedor
+            </label>
+            <select
+              id="tipoVendedor"
+              formControlName="tipoVendedor"
+              class="w-full px-3 py-3 bg-white border border-gray-100 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 appearance-none touch-manipulation"
+              [ngClass]="{'bg-red-50': hasFieldError('tipoVendedor')()}"
+            >
+              <option value="">Seleccionar...</option>
+              <option value="tienda_física">Tienda Física</option>
+              <option value="fabricante">Fabricante</option>
+              <option value="particular">Particular</option>
+            </select>
+            @if (hasFieldError('tipoVendedor')()) {
+              <span class="text-red-500 text-xs mt-1">Selecciona un tipo de vendedor</span>
+            }
+          </div>
+        </div>
+      }
+      
+      <!-- Terms and Conditions -->
+      <div class="mb-6 sm:mb-8">
+        <label class="inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            class="form-checkbox rounded-sm h-5 w-5"
+            formControlName="aceptaTerminos"
+          />
+          <span class="ml-2 text-sm text-gray-600">
+            He leído y acepto los <a href="#" class="text-gray-800 hover:underline">términos y condiciones</a>
+          </span>
+        </label>
+        @if (hasFieldError('aceptaTerminos')()) {
+          <div class="text-red-500 text-xs mt-1">Debes aceptar los términos y condiciones</div>
+        }
+      </div>
+      
+      <!-- Submit Button -->
+      <div class="mb-6">
+        <button
+          type="submit"
+          class="w-full bg-gray-800 hover:bg-black active:bg-black text-white font-light py-3 px-4 rounded-sm focus:outline-none touch-manipulation"
+          [ngClass]="{'opacity-50': registroForm.invalid && formSubmitted()}"
+        >
+          Registrarse
+        </button>
+      </div>
+      
+      <!-- Login Link -->
+      <div class="text-center text-sm text-gray-600 mb-6">
+        <a href="#" class="text-gray-800 hover:underline inline-block py-2 px-4">
+          ¿Ya tienes una cuenta? Iniciar sesión
+        </a>
+      </div>
+    </form>
+    
+    <div class="mt-6 sm:mt-10 text-center">
+      <p class="text-xs text-gray-500 font-light">IntelliSpace</p>
+    </div>
+  </div>
+</div>
