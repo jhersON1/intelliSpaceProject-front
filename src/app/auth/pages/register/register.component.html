@@ -7,7 +7,6 @@
     </div>
     
     <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" class="contents">
-      <!-- Email -->
       <div class="mb-4 sm:mb-5">
         <label for="email" class="block text-gray-700 text-sm mb-2 font-light">
           Correo electrónico
@@ -26,7 +25,6 @@
         }
       </div>
       
-      <!-- Password -->
       <div class="mb-4 sm:mb-5">
         <label for="password" class="block text-gray-700 text-sm mb-2 font-light">
           Contraseña
@@ -44,7 +42,6 @@
         }
       </div>
       
-      <!-- Confirm Password -->
       <div class="mb-5 sm:mb-6">
         <label for="confirmPassword" class="block text-gray-700 text-sm mb-2 font-light">
           Confirmar contraseña
@@ -64,7 +61,6 @@
         }
       </div>
       
-      <!-- Nombre y Apellido - Para todos los usuarios -->
       <div class="mb-4 sm:mb-5">
         <label for="nombre" class="block text-gray-700 text-sm mb-2 font-light">
           Nombre
@@ -99,7 +95,6 @@
         }
       </div>
       
-      <!-- Role Selector -->
       <div class="mb-5 sm:mb-6">
         <p class="block text-gray-700 text-sm mb-3 font-light">
           Selecciona tu rol
@@ -128,12 +123,10 @@
         </div>
       </div>
       
-      <!-- Role-specific fields -->
       @if (isConsumer()) {
         <div class="mb-5 sm:mb-6 p-4 sm:p-5 bg-gray-50 rounded-sm">
           <h3 class="text-sm mb-4 text-gray-700 font-medium">Información adicional del consumidor</h3>
           
-          <!-- Dirección -->
           <div class="mb-1">
             <label for="direccion" class="block text-gray-700 text-sm mb-2 font-light">
               Dirección
@@ -155,7 +148,6 @@
         <div class="mb-5 sm:mb-6 p-4 sm:p-5 bg-gray-50 rounded-sm">
           <h3 class="text-sm mb-4 text-gray-700 font-medium">Información adicional del vendedor</h3>
           
-          <!-- Nombre de Negocio -->
           <div class="mb-4">
             <label for="nombreNegocio" class="block text-gray-700 text-sm mb-2 font-light">
               Nombre del negocio
@@ -173,7 +165,6 @@
             }
           </div>
           
-          <!-- Descripción -->
           <div class="mb-4">
             <label for="descripcion" class="block text-gray-700 text-sm mb-2 font-light">
               Descripción
@@ -190,7 +181,6 @@
             }
           </div>
           
-          <!-- Tipo de Vendedor -->
           <div class="mb-1">
             <label for="tipoVendedor" class="block text-gray-700 text-sm mb-2 font-light">
               Tipo de vendedor
@@ -213,7 +203,6 @@
         </div>
       }
       
-      <!-- Terms and Conditions -->
       <div class="mb-6 sm:mb-8">
         <label class="inline-flex items-center cursor-pointer">
           <input
@@ -230,7 +219,6 @@
         }
       </div>
       
-      <!-- Submit Button -->
       <div class="mb-6">
         <button
           type="submit"
@@ -241,7 +229,6 @@
         </button>
       </div>
       
-      <!-- Login Link -->
       <div class="text-center text-sm text-gray-600 mb-6">
         <a href="#" class="text-gray-800 hover:underline inline-block py-2 px-4">
           ¿Ya tienes una cuenta? Iniciar sesión
