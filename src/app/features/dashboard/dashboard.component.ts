@@ -14,37 +14,37 @@ export class DashboardComponent {
       id: 1,
       name: 'Table wood 1',
       company: 'Company name 1',
-      image: 'https://placehold.co/450x425'
+      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227233/taller%20de%20grado/wood1_vkp2st.png'
     },
     {
       id: 2,
       name: 'Table wood 2',
       company: 'Company name 2',
-      image: 'https://placehold.co/450x425'
+      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227313/taller%20de%20grado/wood2_meqhys.jpg'
     },
     {
       id: 3,
       name: 'Table wood 3',
       company: 'Company name 3',
-      image: 'https://placehold.co/450x425'
+      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227446/taller%20de%20grado/wood3_glmj46.png'
     },
     {
       id: 4,
       name: 'Table wood 4',
       company: 'Company name 4',
-      image: 'https://placehold.co/450x425'
+      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227448/taller%20de%20grado/wood4_tfrvtd.png'
     },
     {
       id: 5,
       name: 'Table wood 5',
       company: 'Company name 5',
-      image: 'https://placehold.co/450x425'
+      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227447/taller%20de%20grado/wood5_mycsor.png'
     },
     {
       id: 6,
       name: 'Table wood 6',
       company: 'Company name 6',
-      image: 'https://placehold.co/450x425'
+      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227460/taller%20de%20grado/wood6_hqmu5z.png'
     }
   ];
 
@@ -53,35 +53,23 @@ export class DashboardComponent {
     {
       id: 1,
       name: 'Sofas',
-      image: 'https://placehold.co/435x396'
+      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227628/taller%20de%20grado/sofas_usny6x.png'
     },
     {
       id: 2,
       name: 'Kitchen',
-      image: 'https://placehold.co/435x403'
+      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227630/taller%20de%20grado/kitchen_m9r2tw.png'
     },
     {
       id: 3,
       name: 'Lamp',
-      image: 'https://placehold.co/435x403'
+      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227627/taller%20de%20grado/lamp_umv5pt.png'
     },
     {
       id: 4,
       name: 'Table',
-      image: 'https://placehold.co/435x404'
+      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227636/taller%20de%20grado/table_gjuqbo.png'
     }
   ];
 
-  // Fotos de los usuarios
-  userPhotos = [
-    'https://placehold.co/213x304',
-    'https://placehold.co/350x248',
-    'https://placehold.co/229x312',
-    'https://placehold.co/267x197',
-    'https://placehold.co/214x287',
-    'https://placehold.co/317x205',
-    'https://placehold.co/225x277',
-    'https://placehold.co/330x344',
-    'https://placehold.co/296x257'
-  ];
 }

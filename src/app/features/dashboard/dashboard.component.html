@@ -2,93 +2,118 @@
 <div class="w-full relative bg-white overflow-hidden">
     <!-- Hero Section -->
     <div class="relative">
-      <img class="w-full h-auto object-cover max-h-[1920px]" src="https://placehold.co/1440x652" alt="Hero Image" />
+        <img class="w-full h-auto object-cover max-h-[1440px]"
+            src="https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744226897/taller%20de%20grado/ygtib9sdaymhbclmvhvz.png"
+            alt="Hero Image" />
     </div>
-    
+
     <!-- Make your life better section -->
     <div class="container mx-auto text-center py-8 max-w-8xl">
-      <h1 class="text-4xl md:text-5xl font-semibold text-black mb-2">Make your life better</h1>
-      <p class="text-xl font-light text-black">Find the perfect product</p>
+        <h1 class="text-4xl md:text-5xl font-semibold text-black mb-2">Make your life better</h1>
+        <p class="text-xl font-light text-black">Find the perfect product</p>
     </div>
-  
+
     <!-- Our Products Section -->
     <div class="container mx-auto px-4 py-12 max-w-8xl">
-      <h2 class="text-3xl md:text-4xl font-normal mb-8">Our products</h2>
-      
-      <!-- Products Grid - No horizontal scroll, with min-width to prevent overlap -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @for (product of products; track product.id) {
-          <div class="product-card flex flex-col">
-            <div class="w-full min-w-[280px] overflow-hidden">
-              <img [src]="product.image" [alt]="product.name" class="w-full h-auto object-cover opacity-90" />
+        <h2 class="text-3xl md:text-4xl font-normal mb-8">Our products</h2>
+
+        <!-- Products Grid - No horizontal scroll, with min-width to prevent overlap -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @for (product of products; track product.id) {
+            <div class="product-card flex flex-col">
+                <div class="w-full min-w-[280px] overflow-hidden">
+                    <img [src]="product.image" [alt]="product.name" class="w-full h-auto object-cover opacity-90" />
+                </div>
+                <h3 class="text-xl md:text-2xl font-normal mt-4">{{product.name}}</h3>
+                <p class="text-neutral-400">{{product.company}}</p>
             </div>
-            <h3 class="text-xl md:text-2xl font-normal mt-4">{{product.name}}</h3>
-            <p class="text-neutral-400">{{product.company}}</p>
-          </div>
-        }
-      </div>
+            }
+        </div>
     </div>
-  
+
+    @defer(on viewport) {
     <!-- Explore Section -->
     <div class="container mx-auto px-4 py-12 max-w-8xl">
-      <h2 class="text-3xl md:text-4xl font-normal mb-8">Explore</h2>
-      
-      <!-- Categories Horizontal Scroll -->
-      <div class="flex overflow-x-auto pb-8 space-x-4 snap-x">
-        @for (category of categories; track category.id) {
-          <div class="category-card flex-shrink-0 w-[435px] snap-center">
-            <div class="w-[435px] h-[403px] overflow-hidden rounded-xl bg-white">
-              <img [src]="category.image" [alt]="category.name" class="w-full h-full object-cover mix-blend-luminosity rounded-xl" />
+        <h2 class="text-3xl md:text-4xl font-normal mb-8">Explore</h2>
+
+        <!-- Categories Horizontal Scroll -->
+        <div class="flex overflow-x-auto pb-8 space-x-4 snap-x">
+            @for (category of categories; track category.id) {
+            <div class="category-card flex-shrink-0 w-[435px] snap-center">
+                <div class="w-[435px] h-[403px] overflow-hidden rounded-xl bg-white">
+                    <img [src]="category.image" [alt]="category.name"
+                        class="w-full h-full object-cover mix-blend-luminosity rounded-xl" />
+                </div>
+                <h3 class="text-xl md:text-2xl font-normal mt-4">{{category.name}}</h3>
             </div>
-            <h3 class="text-xl md:text-2xl font-normal mt-4">{{category.name}}</h3>
-          </div>
-        }
-      </div>
+            }
+        </div>
     </div>
-  
+    } @loading {
+    <p>Loading...</p>
+    } @placeholder {
+    <p>Explore section</p>
+    }
+
+    @defer (on viewport) {
     <!-- Share Your Setup Section -->
     <div class="container mx-auto px-4 py-12 max-w-8xl">
-      <h2 class="text-3xl md:text-4xl font-normal mb-8">Share your setup with us</h2>
-      
-      <!-- User Gallery - Collage Style -->
-      <div class="relative h-[700px] overflow-hidden">
-        <!-- Primera fila -->
-        <div class="absolute left-[34px] top-[0px] w-[213px] h-[304px]">
-          <img src="https://placehold.co/213x304" alt="User setup" class="w-full h-full object-cover" />
+        <h2 class="text-3xl md:text-4xl font-normal mb-8">Share your setup with us</h2>
+
+        <!-- User Gallery - Collage Style -->
+        <div class="relative h-[700px] overflow-hidden">
+            <!-- Primera fila -->
+            <div class="absolute left-[34px] top-[0px] w-[213px] h-[304px]">
+                <img src="https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227890/taller%20de%20grado/1_ayt6xb.png"
+                    alt="User setup" class="w-full h-full object-cover" />
+            </div>
+
+            <div class="absolute left-[259px] top-[0px] w-[350px] h-[248px]">
+                <img src="https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227892/taller%20de%20grado/2_pid9fo.png"
+                    alt="User setup" class="w-full h-full object-cover" />
+            </div>
+
+            <div class="absolute left-[622px] top-[0px] w-[229px] h-[312px]">
+                <img src="https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227882/taller%20de%20grado/3_cjtkye.png"
+                    alt="User setup" class="w-full h-full object-cover" />
+            </div>
+
+            <div class="absolute left-[864px] top-[0px] w-[225px] h-[277px]">
+                <img src="https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227886/taller%20de%20grado/4_n2a7l4.png"
+                    alt="User setup" class="w-full h-full object-cover" />
+            </div>
+
+            <div class="absolute left-[1094px] top-[0px] w-[330px] h-[344px]">
+                <img src="https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227887/taller%20de%20grado/5_pkyntz.png"
+                    alt="User setup" class="w-full h-full object-cover" />
+            </div>
+
+            <!-- Segunda fila -->
+            <div class="absolute left-[34px] top-[316px] w-[296px] h-[257px]">
+                <img src="https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227880/taller%20de%20grado/6_gjisao.png"
+                    alt="User setup" class="w-full h-full object-cover" />
+            </div>
+
+            <div class="absolute left-[345px] top-[259px] w-[267px] h-[197px]">
+                <img src="https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227882/taller%20de%20grado/7_tilrpu.png"
+                    alt="User setup" class="w-full h-full object-cover" />
+            </div>
+
+            <div class="absolute left-[866px] top-[288px] w-[214px] h-[287px]">
+                <img src="https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227881/taller%20de%20grado/8_sanq2k.png"
+                    alt="User setup" class="w-full h-full object-cover" />
+            </div>
+
+            <div class="absolute left-[1089px] top-[368px] w-[330px] h-[205px]">
+                <img src="https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227883/taller%20de%20grado/9_szy0rb.png"
+                    alt="User setup" class="w-full h-full object-cover" />
+            </div>
         </div>
-        
-        <div class="absolute left-[259px] top-[0px] w-[350px] h-[248px]">
-          <img src="https://placehold.co/350x248" alt="User setup" class="w-full h-full object-cover" />
-        </div>
-        
-        <div class="absolute left-[622px] top-[0px] w-[229px] h-[312px]">
-          <img src="https://placehold.co/229x312" alt="User setup" class="w-full h-full object-cover" />
-        </div>
-        
-        <div class="absolute left-[864px] top-[0px] w-[225px] h-[277px]">
-          <img src="https://placehold.co/225x277" alt="User setup" class="w-full h-full object-cover" />
-        </div>
-        
-        <div class="absolute left-[1094px] top-[0px] w-[330px] h-[344px]">
-          <img src="https://placehold.co/330x344" alt="User setup" class="w-full h-full object-cover" />
-        </div>
-        
-        <!-- Segunda fila -->
-        <div class="absolute left-[34px] top-[316px] w-[296px] h-[257px]">
-          <img src="https://placehold.co/296x257" alt="User setup" class="w-full h-full object-cover" />
-        </div>
-        
-        <div class="absolute left-[345px] top-[259px] w-[267px] h-[197px]">
-          <img src="https://placehold.co/267x197" alt="User setup" class="w-full h-full object-cover" />
-        </div>
-        
-        <div class="absolute left-[866px] top-[288px] w-[214px] h-[287px]">
-          <img src="https://placehold.co/214x287" alt="User setup" class="w-full h-full object-cover" />
-        </div>
-        
-        <div class="absolute left-[1089px] top-[368px] w-[317px] h-[205px]">
-          <img src="https://placehold.co/317x205" alt="User setup" class="w-full h-full object-cover" />
-        </div>
-      </div>
     </div>
-  </div>
+    } @loading {
+    <p>Loading...</p>
+    } @placeholder {
+    <p>Share your setup section</p>
+    }
+
+</div>
