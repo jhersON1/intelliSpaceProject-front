@@ -1,0 +1,8 @@
+nav {
+  transform: translateY(0);
+  will-change: transform;
+}
+
+.navbar-hidden {
+  transform: translateY(-100%);
+}
