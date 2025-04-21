@@ -17,7 +17,6 @@
     <div class="container mx-auto px-4 py-12 max-w-8xl">
         <h2 class="text-3xl md:text-4xl font-normal mb-8">Our products</h2>
 
-        <!-- Products Grid - No horizontal scroll, with min-width to prevent overlap -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @for (product of products; track product.id) {
             <div class="product-card flex flex-col">
@@ -29,6 +28,26 @@
             </div>
             }
         </div>
+    </div>
+
+    <div class="container mx-auto max-w-8xl flex justify-center my-2">
+        <button
+            class="w-full flex justify-center items-center py-4 transition group bg-white cursor-pointer"
+            style="border: none; outline: none;"
+            [routerLink]="['/home/products']"
+            aria-label="Ver lista de productos"
+        >
+            <span
+                class="w-full flex justify-center items-center transition bg-white"
+                style="height: 48px;"
+            >
+                <!-- Flecha SVG hacia abajo -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    class="text-gray-300 group-hover:text-gray-500 transition">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </span>
+        </button>
     </div>
 
     @defer(on viewport) {
