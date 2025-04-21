@@ -6,7 +6,7 @@
       <p class="text-sm text-gray-500">Encuentra tu producto perfecto</p>
     </div>
     
-    <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" class="contents">
+    <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()" class="contents">
       <div class="mb-4 sm:mb-5">
         <label for="email" class="block text-gray-700 text-sm mb-2 font-light">
           Correo electrónico
@@ -68,12 +68,12 @@
         <input
           type="text"
           autocomplete="given-name"
-          id="nombre"
-          formControlName="nombre"
+          id="firstName"
+          formControlName="firstName"
           class="w-full px-3 py-3 bg-gray-50 border-0 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
-          [ngClass]="{'bg-red-50': hasFieldError('nombre')()}"
+          [ngClass]="{'bg-red-50': hasFieldError('firstName')()}"
         />
-        @if (hasFieldError('nombre')()) {
+        @if (hasFieldError('firstName')()) {
           <span class="text-red-500 text-xs mt-1">El nombre es obligatorio</span>
         }
       </div>
@@ -85,12 +85,12 @@
         <input
           type="text"
           autocomplete="family-name"
-          id="apellido"
-          formControlName="apellido"
+          id="lastName"
+          formControlName="lastName"
           class="w-full px-3 py-3 bg-gray-50 border-0 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
-          [ngClass]="{'bg-red-50': hasFieldError('apellido')()}"
+          [ngClass]="{'bg-red-50': hasFieldError('lastName')()}"
         />
-        @if (hasFieldError('apellido')()) {
+        @if (hasFieldError('lastName')()) {
           <span class="text-red-500 text-xs mt-1">El apellido es obligatorio</span>
         }
       </div>
@@ -105,7 +105,7 @@
               type="radio"
               class="form-radio text-gray-800 h-5 w-5"
               [checked]="isConsumer()"
-              (change)="cambiarRol('consumidor')"
+              (change)="changeRole('consumidor')"
               aria-label="Consumidor"
             />
             <span class="ml-2 text-sm text-gray-700">Consumidor</span>
@@ -115,7 +115,7 @@
               type="radio"
               class="form-radio text-gray-800 h-5 w-5"
               [checked]="isVendor()"
-              (change)="cambiarRol('vendedor')"
+              (change)="changeRole('vendedor')"
               aria-label="Vendedor"
             />
             <span class="ml-2 text-sm text-gray-700">Vendedor</span>
@@ -134,12 +134,12 @@
             <input
               type="text"
               autocomplete="street-address"
-              id="direccion"
-              formControlName="direccion"
+              id="address"
+              formControlName="address"
               class="w-full px-3 py-3 bg-white border border-gray-100 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
-              [ngClass]="{'bg-red-50': hasFieldError('direccion')()}"
+              [ngClass]="{'bg-red-50': hasFieldError('address')()}"
             />
-            @if (hasFieldError('direccion')()) {
+            @if (hasFieldError('address')()) {
               <span class="text-red-500 text-xs mt-1">La dirección es obligatoria</span>
             }
           </div>
@@ -155,12 +155,12 @@
             <input
               type="text"
               autocomplete="organization"
-              id="nombreNegocio"
-              formControlName="nombreNegocio"
+              id="businessName"
+              formControlName="businessName"
               class="w-full px-3 py-3 bg-white border border-gray-100 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
-              [ngClass]="{'bg-red-50': hasFieldError('nombreNegocio')()}"
+              [ngClass]="{'bg-red-50': hasFieldError('businessName')()}"
             />
-            @if (hasFieldError('nombreNegocio')()) {
+            @if (hasFieldError('businessName')()) {
               <span class="text-red-500 text-xs mt-1">El nombre del negocio es obligatorio</span>
             }
           </div>
@@ -170,13 +170,13 @@
               Descripción
             </label>
             <textarea
-              id="descripcion"
+              id="description"
               rows="2"
-              formControlName="descripcion"
+              formControlName="description"
               class="w-full px-3 py-3 bg-white border border-gray-100 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation resize-none"
-              [ngClass]="{'bg-red-50': hasFieldError('descripcion')()}"
+              [ngClass]="{'bg-red-50': hasFieldError('description')()}"
             ></textarea>
-            @if (hasFieldError('descripcion')()) {
+            @if (hasFieldError('description')()) {
               <span class="text-red-500 text-xs mt-1">La descripción es obligatoria</span>
             }
           </div>
@@ -186,17 +186,17 @@
               Tipo de vendedor
             </label>
             <select
-              id="tipoVendedor"
-              formControlName="tipoVendedor"
+              id="sellerType"
+              formControlName="sellerType"
               class="w-full px-3 py-3 bg-white border border-gray-100 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 appearance-none touch-manipulation"
-              [ngClass]="{'bg-red-50': hasFieldError('tipoVendedor')()}"
+              [ngClass]="{'bg-red-50': hasFieldError('sellerType')()}"
             >
               <option value="">Seleccionar...</option>
               <option value="tienda_física">Tienda Física</option>
               <option value="fabricante">Fabricante</option>
               <option value="particular">Particular</option>
             </select>
-            @if (hasFieldError('tipoVendedor')()) {
+            @if (hasFieldError('sellerType')()) {
               <span class="text-red-500 text-xs mt-1">Selecciona un tipo de vendedor</span>
             }
           </div>
@@ -208,29 +208,25 @@
           <input
             type="checkbox"
             class="form-checkbox rounded-sm h-5 w-5"
-            formControlName="aceptaTerminos"
           />
           <span class="ml-2 text-sm text-gray-600">
             He leído y acepto los <a href="#" class="text-gray-800 hover:underline">términos y condiciones</a>
           </span>
         </label>
-        @if (hasFieldError('aceptaTerminos')()) {
-          <div class="text-red-500 text-xs mt-1">Debes aceptar los términos y condiciones</div>
-        }
       </div>
       
       <div class="mb-6">
         <button
           type="submit"
           class="w-full bg-gray-800 hover:bg-black active:bg-black text-white font-light py-3 px-4 rounded-sm focus:outline-none touch-manipulation"
-          [ngClass]="{'opacity-50': registroForm.invalid && formSubmitted()}"
+          [ngClass]="{'opacity-50': registrationForm.invalid && formSubmitted()}"
         >
           Registrarse
         </button>
       </div>
       
       <div class="text-center text-sm text-gray-600 mb-6">
-        <a href="#" class="text-gray-800 hover:underline inline-block py-2 px-4">
+        <a href="#/login" class="text-gray-800 hover:underline inline-block py-2 px-4">
           ¿Ya tienes una cuenta? Iniciar sesión
         </a>
       </div>

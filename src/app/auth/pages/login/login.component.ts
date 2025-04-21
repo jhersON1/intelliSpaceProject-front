@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -11,6 +12,7 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angu
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
 
   formSubmitted = signal(false);
   fieldErrors = signal<Record<string, boolean>>({});
@@ -42,7 +44,7 @@ export class LoginComponent {
 
   validateField(fieldName: string): void {
     const control = this.loginForm.get(fieldName);
-    
+
     if (fieldName !== 'rememberMe') {
       this.updateFieldError(fieldName, !!control?.invalid && !!control?.touched);
     }
@@ -71,21 +73,21 @@ export class LoginComponent {
 
     if (this.loginForm.valid) {
       this.isAuthenticating.set(true);
-      
-      // Simulación de una autenticación con delay
-      setTimeout(() => {
-        // Aquí iría la lógica real de autenticación
-        const credentialsValid = false; // Simulación de credenciales incorrectas
-        
-        if (credentialsValid) {
-          console.log('Inicio de sesión exitoso:', this.loginForm.value);
-          // Redireccionar al usuario a la página principal o dashboard
-        } else {
-          this.authError.set('Correo electrónico o contraseña incorrectos');
+
+      const { email, password } = this.loginForm.value;
+
+      this.authService.login(email as string, password as string).subscribe({
+        next: () => {
+          this.isAuthenticating.set(true);
+        },
+        error: (err) => {
+          console.error('Login failed:', err);
+        },
+        complete: () => {
+          console.log('Login process completed');
         }
-        
-        this.isAuthenticating.set(false);
-      }, 1000);
+
+      });
     }
   }
 
