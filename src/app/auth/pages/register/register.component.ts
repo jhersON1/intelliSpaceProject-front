@@ -1,12 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import {
-  FormBuilder,
   ReactiveFormsModule,
   Validators,
   FormsModule,
+  NonNullableFormBuilder,
 } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CreateUser } from '../../interfaces';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 type UserRole = 'consumidor' | 'vendedor';
 
@@ -17,39 +20,35 @@ type UserRole = 'consumidor' | 'vendedor';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RegisterComponent {
-  private fb = inject(FormBuilder);
-
+  private fb = inject(NonNullableFormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
   formSubmitted = signal(false);
   currentRole = signal<UserRole>('consumidor');
   fieldErrors = signal<Record<string, boolean>>({});
   passwordsDontMatch = signal(false);
 
-  registroForm = this.fb.group({
+  registrationForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     confirmPassword: ['', [Validators.required]],
-    nombre: ['', [Validators.required]],
-    apellido: ['', [Validators.required]],
-    rol: ['consumidor', [Validators.required]],
-    aceptaTerminos: [false, [Validators.requiredTrue]],
-
-    direccion: [''],
-
-    nombreNegocio: [''],
-    descripcion: [''],
-    tipoVendedor: ['']
+    firstName: ['', [Validators.required]],
+    lastName: ['', [Validators.required]],
+    role: ['consumer', [Validators.required]],
+    address: [''],
+    businessName: [''],
+    description: [''],
+    sellerType: ['']
   });
-
 
   isConsumer = computed(() => this.currentRole() === 'consumidor');
   isVendor = computed(() => this.currentRole() === 'vendedor');
-
 
   hasFieldError = (fieldName: string) => computed(() => {
     if (fieldName === 'confirmPassword' && this.passwordsDontMatch()) {
       return true;
     }
-    return this.fieldErrors()[fieldName] === true;
+    return !!this.fieldErrors()[fieldName];
   });
 
   constructor() {
@@ -61,20 +60,19 @@ export class RegisterComponent {
       }
     });
 
-
-    Object.keys(this.registroForm.controls).forEach(field => {
+    Object.keys(this.registrationForm.controls).forEach(field => {
       if (field !== 'password' && field !== 'confirmPassword') {
-        this.registroForm.get(field)?.valueChanges
+        this.registrationForm.get(field)?.valueChanges
           .pipe(takeUntilDestroyed())
           .subscribe(() => {
-            if (this.formSubmitted() || this.registroForm.get(field)?.touched) {
+            if (this.formSubmitted() || this.registrationForm.get(field)?.touched) {
               this.validateField(field);
             }
           });
       }
     });
 
-    this.registroForm.get('rol')?.valueChanges
+    this.registrationForm.get('role')?.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(newRole => {
         if (newRole) {
@@ -89,8 +87,8 @@ export class RegisterComponent {
 
   setupPasswordValidation(): void {
     const checkPasswordsMatch = () => {
-      const password = this.registroForm.get('password')?.value;
-      const confirmPassword = this.registroForm.get('confirmPassword')?.value;
+      const password = this.registrationForm.get('password')?.value;
+      const confirmPassword = this.registrationForm.get('confirmPassword')?.value;
 
       if (password && confirmPassword) {
         this.passwordsDontMatch.set(password !== confirmPassword);
@@ -101,14 +99,14 @@ export class RegisterComponent {
       this.validateField('confirmPassword');
     };
 
-    this.registroForm.get('password')?.valueChanges
+    this.registrationForm.get('password')?.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => {
         checkPasswordsMatch();
         this.validateField('password');
       });
 
-    this.registroForm.get('confirmPassword')?.valueChanges
+    this.registrationForm.get('confirmPassword')?.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => {
         checkPasswordsMatch();
@@ -116,59 +114,47 @@ export class RegisterComponent {
   }
 
   updateValidators(): void {
-    const isConsumer = this.currentRole() === 'consumidor';
-
-    if (isConsumer) {
-      this.registroForm.get('direccion')?.setValidators([Validators.required]);
-
-      this.registroForm.get('nombreNegocio')?.clearValidators();
-      this.registroForm.get('descripcion')?.clearValidators();
-      this.registroForm.get('tipoVendedor')?.clearValidators();
+    if (this.isConsumer()) {
+      this.registrationForm.get('address')?.setValidators([Validators.required]);
+      this.registrationForm.get('businessName')?.clearValidators();
+      this.registrationForm.get('description')?.clearValidators();
+      this.registrationForm.get('sellerType')?.clearValidators();
     } else {
-      this.registroForm.get('nombreNegocio')?.setValidators([Validators.required]);
-      this.registroForm.get('descripcion')?.setValidators([Validators.required]);
-      this.registroForm.get('tipoVendedor')?.setValidators([Validators.required]);
-
-      this.registroForm.get('direccion')?.clearValidators();
+      this.registrationForm.get('businessName')?.setValidators([Validators.required]);
+      this.registrationForm.get('description')?.setValidators([Validators.required]);
+      this.registrationForm.get('sellerType')?.setValidators([Validators.required]);
+      this.registrationForm.get('address')?.clearValidators();
     }
 
-    this.registroForm.get('direccion')?.updateValueAndValidity({ emitEvent: false });
-    this.registroForm.get('nombreNegocio')?.updateValueAndValidity({ emitEvent: false });
-    this.registroForm.get('descripcion')?.updateValueAndValidity({ emitEvent: false });
-    this.registroForm.get('tipoVendedor')?.updateValueAndValidity({ emitEvent: false });
+    ['address', 'businessName', 'description', 'sellerType'].forEach(field =>
+      this.registrationForm.get(field)?.updateValueAndValidity({ emitEvent: false })
+    );
   }
 
   validateField(fieldName: string): void {
-    const control = this.registroForm.get(fieldName);
+    const control = this.registrationForm.get(fieldName);
 
-    if (fieldName === 'direccion' && !this.isConsumer()) {
+    if (fieldName === 'address' && !this.isConsumer()) {
       this.updateFieldError(fieldName, false);
       return;
     }
 
-    if (['nombreNegocio', 'descripcion', 'tipoVendedor'].includes(fieldName) && !this.isVendor()) {
+    if (['businessName', 'description', 'sellerType'].includes(fieldName) && !this.isVendor()) {
       this.updateFieldError(fieldName, false);
       return;
     }
 
-    if (fieldName !== 'confirmPassword') {
-      this.updateFieldError(fieldName, !!control?.invalid && !!control?.touched);
-    } else {
-
-      const isInvalid = (!!control?.invalid && !!control?.touched);
-      this.updateFieldError(fieldName, isInvalid);
-    }
+    const hasError = !!control?.invalid && !!control?.touched;
+    this.updateFieldError(fieldName, hasError);
   }
 
   validateAllFields(): void {
-    Object.keys(this.registroForm.controls).forEach(field => {
-      this.validateField(field);
-    });
+    Object.keys(this.registrationForm.controls).forEach(field => this.validateField(field));
 
-    const password = this.registroForm.get('password')?.value;
-    const confirmPassword = this.registroForm.get('confirmPassword')?.value;
-    if (password && confirmPassword) {
-      this.passwordsDontMatch.set(password !== confirmPassword);
+    const pwd = this.registrationForm.get('password')?.value;
+    const cpw = this.registrationForm.get('confirmPassword')?.value;
+    if (pwd && cpw) {
+      this.passwordsDontMatch.set(pwd !== cpw);
     }
   }
 
@@ -179,9 +165,9 @@ export class RegisterComponent {
     }));
   }
 
-  cambiarRol(nuevoRol: UserRole): void {
-    this.currentRole.set(nuevoRol);
-    this.registroForm.get('rol')?.setValue(nuevoRol);
+  changeRole(newRole: UserRole): void {
+    this.currentRole.set(newRole);
+    this.registrationForm.get('role')?.setValue(newRole);
   }
 
   onSubmit(): void {
@@ -189,14 +175,28 @@ export class RegisterComponent {
     this.markAllAsTouched();
     this.validateAllFields();
 
-    if (this.registroForm.valid && !this.passwordsDontMatch()) {
-      console.log('Formulario enviado:', this.registroForm.value);
+    if (this.registrationForm.valid && !this.passwordsDontMatch()) {
+      const body = this.registrationForm.value;
+
+      this.authService.register(body as CreateUser).subscribe({
+        next: () => {
+          this.formSubmitted.set(false);
+          this.registrationForm.reset();
+          this.fieldErrors.set({});
+          this.passwordsDontMatch.set(false);
+
+        },
+        error: (err) => {
+          console.error(err);
+          this.fieldErrors.set({ general: true });
+        }
+      })
     }
   }
 
   markAllAsTouched(): void {
-    Object.keys(this.registroForm.controls).forEach(key => {
-      this.registroForm.get(key)?.markAsTouched();
-    });
+    Object.keys(this.registrationForm.controls).forEach(key =>
+      this.registrationForm.get(key)?.markAsTouched()
+    );
   }
 }

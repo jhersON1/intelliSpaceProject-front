@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { isAuthenticatedGuard } from './auth/guards';
 
 export const routes: Routes = [
     {
@@ -8,9 +9,11 @@ export const routes: Routes = [
     {
         path: '',
         loadChildren: () => import('./auth/auth.routes').then(m => m.authRoutes),
+        canActivate: [isAuthenticatedGuard]
     },
     {
         path: '**',
         redirectTo: 'home',
+        pathMatch: 'full'
     }
 ];
