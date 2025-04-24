@@ -3,4 +3,5 @@ export const API_ROUTES = {
   REGISTER: '/auth/register',
   CHECK_TOKEN: '/auth/check-status',
   CHECK_EMAIL: '/auth/check-email',
+  CONSUMER_PRODUCTS: '/products/consumer-products'
 } as const;
