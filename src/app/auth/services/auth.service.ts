@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { Observable, map, catchError, throwError, of, tap } from 'rxjs';
-import { User, AuthStatus, LoginResponse, CheckTokenResponse, CreateUser } from '../interfaces';
+import { User, AuthStatus, LoginResponse, CheckTokenResponse, CreateUser, userRole } from '../interfaces';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ErrorHandlingService } from './error-handling-service.service';
 import { TokenService } from './token.service';
@@ -93,5 +93,33 @@ export class AuthService {
     this.tokenService.removeToken();
     this._currentUser.set(null);
     this._authStatus.set(AuthStatus.notAuthenticated);
+  }
+
+  private decodeToken(): any {
+    const token = this.tokenService.getToken();
+    if (!token) return null;
+    try {
+      const [, payloadB64] = token.split('.');
+      const json = atob(payloadB64);
+      console.log(json);
+      return JSON.parse(json);
+    } catch {
+      return null;
+    }
+  }
+
+  //todo: se ejecuta muchas veces, revisar
+  private getRole(): userRole {
+    const decoded = this.decodeToken();
+
+    if (!decoded.rol) {
+      throwError(() => new Error('No role found in token payload'));
+    }
+
+    return (decoded.rol as userRole) ?? userRole.CONSUMER;
+  }
+
+  public isVendor(): boolean {
+    return this.getRole() === userRole.VENDOR;
   }
 }
