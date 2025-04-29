@@ -3,5 +3,6 @@ export const API_ROUTES = {
   REGISTER: '/auth/register',
   CHECK_TOKEN: '/auth/check-status',
   CHECK_EMAIL: '/auth/check-email',
-  CONSUMER_PRODUCTS: '/products/consumer-products'
+  CONSUMER_PRODUCTS: '/products/consumer-products',
+  VENDOR_PRODUCTS: '/products/create'
 } as const;
