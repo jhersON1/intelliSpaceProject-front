@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -13,6 +14,7 @@ import { AuthService } from '../../services/auth.service';
 export class LoginComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private router = inject(Router);
 
   formSubmitted = signal(false);
   fieldErrors = signal<Record<string, boolean>>({});
@@ -78,13 +80,16 @@ export class LoginComponent {
 
       this.authService.login(email as string, password as string).subscribe({
         next: () => {
-          this.isAuthenticating.set(true);
+          console.log('Login successful');
+          this.router.navigate(['/home']);
         },
         error: (err) => {
           console.error('Login failed:', err);
+          this.isAuthenticating.set(false);
         },
         complete: () => {
           console.log('Login process completed');
+          this.isAuthenticating.set(false);
         }
 
       });

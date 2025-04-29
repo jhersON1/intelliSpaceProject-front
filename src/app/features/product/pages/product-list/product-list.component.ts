@@ -1,9 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProductsService } from '../services/products.service';
-import { Product } from '../interfaces/product.interface';
-
+import { Product } from '../../interfaces/product.interface';
+import { ProductsService } from '../../services/products.service';
 
 @Component({
   selector: 'app-product-list',

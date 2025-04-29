@@ -8,5 +8,5 @@ export const authRoutes = [
     {
         path: 'register',
         loadComponent: () => import('./pages/register/register.component').then(m => m.RegisterComponent),
-    }
+    },
 ]
