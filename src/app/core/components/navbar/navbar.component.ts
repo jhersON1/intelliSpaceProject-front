@@ -1,5 +1,6 @@
 
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -7,12 +8,13 @@ import { Component, HostListener } from '@angular/core';
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent{
+  private authService = inject(AuthService);
+  
   isNavbarHidden = false;
   private lastScrollTop = 0;
 
   isMobileMenuOpen = false;
   isMobileSearchOpen = false;
-
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
@@ -41,5 +43,9 @@ export class NavbarComponent{
     if (this.isMobileSearchOpen) {
       this.isMobileMenuOpen = false;
     }
+  }
+
+  public isVendor(): boolean {
+    return this.authService.isVendor();
   }
 }

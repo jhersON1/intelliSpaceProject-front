@@ -23,6 +23,22 @@ export class ProductsService {
     return this.http.get<Product[]>(`${this.baseUrl}${API_ROUTES.CONSUMER_PRODUCTS}`, { params });
   }
 
+  public findVendorProducts(limit = 10, offset = 0): Observable<Product[]> {
+    const token = this.tokenService.getToken();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    const url = `${this.baseUrl}${API_ROUTES.FIND_VENDOR_PRODUCTS}`;
+
+    const params = new HttpParams()
+      .set('limit', limit.toString())
+      .set('offset', offset.toString());
+
+    return this.http.get<Product[]>(url, { params, headers });
+  }
+
   public createProduct(createProduct: CreateProduct): Observable<CreateProduct> {
     const token = this.tokenService.getToken();
     const headers = new HttpHeaders({
@@ -30,7 +46,7 @@ export class ProductsService {
       'Authorization': `Bearer ${token}`
     });
 
-    const url = `${this.baseUrl}${API_ROUTES.VENDOR_PRODUCTS}`;
+    const url = `${this.baseUrl}${API_ROUTES.CREATE_VENDOR_PRODUCTS}`;
 
     return this.http.post<CreateProduct>(url, createProduct, { headers });
   }
