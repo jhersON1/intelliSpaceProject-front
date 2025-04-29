@@ -30,7 +30,7 @@
           @if (product.imageUrl) {
             <img 
               [src]="product.imageUrl" 
-              [alt]="product.titulo" 
+              [alt]="product.title" 
               class="w-full h-48 object-cover"
             />
           } @else {
@@ -44,8 +44,8 @@
           <div class="p-4">
             <!-- Product details -->
             <div class="flex justify-between items-start">
-              <h3 class="text-lg font-semibold text-gray-800 line-clamp-1">{{ product.titulo }}</h3>
-              <span class="text-lg font-bold text-blue-600">${{ product.precio?.toFixed(2) }}</span>
+              <h3 class="text-lg font-semibold text-gray-800 line-clamp-1">{{ product.title }}</h3>
+              <span class="text-lg font-bold text-blue-600">${{ product.price?.toFixed(2) }}</span>
             </div>
             
             @if (product.category) {
@@ -54,7 +54,7 @@
               </span>
             }
             
-            <p class="mt-2 text-gray-600 text-sm line-clamp-2">{{ product.descripcion }}</p>
+            <p class="mt-2 text-gray-600 text-sm line-clamp-2">{{ product.description }}</p>
             
             <!-- Actions -->
             <div class="mt-4 flex justify-between">

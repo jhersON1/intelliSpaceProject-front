@@ -1,9 +1,33 @@
+export enum ProductStatus {
+  SOLD_OUT = "Agotado",
+  AVAILABLE = "Disponible"
+}
+
 export interface Product {
   id: number;
   title: string;
-  dimensions?: string;
+  dimensions?: object;
+  description?: string;
   price?: number;
   imageUrl?: string;
   category?: string;
+  weight: number;
+  material?: string;
+  stock?: number;
+  state: ProductStatus;
+  keywords?: string[];
+}
 
+export interface CreateProduct {
+  title: string;
+  dimensions?: object;
+  description?: string;
+  price?: number;
+  imageUrl?: string;
+  category?: string;
+  weight: number;
+  material?: string;
+  stock?: number;
+  state: ProductStatus;
+  keywords?: string[];
 }
