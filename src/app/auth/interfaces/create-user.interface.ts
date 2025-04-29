@@ -1,21 +1,21 @@
-enum userRole{
+export enum userRole{
     CONSUMER = 'CONSUMER',
     VENDOR = 'VENDOR',
 }
 
-enum sellerType{
-    SELLER = 'SELLER',
-    DISTRIBUTOR = 'DISTRIBUTOR',
+export enum sellerType{
+    INDIVIDUAL = 'INDIVIDUAL',
+    BUSSINES = 'EMPRESA',
 }
 
 export interface CreateUser {
     email: string;
     password: string;
-    nombre: string;
-    apellido: string;
+    name: string;
+    lastname: string;
     rol: userRole; 
-    direccion?: string;
-    nombreNegocio?: string;
-    descripcion?: string;
-    tipoVendedor?: sellerType;
+    address?: string;
+    nameBusiness?: string;
+    description?: string;
+    typeVendor?: sellerType;
 }

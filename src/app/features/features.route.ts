@@ -7,6 +7,6 @@ export const featureRoutes = [
     },
     {
         path: 'products',
-        loadComponent: () => import('./product/product-list/product-list.component').then(m => m.ProductListComponent),
+        loadComponent: () => import('./product/pages/product-list/product-list.component').then(m => m.ProductListComponent),
     }
 ]

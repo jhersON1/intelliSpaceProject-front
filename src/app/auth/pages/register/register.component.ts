@@ -7,11 +7,10 @@ import {
   NonNullableFormBuilder,
 } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CreateUser } from '../../interfaces';
+import { CreateUser, userRole } from '../../interfaces';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 
-type UserRole = 'consumidor' | 'vendedor';
 
 @Component({
   selector: 'app-register',
@@ -24,25 +23,25 @@ export class RegisterComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   formSubmitted = signal(false);
-  currentRole = signal<UserRole>('consumidor');
+  currentRole = signal<userRole>(userRole.CONSUMER);
   fieldErrors = signal<Record<string, boolean>>({});
   passwordsDontMatch = signal(false);
 
   registrationForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-    confirmPassword: ['', [Validators.required]],
-    firstName: ['', [Validators.required]],
-    lastName: ['', [Validators.required]],
-    role: ['consumer', [Validators.required]],
+    password: ['Abc123456', [Validators.required, Validators.minLength(6)]],
+    confirmPassword: ['Abc123456', [Validators.required]],
+    name: ['', [Validators.required]],
+    lastname: ['', [Validators.required]],
+    rol: [userRole.CONSUMER, [Validators.required]],
     address: [''],
-    businessName: [''],
+    nameBusiness: [''],
     description: [''],
-    sellerType: ['']
+    typeVendor: ['']
   });
 
-  isConsumer = computed(() => this.currentRole() === 'consumidor');
-  isVendor = computed(() => this.currentRole() === 'vendedor');
+  isConsumer = computed(() => this.currentRole() === userRole.CONSUMER);
+  isVendor = computed(() => this.currentRole() === userRole.VENDOR);
 
   hasFieldError = (fieldName: string) => computed(() => {
     if (fieldName === 'confirmPassword' && this.passwordsDontMatch()) {
@@ -76,7 +75,7 @@ export class RegisterComponent {
       .pipe(takeUntilDestroyed())
       .subscribe(newRole => {
         if (newRole) {
-          this.currentRole.set(newRole as UserRole);
+          this.currentRole.set(newRole);
           this.updateValidators();
           if (this.formSubmitted()) {
             this.validateAllFields();
@@ -116,17 +115,17 @@ export class RegisterComponent {
   updateValidators(): void {
     if (this.isConsumer()) {
       this.registrationForm.get('address')?.setValidators([Validators.required]);
-      this.registrationForm.get('businessName')?.clearValidators();
+      this.registrationForm.get('nameBusiness')?.clearValidators();
       this.registrationForm.get('description')?.clearValidators();
-      this.registrationForm.get('sellerType')?.clearValidators();
+      this.registrationForm.get('typeVendor')?.clearValidators();
     } else {
-      this.registrationForm.get('businessName')?.setValidators([Validators.required]);
+      this.registrationForm.get('nameBusiness')?.setValidators([Validators.required]);
       this.registrationForm.get('description')?.setValidators([Validators.required]);
-      this.registrationForm.get('sellerType')?.setValidators([Validators.required]);
+      this.registrationForm.get('typeVendor')?.setValidators([Validators.required]);
       this.registrationForm.get('address')?.clearValidators();
     }
 
-    ['address', 'businessName', 'description', 'sellerType'].forEach(field =>
+    ['address', 'nameBusiness', 'description', 'typeVendor'].forEach(field =>
       this.registrationForm.get(field)?.updateValueAndValidity({ emitEvent: false })
     );
   }
@@ -139,7 +138,7 @@ export class RegisterComponent {
       return;
     }
 
-    if (['businessName', 'description', 'sellerType'].includes(fieldName) && !this.isVendor()) {
+    if (['nameBusiness', 'description', 'typeVendor'].includes(fieldName) && !this.isVendor()) {
       this.updateFieldError(fieldName, false);
       return;
     }
@@ -165,9 +164,17 @@ export class RegisterComponent {
     }));
   }
 
-  changeRole(newRole: UserRole): void {
-    this.currentRole.set(newRole);
-    this.registrationForm.get('role')?.setValue(newRole);
+  changeRole(newRole: string): void {
+    if (newRole === 'consumer') {
+      this.currentRole.set(userRole.CONSUMER);
+      this.registrationForm.get('rol')?.setValue(userRole.CONSUMER);
+    } else if (newRole === 'vendor') {
+      this.currentRole.set(userRole.VENDOR);
+      this.registrationForm.get('rol')?.setValue(userRole.VENDOR);
+    } else {
+      console.error('Invalid role selected');
+      return;
+    }
   }
 
   onSubmit(): void {
@@ -176,7 +183,8 @@ export class RegisterComponent {
     this.validateAllFields();
 
     if (this.registrationForm.valid && !this.passwordsDontMatch()) {
-      const body = this.registrationForm.value;
+      const { confirmPassword, ...body } = this.registrationForm.value;
+      console.log(body);
 
       this.authService.register(body as CreateUser).subscribe({
         next: () => {
@@ -184,7 +192,7 @@ export class RegisterComponent {
           this.registrationForm.reset();
           this.fieldErrors.set({});
           this.passwordsDontMatch.set(false);
-
+          this.router.navigate(['/home']);
         },
         error: (err) => {
           console.error(err);

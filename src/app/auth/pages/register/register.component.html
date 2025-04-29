@@ -68,10 +68,10 @@
         <input
           type="text"
           autocomplete="given-name"
-          id="firstName"
-          formControlName="firstName"
+          id="name"
+          formControlName="name"
           class="w-full px-3 py-3 bg-gray-50 border-0 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
-          [ngClass]="{'bg-red-50': hasFieldError('firstName')()}"
+          [ngClass]="{'bg-red-50': hasFieldError('name')()}"
         />
         @if (hasFieldError('firstName')()) {
           <span class="text-red-500 text-xs mt-1">El nombre es obligatorio</span>
@@ -85,10 +85,10 @@
         <input
           type="text"
           autocomplete="family-name"
-          id="lastName"
-          formControlName="lastName"
+          id="lastmame"
+          formControlName="lastname"
           class="w-full px-3 py-3 bg-gray-50 border-0 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
-          [ngClass]="{'bg-red-50': hasFieldError('lastName')()}"
+          [ngClass]="{'bg-red-50': hasFieldError('lastname')()}"
         />
         @if (hasFieldError('lastName')()) {
           <span class="text-red-500 text-xs mt-1">El apellido es obligatorio</span>
@@ -105,7 +105,7 @@
               type="radio"
               class="form-radio text-gray-800 h-5 w-5"
               [checked]="isConsumer()"
-              (change)="changeRole('consumidor')"
+              (change)="changeRole('consumer')"
               aria-label="Consumidor"
             />
             <span class="ml-2 text-sm text-gray-700">Consumidor</span>
@@ -115,7 +115,7 @@
               type="radio"
               class="form-radio text-gray-800 h-5 w-5"
               [checked]="isVendor()"
-              (change)="changeRole('vendedor')"
+              (change)="changeRole('vendor')"
               aria-label="Vendedor"
             />
             <span class="ml-2 text-sm text-gray-700">Vendedor</span>
@@ -155,12 +155,12 @@
             <input
               type="text"
               autocomplete="organization"
-              id="businessName"
-              formControlName="businessName"
+              id="nameBusiness"
+              formControlName="nameBusiness"
               class="w-full px-3 py-3 bg-white border border-gray-100 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 touch-manipulation"
-              [ngClass]="{'bg-red-50': hasFieldError('businessName')()}"
+              [ngClass]="{'bg-red-50': hasFieldError('nameBusiness')()}"
             />
-            @if (hasFieldError('businessName')()) {
+            @if (hasFieldError('nameBusiness')()) {
               <span class="text-red-500 text-xs mt-1">El nombre del negocio es obligatorio</span>
             }
           </div>
@@ -186,17 +186,16 @@
               Tipo de vendedor
             </label>
             <select
-              id="sellerType"
-              formControlName="sellerType"
+              id="typeVendor"
+              formControlName="typeVendor"
               class="w-full px-3 py-3 bg-white border border-gray-100 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 appearance-none touch-manipulation"
-              [ngClass]="{'bg-red-50': hasFieldError('sellerType')()}"
+              [ngClass]="{'bg-red-50': hasFieldError('typeVendor')()}"
             >
               <option value="">Seleccionar...</option>
-              <option value="tienda_física">Tienda Física</option>
-              <option value="fabricante">Fabricante</option>
-              <option value="particular">Particular</option>
+              <option value="INDIVIDUAL">Individual</option>
+              <option value="EMPRESA">Empresa</option>
             </select>
-            @if (hasFieldError('sellerType')()) {
+            @if (hasFieldError('typeVendor')()) {
               <span class="text-red-500 text-xs mt-1">Selecciona un tipo de vendedor</span>
             }
           </div>

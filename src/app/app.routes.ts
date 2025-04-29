@@ -7,9 +7,14 @@ export const routes: Routes = [
         loadChildren: () => import('./features/features.route').then(m => m.featureRoutes),
     },
     {
-        path: '',
+        path: 'auth',
         loadChildren: () => import('./auth/auth.routes').then(m => m.authRoutes),
         canActivate: [isAuthenticatedGuard]
+    },
+    {
+        path: '',
+        redirectTo: 'home',
+        pathMatch: 'full'
     },
     {
         path: '**',

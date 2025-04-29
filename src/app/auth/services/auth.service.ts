@@ -56,7 +56,7 @@ export class AuthService {
       )
   }
 
-  register(body: CreateUser): Observable<boolean> {
+  public register(body: CreateUser): Observable<boolean> {
     const url = `${this.baseUrl}${API_ROUTES.REGISTER}`;
 
     return this.http.post(url, body)
