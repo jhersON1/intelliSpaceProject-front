@@ -46,4 +46,3 @@ Thumbs.db
 .vscode
 node_modules
 package-lock.json
-/src/app/environments/environments.ts
