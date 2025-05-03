@@ -30,4 +30,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_SW_TOKEN }}
         run: |
-          npm run ng -- deploy --repo=https://github.com/jhersON1/portfolio-angular.git --name="jhersON1" --email="rodriguezpaul98@gmail.com" --base-href=/intelliSpace/
+          npm run ng -- deploy --repo=https://github.com/jhersON1/intelliSpaceProject-front.git --name="jhersON1" --email="rodriguezpaul98@gmail.com" --base-href=/intelliSpace/
