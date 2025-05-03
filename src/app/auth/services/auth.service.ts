@@ -6,7 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ErrorHandlingService } from './error-handling-service.service';
 import { TokenService } from './token.service';
 import { API_ROUTES } from '../../core/constants';
-import { environment } from '../../environments/environments';
+import { environment } from '@environments/environments';
 
 @Injectable({
   providedIn: 'root'

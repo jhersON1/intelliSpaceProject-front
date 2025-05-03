@@ -1,10 +1,11 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../environments/environments';
 import { Observable } from 'rxjs';
 import { API_ROUTES } from '../../../core/constants';
 import { Product, CreateProduct } from '../interfaces/product.interface';
 import { TokenService } from '../../../auth/services/token.service';
+import { environment } from '@environments/environments';
+
 
 @Injectable({
   providedIn: 'root'
