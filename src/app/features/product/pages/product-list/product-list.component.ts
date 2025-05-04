@@ -12,7 +12,7 @@ import { ProductsService } from '../../services/products.service';
 })
 export class ProductListComponent implements OnInit {
   private productService = inject(ProductsService);
-  private cd = inject(ChangeDetectorRef)
+  private cd = inject(ChangeDetectorRef);
 
   loading = false;
   allProducts: Product[] = [];

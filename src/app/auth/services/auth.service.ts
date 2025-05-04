@@ -101,14 +101,13 @@ export class AuthService {
     try {
       const [, payloadB64] = token.split('.');
       const json = atob(payloadB64);
-      console.log(json);
+
       return JSON.parse(json);
     } catch {
       return null;
     }
   }
 
-  //todo: se ejecuta muchas veces, revisar
   private getRole(): userRole {
     const decoded = this.decodeToken();
 
