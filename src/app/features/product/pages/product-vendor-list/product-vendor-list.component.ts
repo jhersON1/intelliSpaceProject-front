@@ -96,6 +96,7 @@ export class ProductVendorListComponent {
 
   viewDetails(p: Product) {
     console.log('Ver detalles:', p);
+    this.router.navigate(['/home/products', p.id, 'detail']);
   }
 
   editProduct(p: Product) {

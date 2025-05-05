@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Product } from '../../interfaces/product.interface';
 import { ProductsService } from '../../services/products.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-product-list',
@@ -12,6 +13,7 @@ import { ProductsService } from '../../services/products.service';
 })
 export class ProductListComponent implements OnInit {
   private productService = inject(ProductsService);
+  private router = inject(Router);
   private cd = inject(ChangeDetectorRef);
 
   loading = false;
@@ -94,6 +96,7 @@ export class ProductListComponent implements OnInit {
 
   viewDetails(p: Product) {
     console.log('Ver detalles:', p);
+    this.router.navigate(['/home/products', p.id, 'detail']);
   }
 
   addToCart(p: Product) {

@@ -1,0 +1,248 @@
+@if (loading()) {
+  <div class="flex justify-center items-center min-h-screen">
+    <div class="animate-spin rounded h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  </div>
+}
+
+@if (!loading() && product()) {
+  <!-- Contenedor principal con espacio significativo para el navbar -->
+  <div class="bg-white pt-24 pb-16">
+    <!-- Visualización inmersiva para productos de decoración -->
+    <div class="max-w-screen-2xl mx-auto">
+      <!-- Panel de visualización expandido -->
+      <div class="relative">
+        <!-- Pestañas de modo de visualización rediseñadas -->
+        <div class="flex justify-center mb-6 px-4">
+          <div class="inline-flex rounded-lg bg-gray-100 p-1 shadow-sm">
+            <button 
+              (click)="setDisplayMode('images')" 
+              class="flex items-center px-5 py-3 rounded-md transition-all duration-200 font-medium text-sm"
+              [ngClass]="{'bg-white text-blue-600 shadow': displayMode() === 'images', 'text-gray-700 hover:bg-gray-50': displayMode() !== 'images'}">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Imágenes
+            </button>
+            <button 
+              (click)="setDisplayMode('3d')" 
+              class="flex items-center px-5 py-3 rounded-md transition-all duration-200 font-medium text-sm"
+              [ngClass]="{'bg-white text-blue-600 shadow': displayMode() === '3d', 'text-gray-700 hover:bg-gray-50': displayMode() !== '3d'}">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              Vista 3D
+            </button>
+            @if (isMobileDevice()) {
+              <button 
+                (click)="setDisplayMode('ar')"
+                class="flex items-center px-5 py-3 rounded-md transition-all duration-200 font-medium text-sm"
+                [ngClass]="{'bg-white text-blue-600 shadow': displayMode() === 'ar', 'text-gray-700 hover:bg-gray-50': displayMode() !== 'ar'}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                AR
+              </button>
+            }
+          </div>
+        </div>
+        
+        <!-- Visualización inmersiva - Imágenes -->
+        @if (displayMode() === 'images') {
+          <div class="w-full bg-gray-50">
+            <div class="h-[500px] sm:h-[550px] md:h-[650px] lg:h-[750px] xl:h-[850px] 2xl:h-[950px] w-full flex items-center justify-center">
+              @if (currentImage()) {
+                <img 
+                  [src]="currentImage()" 
+                  [alt]="product()?.title" 
+                  class="max-h-full max-w-full object-contain"
+                />
+              } @else {
+                <div class="flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              }
+            </div>
+          </div>
+          
+          <!-- Miniaturas de imágenes -->
+          @if (images().length > 1) {
+            <div class="flex justify-center mt-6 px-4">
+              <div class="flex gap-4 overflow-x-auto py-2 max-w-full scrollbar-hide">
+                @for (img of images(); track $index) {
+                  <div 
+                    (click)="selectImage($index)"
+                    class="h-28 w-28 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105"
+                    [ngClass]="{'ring-2 ring-offset-2 ring-blue-600': $index === currentImageIndex(), 'opacity-70 hover:opacity-100': $index !== currentImageIndex()}">
+                    <img [src]="img" [alt]="product()?.title + ' image ' + $index" class="h-full w-full object-cover">
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
+        
+        <!-- Visualización 3D -->
+        @if (displayMode() === '3d') {
+          <div class="w-full bg-gray-50">
+            <div class="h-[500px] sm:h-[550px] md:h-[650px] lg:h-[750px] xl:h-[850px] 2xl:h-[950px] flex items-center justify-center">
+              <div class="text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 mx-auto text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <p class="mt-6 text-gray-500 text-xl">Visualización 3D del producto</p>
+              </div>
+            </div>
+          </div>
+        }
+        
+        <!-- Visualización AR -->
+        @if (displayMode() === 'ar') {
+          <div class="w-full bg-gray-50">
+            <div class="h-[500px] sm:h-[550px] md:h-[650px] lg:h-[750px] xl:h-[850px] 2xl:h-[950px] flex items-center justify-center">
+              <div class="text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 mx-auto text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <p class="mt-6 text-gray-500 text-xl">Experiencia de Realidad Aumentada</p>
+                <button class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-base">
+                  Ver en mi espacio
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Información del producto -->
+      <div class="mx-auto px-4 xl:px-6 mt-8 max-w-screen-xl">
+        <!-- Navegación de breadcrumb -->
+        <div class="text-sm text-gray-500 mb-6">
+          <span class="hover:text-blue-600 cursor-pointer" (click)="navigateToProducts()">Productos</span>
+          <span class="mx-2">›</span>
+          @if (product()?.category) {
+            <span class="hover:text-blue-600 cursor-pointer">{{ product()?.category }}</span>
+            <span class="mx-2">›</span>
+          }
+          <span class="text-gray-800">{{ product()?.title }}</span>
+        </div>
+
+        <!-- Información del producto -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          <!-- Información principal -->
+          <div class="lg:col-span-2">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ product()?.title }}</h1>
+            
+            <div class="flex items-center gap-4 mb-6">
+              <span class="text-2xl font-medium text-blue-600">${{ product()?.price?.toFixed(2) }}</span>
+              <span 
+                [ngClass]="{'bg-green-50 text-green-700': product()?.state === 'Disponible', 'bg-red-50 text-red-700': product()?.state !== 'Disponible'}"
+                class="px-3 py-1 text-sm font-medium">
+                {{ product()?.state }}
+              </span>
+            </div>
+            
+            <!-- Descripción -->
+            @if (product()?.description) {
+              <div class="prose max-w-none mb-8">
+                <p class="text-gray-600 text-lg">{{ product()?.description }}</p>
+              </div>
+            }
+            
+            <!-- Especificaciones -->
+            <div class="mb-8">
+              <h2 class="text-xl font-semibold mb-4 text-gray-800">Especificaciones</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @if (product()?.category) {
+                  <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span class="text-gray-500 block text-sm">Categoría</span>
+                      <span class="font-medium text-gray-900">{{ product()?.category }}</span>
+                    </div>
+                  </div>
+                }
+                @if (product()?.material) {
+                  <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span class="text-gray-500 block text-sm">Material</span>
+                      <span class="font-medium text-gray-900">{{ product()?.material }}</span>
+                    </div>
+                  </div>
+                }
+                @if (product()?.weight) {
+                  <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span class="text-gray-500 block text-sm">Peso</span>
+                      <span class="font-medium text-gray-900">{{ product()?.weight }} kg</span>
+                    </div>
+                  </div>
+                }
+                @if (product()?.dimensions) {
+                  <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span class="text-gray-500 block text-sm">Dimensiones</span>
+                      <span class="font-medium text-gray-900">{{ getDimensionsString() }}</span>
+                    </div>
+                  </div>
+                }
+                @if (product()?.stock !== undefined) {
+                  <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span class="text-gray-500 block text-sm">Stock</span>
+                      <span class="font-medium text-gray-900">{{ product()?.stock }} unidades</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+          
+          <!-- Panel de acciones -->
+          <div>
+            <div class="bg-white border border-gray-100 p-6">
+              <!-- Keywords/Tags -->
+              @if (product()?.keywords?.length) {
+                <div>
+                  <h3 class="font-medium text-gray-800 mb-3">Etiquetas</h3>
+                  <div class="flex flex-wrap gap-2">
+                    @for (keyword of product()?.keywords || []; track keyword) {
+                      <span class="bg-gray-50 text-gray-600 px-3 py-1 text-xs">
+                        {{ keyword }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
