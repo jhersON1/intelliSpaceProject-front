@@ -9,7 +9,7 @@ export interface Product {
   dimensions?: object;
   description?: string;
   price?: number;
-  imageUrl?: string;
+  imageUrl?: string | string[];
   category?: string;
   weight: number;
   material?: string;
@@ -23,7 +23,7 @@ export interface CreateProduct {
   dimensions?: object;
   description?: string;
   price?: number;
-  imageUrl?: string;
+  imageUrl?: string | string[];
   category?: string;
   weight: number;
   material?: string;
@@ -31,3 +31,5 @@ export interface CreateProduct {
   state: ProductStatus;
   keywords?: string[];
 }
+
+export interface UpdateProduct extends CreateProduct {}

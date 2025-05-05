@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_ROUTES } from '../../../core/constants';
-import { Product, CreateProduct } from '../interfaces/product.interface';
+import { Product, CreateProduct, UpdateProduct } from '../interfaces/product.interface';
 import { TokenService } from '../../../auth/services/token.service';
 import { environment } from '@environments/environments';
 
@@ -40,6 +40,12 @@ export class ProductsService {
     return this.http.get<Product[]>(url, { params, headers });
   }
 
+  public getVendorProduct(id: string): Observable<Product> {
+    const url = `${this.baseUrl}${API_ROUTES.GET_VENDOR_PRODUCT}/${id}`;
+
+    return this.http.get<Product>(url);
+  }
+
   public createProduct(createProduct: CreateProduct): Observable<CreateProduct> {
     const token = this.tokenService.getToken();
     const headers = new HttpHeaders({
@@ -50,5 +56,17 @@ export class ProductsService {
     const url = `${this.baseUrl}${API_ROUTES.CREATE_VENDOR_PRODUCTS}`;
 
     return this.http.post<CreateProduct>(url, createProduct, { headers });
+  }
+
+  public updateProduct(productId: string, body: UpdateProduct): Observable<Product> {
+    const token = this.tokenService.getToken();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    const url = `${this.baseUrl}${API_ROUTES.UPDATE_VENDOR_PRODUCT}/${productId}`;
+
+    return this.http.patch<Product>(url, body, { headers });
   }
 }

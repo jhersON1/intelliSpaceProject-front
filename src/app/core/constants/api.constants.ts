@@ -6,4 +6,6 @@ export const API_ROUTES = {
   CONSUMER_PRODUCTS: '/products/consumer-products',
   CREATE_VENDOR_PRODUCTS: '/products/create',
   FIND_VENDOR_PRODUCTS: '/products/vendor-products',
+  GET_VENDOR_PRODUCT: '/products',
+  UPDATE_VENDOR_PRODUCT: '/products/update-product',
 } as const;
