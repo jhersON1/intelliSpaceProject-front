@@ -69,4 +69,11 @@ export class ProductsService {
 
     return this.http.patch<Product>(url, body, { headers });
   }
+
+  public getProductDetail(id: string): Observable<Product> {
+    const url = `${this.baseUrl}${API_ROUTES.GET_PRODUCT_DETAIL}/${id}`;
+
+    return this.http.get<Product>(url);
+  }
+
 }

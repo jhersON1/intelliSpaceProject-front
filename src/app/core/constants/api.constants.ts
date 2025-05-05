@@ -8,4 +8,5 @@ export const API_ROUTES = {
   FIND_VENDOR_PRODUCTS: '/products/vendor-products',
   GET_VENDOR_PRODUCT: '/products',
   UPDATE_VENDOR_PRODUCT: '/products/update-product',
+  GET_PRODUCT_DETAIL: '/products',
 } as const;
