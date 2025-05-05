@@ -16,5 +16,9 @@ export const featureRoutes = [
     {
         path: 'my-products',
         loadComponent: () => import('./product/pages/product-vendor-list/product-vendor-list.component').then(m => m.ProductVendorListComponent),
+    },
+    {
+        path: 'products/:id',
+        loadComponent: () => import('./product/pages/product-vendor-edit/product-vendor-edit.component').then(m => m.ProductVendorEditComponent),
     }
 ]

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Product } from '../../interfaces/product.interface';
 import { ProductsService } from '../../services/products.service';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-product-vendor-list',
@@ -12,6 +13,7 @@ import { CommonModule } from '@angular/common';
 })
 export class ProductVendorListComponent {
   private productService = inject(ProductsService);
+  private router = inject(Router);
   private cd = inject(ChangeDetectorRef)
 
   loading = false;
@@ -96,7 +98,8 @@ export class ProductVendorListComponent {
     console.log('Ver detalles:', p);
   }
 
-  addToCart(p: Product) {
-    console.log('Añadir al carrito:', p);
+  editProduct(p: Product) {
+    console.log('editar producto', p);
+    this.router.navigate(['/home/products', p.id]);
   }
 }
