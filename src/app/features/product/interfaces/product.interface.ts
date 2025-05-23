@@ -30,6 +30,7 @@ export interface CreateProduct {
   stock?: number;
   state: ProductStatus;
   keywords?: string[];
+  idCategory: string[];
 }
 
 export interface UpdateProduct extends CreateProduct {}

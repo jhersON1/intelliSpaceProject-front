@@ -1,0 +1,95 @@
+<div class="card">
+  <div class="card-body">
+    @if (hierarchicalCategories.length === 0) {
+      <div class="d-flex justify-content-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando categorías...</span>
+        </div>
+      </div>
+    } @else {
+      <div class="category-tree">
+        @for (category of hierarchicalCategories; track category.id) {
+          <div class="category-item">
+            <div class="category-header" (click)="toggleExpansion(category.id, $event)">
+              <div class="d-flex align-items-center">
+                @if (category.children?.length) {
+                  <i class="expand-icon me-2 bi" 
+                     [class.bi-chevron-down]="isCategoryExpanded(category.id)" 
+                     [class.bi-chevron-right]="!isCategoryExpanded(category.id)"></i>
+                } @else {
+                  <i class="expand-icon me-2 bi bi-dot"></i>
+                }
+                
+                <div class="form-check mb-0 category-parent">
+                  <input class="form-check-input" type="checkbox" 
+                         [id]="'category-' + category.id" 
+                         [checked]="isCategorySelected(category.id)"
+                         (click)="toggleCategorySelection(category.id, $event)">
+                  <label class="form-check-label ms-1" [for]="'category-' + category.id">
+                    <strong>{{ category.name }}</strong>
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            @if (category.children?.length && isCategoryExpanded(category.id)) {
+              <div class="category-children ps-4">
+                @for (child of category.children; track child.id) {
+                  <div class="category-item">
+                    <div class="category-header" (click)="toggleExpansion(child.id, $event)">
+                      <div class="d-flex align-items-center">
+                        @if (child.children?.length) {
+                          <i class="expand-icon me-2 bi" 
+                             [class.bi-chevron-down]="isCategoryExpanded(child.id)" 
+                             [class.bi-chevron-right]="!isCategoryExpanded(child.id)"></i>
+                        } @else {
+                          <i class="expand-icon me-2 bi bi-dot"></i>
+                        }
+                        
+                        <div class="form-check mb-0">
+                          <input class="form-check-input" type="checkbox" 
+                                 [id]="'category-' + child.id" 
+                                 [checked]="isCategorySelected(child.id)"
+                                 (click)="toggleCategorySelection(child.id, $event)">
+                          <label class="form-check-label ms-1" [for]="'category-' + child.id">
+                            {{ child.name }}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    @if (child.children?.length && isCategoryExpanded(child.id)) {
+                      <div class="category-grandchildren ps-4">
+                        @for (grandchild of child.children; track grandchild.id) {
+                          <div class="category-item">
+                            <div class="d-flex align-items-center">
+                              <i class="expand-icon me-2 bi bi-dot"></i>
+                              <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" 
+                                       [id]="'category-' + grandchild.id" 
+                                       [checked]="isCategorySelected(grandchild.id)"
+                                       (click)="toggleCategorySelection(grandchild.id, $event)">
+                                <label class="form-check-label ms-1" [for]="'category-' + grandchild.id">
+                                  {{ grandchild.name }}
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+@if (hasError && touched) {
+  <div class="text-danger mt-1">
+    Debe seleccionar al menos una categoría.
+  </div>
+}

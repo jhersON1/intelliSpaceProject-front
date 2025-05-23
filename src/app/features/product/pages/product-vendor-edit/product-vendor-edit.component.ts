@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductStatus, Product, UpdateProduct } from '../../interfaces/product.interface';
 import { CommonModule } from '@angular/common';
 import { ProductsService } from '../../services/products.service';
+import { CategoryService } from '../../services/category.service';
 
 interface ImagePreview {
   name: string;
@@ -16,14 +17,15 @@ interface ImagePreview {
   templateUrl: './product-vendor-edit.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductVendorEditComponent {
- private fb = inject(FormBuilder);
+export class ProductVendorEditComponent implements OnInit {
+  private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private productService = inject(ProductsService);
+  private categoryService = inject(CategoryService)
 
   ProductStatus = ProductStatus;
-  
+
   images = signal<ImagePreview[]>([]);
   selectedImageIndex = signal<number>(-1);
 
@@ -47,7 +49,8 @@ export class ProductVendorEditComponent {
     dimensionsHeight: [0],
     dimensionsWidth: [0],
     dimensionsDepth: [0],
-    keywords: ['']
+    keywords: [''],
+    idCategory: [[], [Validators.required]]
   });
 
   get imageUrlsArray(): FormArray {
@@ -67,7 +70,7 @@ export class ProductVendorEditComponent {
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
 
-    this.productService.getVendorProduct(id!).subscribe( {
+    this.productService.getVendorProduct(id!).subscribe({
       next: (product: Product) => {
         console.log('Producto cargado:', product);
         this.patchFormValues(product);
@@ -83,7 +86,7 @@ export class ProductVendorEditComponent {
     while (this.imageUrlsArray.length) {
       this.imageUrlsArray.removeAt(0);
     }
-    
+
     images.forEach(img => {
       this.imageUrlsArray.push(this.fb.control(img.name));
     });
@@ -92,7 +95,7 @@ export class ProductVendorEditComponent {
   private patchFormValues(product: Product) {
 
     const dimensions = product.dimensions as any || {};
-    
+
     if (product.imageUrl) {
 
       const imageUrls = Array.isArray(product.imageUrl) ? product.imageUrl : [product.imageUrl];
@@ -100,14 +103,14 @@ export class ProductVendorEditComponent {
         name: this.getFileNameFromUrl(url),
         url: url
       }));
-      
+
       this.images.set(newImages);
-      
+
       if (newImages.length > 0) {
         this.selectedImageIndex.set(0);
       }
     }
-    
+
     this.form.patchValue({
       id: product.id,
       title: product.title,
@@ -137,39 +140,39 @@ export class ProductVendorEditComponent {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const reader = new FileReader();
-      
+
       reader.onload = () => {
         if (reader.result) {
           this.images.update((currentImages: any) => [
-            ...currentImages, 
+            ...currentImages,
             {
               name: file.name,
               url: reader.result
             }
           ]);
-          
+
           this.selectedImageIndex.set(this.images().length - 1);
         }
       };
-      
+
       reader.readAsDataURL(file);
     }
-    
+
     (event.target as HTMLInputElement).value = '';
   }
-  
+
   public selectImage(index: number) {
     this.selectedImageIndex.set(index);
   }
-  
+
   public removeImage(index: number) {
     const currentImages = [...this.images()];
     const currentSelectedIndex = this.selectedImageIndex();
-    
+
     currentImages.splice(index, 1);
-    
+
     this.images.set(currentImages);
-    
+
     if (currentSelectedIndex === index) {
       this.selectedImageIndex.set(currentImages.length > 0 ? 0 : -1);
     } else if (currentSelectedIndex > index) {
@@ -180,8 +183,9 @@ export class ProductVendorEditComponent {
   public onSubmit() {
     if (this.form.valid) {
       const formData = this.form.value;
-      
-      const updated: UpdateProduct = {
+
+      //Todo: cambiar por UdateProduct
+      const updated: any = {
         title: formData.title,
         description: formData.description,
         imageUrl: formData.imageUrls,
@@ -200,7 +204,7 @@ export class ProductVendorEditComponent {
       };
 
       //todo: cuando se incorpore estos atributos al backend, se deben incluir en el body
-      const { imageUrl, category,  ...body } = updated;
+      const { imageUrl, category, ...body } = updated;
 
       this.productService.updateProduct(formData.id, body).subscribe({
         next: (res) => {
