@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ProductStatus, Product, UpdateProduct } from '../../interfaces/product.interface';
+import { ProductStatus, Product } from '../../interfaces/product.interface';
 import { CommonModule } from '@angular/common';
 import { ProductsService } from '../../services/products.service';
-import { CategoryService } from '../../services/category.service';
+import { CategorySelectorComponent } from '../../components/category-selector/category-selector.component';
+import { ProductFormBase } from '../../abstract/productFormBase.abstract';
 
 interface ImagePreview {
   name: string;
@@ -13,19 +14,24 @@ interface ImagePreview {
 
 @Component({
   selector: 'app-product-vendor-edit',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, CategorySelectorComponent],
   templateUrl: './product-vendor-edit.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductVendorEditComponent implements OnInit {
-  private fb = inject(FormBuilder);
+ private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private productService = inject(ProductsService);
-  private categoryService = inject(CategoryService)
+  protected formBaseService = inject(ProductFormBase);
 
   ProductStatus = ProductStatus;
 
+  // Usar signals del servicio base
+  hierarchicalCategories = this.formBaseService.hierarchicalCategories;
+  selectedCategories = this.formBaseService.selectedCategories;
+
+  // Signals locales para manejo de imágenes
   images = signal<ImagePreview[]>([]);
   selectedImageIndex = signal<number>(-1);
 
@@ -35,23 +41,7 @@ export class ProductVendorEditComponent implements OnInit {
     return index >= 0 && index < allImages.length ? allImages[index] : null;
   });
 
-  form: FormGroup = this.fb.group({
-    id: [null],
-    title: ['', Validators.required],
-    description: [''],
-    price: [0, [Validators.required, Validators.min(0)]],
-    stock: [0, [Validators.required, Validators.min(0)]],
-    weight: [0, [Validators.required, Validators.min(0)]],
-    state: [ProductStatus.AVAILABLE, Validators.required],
-    category: [''],
-    material: [''],
-    imageUrls: this.fb.array([]),
-    dimensionsHeight: [0],
-    dimensionsWidth: [0],
-    dimensionsDepth: [0],
-    keywords: [''],
-    idCategory: [[], [Validators.required]]
-  });
+  form: FormGroup = this.createEditForm();
 
   get imageUrlsArray(): FormArray {
     return this.form.get('imageUrls') as FormArray;
@@ -60,7 +50,6 @@ export class ProductVendorEditComponent implements OnInit {
   constructor() {
     effect(() => {
       const currentImages = this.images();
-
       if (this.imageUrlsArray.length !== currentImages.length) {
         this.syncImagesWithFormArray(currentImages);
       }
@@ -69,8 +58,38 @@ export class ProductVendorEditComponent implements OnInit {
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
+    this.loadCategories();
+    this.loadProduct(id!);
+  }
 
-    this.productService.getVendorProduct(id!).subscribe({
+  private createEditForm() {
+    const baseForm = this.formBaseService.createBaseProductForm();
+    
+    // Agregar campos específicos para edición
+    (baseForm as any).addControl('id', this.fb.control(null));
+    (baseForm as any).addControl('category', this.fb.control(''));
+    (baseForm as any).addControl('imageUrls', this.fb.array([]));
+    (baseForm as any).addControl('dimensionsHeight', this.fb.control(0));
+    (baseForm as any).addControl('dimensionsWidth', this.fb.control(0));
+    (baseForm as any).addControl('dimensionsDepth', this.fb.control(0));
+    (baseForm as any).addControl('keywords', this.fb.control(''));
+
+    return baseForm;
+  }
+
+  private loadCategories() {
+    this.formBaseService.loadCategories().subscribe({
+      next: () => {
+        // Categorías cargadas exitosamente
+      },
+      error: (error) => {
+        console.error('Error cargando categorías:', error);
+      }
+    });
+  }
+
+  private loadProduct(id: string) {
+    this.productService.getVendorProduct(id).subscribe({
       next: (product: Product) => {
         console.log('Producto cargado:', product);
         this.patchFormValues(product);
@@ -81,8 +100,11 @@ export class ProductVendorEditComponent implements OnInit {
     });
   }
 
-  private syncImagesWithFormArray(images: ImagePreview[]) {
+  public onCategoriesChange(categories: string[]) {
+    this.formBaseService.onCategoriesChange(categories, this.form);
+  }
 
+  private syncImagesWithFormArray(images: ImagePreview[]) {
     while (this.imageUrlsArray.length) {
       this.imageUrlsArray.removeAt(0);
     }
@@ -93,11 +115,9 @@ export class ProductVendorEditComponent implements OnInit {
   }
 
   private patchFormValues(product: Product) {
-
     const dimensions = product.dimensions as any || {};
 
     if (product.imageUrl) {
-
       const imageUrls = Array.isArray(product.imageUrl) ? product.imageUrl : [product.imageUrl];
       const newImages = imageUrls.map(url => ({
         name: this.getFileNameFromUrl(url),
@@ -109,6 +129,11 @@ export class ProductVendorEditComponent implements OnInit {
       if (newImages.length > 0) {
         this.selectedImageIndex.set(0);
       }
+    }
+
+    // Usar el método del servicio base para manejar categorías
+    if (product.idCategory) {
+      this.formBaseService.onCategoriesChange(product.idCategory, this.form);
     }
 
     this.form.patchValue({
@@ -124,7 +149,7 @@ export class ProductVendorEditComponent implements OnInit {
       dimensionsHeight: dimensions.height || 0,
       dimensionsWidth: dimensions.width || 0,
       dimensionsDepth: dimensions.depth || 0,
-      keywords: product.keywords?.join(', ') || ''
+      keywords: product.keywords?.join(', ') || '',
     });
   }
 
@@ -170,7 +195,6 @@ export class ProductVendorEditComponent implements OnInit {
     const currentSelectedIndex = this.selectedImageIndex();
 
     currentImages.splice(index, 1);
-
     this.images.set(currentImages);
 
     if (currentSelectedIndex === index) {
@@ -184,7 +208,6 @@ export class ProductVendorEditComponent implements OnInit {
     if (this.form.valid) {
       const formData = this.form.value;
 
-      //Todo: cambiar por UdateProduct
       const updated: any = {
         title: formData.title,
         description: formData.description,
@@ -200,10 +223,10 @@ export class ProductVendorEditComponent implements OnInit {
           width: formData.dimensionsWidth,
           depth: formData.dimensionsDepth
         },
-        keywords: formData.keywords ? formData.keywords.split(',').map((k: string) => k.trim()) : []
+        keywords: formData.keywords ? formData.keywords.split(',').map((k: string) => k.trim()) : [],
+        idCategory: formData.idCategory,
       };
 
-      //todo: cuando se incorpore estos atributos al backend, se deben incluir en el body
       const { imageUrl, category, ...body } = updated;
 
       this.productService.updateProduct(formData.id, body).subscribe({
@@ -215,6 +238,8 @@ export class ProductVendorEditComponent implements OnInit {
           console.error('Error al actualizar producto:', err);
         }
       });
+    } else {
+      this.formBaseService.markFormGroupTouched(this.form);
     }
   }
 

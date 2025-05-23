@@ -16,6 +16,7 @@ export interface Product {
   stock?: number;
   state: ProductStatus;
   keywords?: string[];
+  idCategory: string[];
 }
 
 export interface CreateProduct {
