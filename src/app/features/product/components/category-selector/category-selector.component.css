@@ -1,0 +1,49 @@
+.category-tree {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.category-item {
+  margin-bottom: 8px;
+}
+
+.category-header {
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.category-header:hover {
+  background-color: #f8f9fa;
+}
+
+.category-parent {
+  font-size: 1.05rem;
+}
+
+.expand-icon {
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.category-children {
+  border-left: 2px solid #dee2e6;
+  padding-left: 5px;
+  margin: 5px 0 5px 5px;
+}
+
+.category-grandchildren {
+  border-left: 1px solid #dee2e6;
+  padding-left: 5px;
+  margin: 5px 0 5px 5px;
+}
+
+.form-check-label {
+  cursor: pointer;
+  user-select: none;
+}
+
+.form-check {
+  margin-bottom: 2px;
+}

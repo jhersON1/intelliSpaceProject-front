@@ -81,15 +81,6 @@
 
                         <div class="group">
                             <label class="block text-sm font-medium mb-1 text-gray-700">
-                                Categoría
-                            </label>
-                            <input formControlName="category" type="text"
-                                class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
-                                placeholder="Categoría" />
-                        </div>
-
-                        <div class="group">
-                            <label class="block text-sm font-medium mb-1 text-gray-700">
                                 Material
                             </label>
                             <input formControlName="material" type="text"
@@ -97,6 +88,19 @@
                                 placeholder="Material" />
                         </div>
                     </div>
+                </div>
+
+                <!-- Categorías -->
+                <div class="bg-gray-50 p-4 border-l-4 border-indigo-500 mt-4">
+                    <h3 class="text-md font-medium text-gray-700 mb-3">
+                        Categorías
+                    </h3>
+                    <app-category-selector [hierarchicalCategories]="hierarchicalCategories()"
+                        [selectedCategories]="selectedCategories()"
+                        [hasError]="form.get('idCategory')?.invalid || false"
+                        [touched]="form.get('idCategory')?.touched || false"
+                        (categoriesChange)="onCategoriesChange($event)">
+                    </app-category-selector>
                 </div>
 
                 <!-- Dimensiones -->

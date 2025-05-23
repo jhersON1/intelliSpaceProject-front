@@ -1,10 +1,10 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { API_ROUTES } from '../../../core/constants';
 import { Product, CreateProduct, UpdateProduct } from '../interfaces/product.interface';
 import { TokenService } from '../../../auth/services/token.service';
 import { environment } from '@environments/environments';
+import { API_ROUTES } from 'src/app/core/constants';
 
 
 @Injectable({
