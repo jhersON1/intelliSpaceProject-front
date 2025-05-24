@@ -5,7 +5,8 @@ import { Router } from '@angular/router';
 import { CreateProduct } from '../../interfaces/product.interface';
 import { ProductsService } from '../../services/products.service';
 import { CategorySelectorComponent } from '../../components/category-selector/category-selector.component';
-import { ProductFormBase } from '../../abstract/productFormBase.abstract';
+import { ProductFormBase } from '../../services/productFormBase.service';
+
 
 @Component({
   selector: 'app-product-create',

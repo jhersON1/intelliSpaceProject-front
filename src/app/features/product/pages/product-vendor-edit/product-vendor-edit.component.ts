@@ -5,7 +5,7 @@ import { ProductStatus, Product } from '../../interfaces/product.interface';
 import { CommonModule } from '@angular/common';
 import { ProductsService } from '../../services/products.service';
 import { CategorySelectorComponent } from '../../components/category-selector/category-selector.component';
-import { ProductFormBase } from '../../abstract/productFormBase.abstract';
+import { ProductFormBase } from '../../services/productFormBase.service';
 
 interface ImagePreview {
   name: string;
