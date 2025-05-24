@@ -46,7 +46,7 @@ export class ProductsService {
     return this.http.get<Product>(url);
   }
 
-  public createProduct(createProduct: CreateProduct): Observable<CreateProduct> {
+  public createProduct(createProduct: CreateProduct): Observable<Product> {
     const token = this.tokenService.getToken();
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ export class ProductsService {
 
     const url = `${this.baseUrl}${API_ROUTES.CREATE_VENDOR_PRODUCTS}`;
 
-    return this.http.post<CreateProduct>(url, createProduct, { headers });
+    return this.http.post<Product>(url, createProduct, { headers });
   }
 
   public updateProduct(productId: string, body: UpdateProduct): Observable<Product> {
