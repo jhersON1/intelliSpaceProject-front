@@ -32,7 +32,6 @@
               [src]="product.imageUrl" 
               [alt]="product.imageAlt || product.title" 
               class="w-full h-48 object-cover"
-              loading="lazy"
               (error)="onImageError($event, product)"
               (load)="onImageLoad(product)"
             />

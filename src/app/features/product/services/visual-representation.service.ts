@@ -11,17 +11,11 @@ import { API_ROUTES } from 'src/app/core/constants';
 })
 export class VisualRepresentationService {
   private http = inject(HttpClient);
-  private readonly tokenService = inject(TokenService);
   private readonly baseUrl: string = environment.baseUrl;
 
   public findPrincipalImage(productId: string): Observable<VisualRepresentation> {
-    const token = this.tokenService.getToken();
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
 
-    return this.http.get<VisualRepresentation>(`${this.baseUrl}${API_ROUTES.GET_PRINCIPAL_IMAGE}/${productId}`, { headers });
+    return this.http.get<VisualRepresentation>(`${this.baseUrl}${API_ROUTES.GET_PRINCIPAL_IMAGE}/${productId}`);
   }
 
 }
