@@ -1,13 +1,15 @@
-import { Directive, inject } from '@angular/core';
+import { Directive, inject, Injectable } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProductStatus } from '../interfaces/product.interface';
 import { signal } from '@angular/core';
 import { tap, map } from 'rxjs';
 import { Category } from '../interfaces/category.interface';
-import { CategoryService } from '../services/category.service';
+import { CategoryService } from './category.service';
 
-@Directive()
-export abstract class ProductFormBase {
+@Injectable({
+  providedIn: 'root'
+})
+export class ProductFormBase {
   protected fb = inject(FormBuilder);
   protected categoryService = inject(CategoryService);
 

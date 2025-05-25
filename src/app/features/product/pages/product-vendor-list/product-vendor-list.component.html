@@ -8,11 +8,11 @@
   </div>
 
   <!-- Loading state -->
-  @if (loading) {
+  @if (loading()) {
     <div class="flex justify-center items-center py-20">
       <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
     </div>
-  } @else if (displayedProducts.length === 0) {
+  } @else if (displayedProducts().length === 0) {
     <!-- Empty state -->
     <div class="bg-white rounded-lg shadow-md p-8 text-center">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -24,14 +24,16 @@
   } @else {
     <!-- Products grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      @for (product of displayedProducts; track product.id) {
+      @for (product of displayedProducts(); track product.id) {
         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
           <!-- Product image -->
           @if (product.imageUrl) {
             <img 
               [src]="product.imageUrl" 
-              [alt]="product.title" 
+              [alt]="product.imageAlt || product.title" 
               class="w-full h-48 object-cover"
+              (error)="onImageError($event, product)"
+              (load)="onImageLoad(product)"
             />
           } @else {
             <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
@@ -78,15 +80,15 @@
     </div>
     
     <!-- Pagination -->
-    @if (totalPages > 1) {
+    @if (totalPages() > 1) {
       <div class="flex justify-center mt-8">
         <nav class="flex items-center space-x-1">
           <button 
             (click)="prevPage()" 
-            [disabled]="currentPage === 1"
+            [disabled]="currentPage() === 1"
             class="px-3 py-1 rounded-md" 
-            [class.text-gray-400]="currentPage === 1"
-            [class.text-blue-600]="currentPage !== 1"
+            [class.text-gray-400]="currentPage() === 1"
+            [class.text-blue-600]="currentPage() !== 1"
           >
             Anterior
           </button>
@@ -95,9 +97,9 @@
             <button 
               (click)="goToPage(page)" 
               class="px-3 py-1 rounded-md" 
-              [class.bg-blue-600]="page === currentPage"
-              [class.text-white]="page === currentPage"
-              [class.text-blue-600]="page !== currentPage"
+              [class.bg-blue-600]="page === currentPage()"
+              [class.text-white]="page === currentPage()"
+              [class.text-blue-600]="page !== currentPage()"
             >
               {{ page }}
             </button>
@@ -105,10 +107,10 @@
           
           <button 
             (click)="nextPage()" 
-            [disabled]="currentPage === totalPages"
+            [disabled]="currentPage() === totalPages()"
             class="px-3 py-1 rounded-md"
-            [class.text-gray-400]="currentPage === totalPages"
-            [class.text-blue-600]="currentPage !== totalPages"
+            [class.text-gray-400]="currentPage() === totalPages()"
+            [class.text-blue-600]="currentPage() !== totalPages()"
           >
             Siguiente
           </button>

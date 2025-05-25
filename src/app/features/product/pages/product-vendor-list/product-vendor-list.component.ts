@@ -1,9 +1,17 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Product } from '../../interfaces/product.interface';
 import { ProductsService } from '../../services/products.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { catchError, of, forkJoin } from 'rxjs';
+import { VisualRepresentationService } from '../../services/visual-representation.service';
+import { HttpErrorResponse } from '@angular/common/http';
+
+interface ProductWithImage extends Product {
+  imageUrl?: string | string[];
+  imageAlt?: string;
+}
 
 @Component({
   selector: 'app-product-vendor-list',
@@ -13,94 +21,149 @@ import { Router } from '@angular/router';
 })
 export class ProductVendorListComponent {
   private productService = inject(ProductsService);
+  private visualService = inject(VisualRepresentationService);
   private router = inject(Router);
-  private cd = inject(ChangeDetectorRef)
 
-  loading = false;
-  allProducts: Product[] = [];
-  displayedProducts: Product[] = [];
+  loading = signal(false);
+  allProducts = signal<ProductWithImage[]>([]);
+  currentPage = signal(1);
+  pageSize = signal(10);
+  initialized = signal(false);
 
-  currentPage = 1;
-  pageSize = 10;
-  totalItems = 0;
-  totalPages = 0;
+  totalItems = computed(() => this.allProducts().length);
+  totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
+
+  displayedProducts = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize();
+    const displayed = this.allProducts().slice(start, start + this.pageSize());
+
+    return displayed;
+  });
+
+  // Effect para cargar productos cuando cambia la página (solo después de inicializar)
+  private loadProductsEffect = effect(() => {
+    if (this.initialized()) {
+      this.loadProducts();
+    }
+  });
 
   ngOnInit(): void {
-    this.loadProducts();
+    this.initialized.set(true);
   }
 
-  loadProducts(): void {
-    this.loading = true;
-    const offset = (this.currentPage - 1) * this.pageSize;
+  private loadProducts(): void {
+    this.loading.set(true);
+    const offset = (this.currentPage() - 1) * this.pageSize();
 
-    this.productService.findVendorProducts(this.pageSize, offset).subscribe({
-      next: prods => {
-        console.log(prods);
-        this.allProducts = prods;
-        this.totalItems = prods.length;
-        this.calculateTotalPages();
-        this.updateDisplayedProducts();
-        this.loading = false;
-
-        this.cd.markForCheck();
+    this.productService.findVendorProducts(this.pageSize(), offset).subscribe({
+      next: (products) => {
+        if (products && products.length > 0) {
+          this.loadProductsWithImages(products);
+        } else {
+          console.log('📭 No hay productos');
+          this.allProducts.set([]);
+          this.loading.set(false);
+        }
       },
-      error: () => {
-        console.error('Error al cargar los productos');
-        this.loading = false;
-        this.cd.markForCheck();
+      error: (error) => {
+        console.error('❌ Error al cargar productos:', error);
+        this.loading.set(false);
       }
     });
   }
 
-  updateDisplayedProducts(): void {
-    const start = (this.currentPage - 1) * this.pageSize;
-    this.displayedProducts = this.allProducts.slice(start, start + this.pageSize);
+  private loadProductsWithImages(products: Product[]): void {
+
+    if (products.length === 0) {
+      this.allProducts.set([]);
+      this.loading.set(false);
+      return;
+    }
+
+    // Crear observables para cargar todas las imágenes en paralelo
+    const imageRequests = products.map(product => {
+      return this.visualService.findPrincipalImage(product.id).pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
+    });
+
+    forkJoin(imageRequests).subscribe({
+      next: (images) => {
+        const productsWithImages: ProductWithImage[] = products.map((product, index) => {
+          const image = images[index];
+          const result = {
+            ...product,
+            imageUrl: image?.url || undefined,
+            imageAlt: image?.altText || product.title
+          };
+
+          return result;
+        });
+
+        this.allProducts.set(productsWithImages);
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('❌ Error en forkJoin:', error);
+        const productsWithoutImages = products.map(p => ({ ...p, imageAlt: p.title }));
+        this.allProducts.set(productsWithoutImages);
+        this.loading.set(false);
+      }
+    });
   }
 
   prevPage(): void {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.loadProducts();
+    if (this.currentPage() > 1) {
+      this.currentPage.set(this.currentPage() - 1);
     }
   }
 
   nextPage(): void {
-    if (this.currentPage < this.totalPages) {
-      this.currentPage++;
-      this.loadProducts();
+    if (this.currentPage() < this.totalPages()) {
+      this.currentPage.set(this.currentPage() + 1);
     }
   }
 
   goToPage(page: number): void {
-    this.currentPage = page;
-    this.loadProducts();
+    this.currentPage.set(page);
   }
 
   getPages(): number[] {
     const pages: number[] = [];
     const max = 5;
-    if (this.totalPages <= max) {
-      for (let i = 1; i <= this.totalPages; i++) pages.push(i);
+    const totalPages = this.totalPages();
+    const currentPage = this.currentPage();
+
+    if (totalPages <= max) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
-      let start = Math.max(1, this.currentPage - 2);
-      let end = Math.min(this.totalPages, start + max - 1);
-      if (end === this.totalPages) start = Math.max(1, end - max + 1);
+      let start = Math.max(1, currentPage - 2);
+      let end = Math.min(totalPages, start + max - 1);
+      if (end === totalPages) start = Math.max(1, end - max + 1);
       for (let i = start; i <= end; i++) pages.push(i);
     }
     return pages;
   }
 
-  private calculateTotalPages(): void {
-    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+  viewDetails(product: ProductWithImage): void {
+    this.router.navigate(['/home/products', product.id, 'detail']);
   }
 
-  viewDetails(p: Product) {
-    console.log('Ver detalles:', p);
-    this.router.navigate(['/home/products', p.id, 'detail']);
+  editProduct(product: ProductWithImage): void {
+    this.router.navigate(['/home/products', product.id]);
   }
 
-  editProduct(p: Product) {
-    console.log('editar producto', p);
-    this.router.navigate(['/home/products', p.id]);
+  // Método para debug en el template
+  onImageError(event: Event, product: ProductWithImage): void {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.style.display = 'none';
+    }
+  }
+
+  onImageLoad(product: ProductWithImage): void {
+    console.log(`✅ Imagen cargada para ${product.title}`);
   }
 }

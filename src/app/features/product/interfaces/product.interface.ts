@@ -4,7 +4,7 @@ export enum ProductStatus {
 }
 
 export interface Product {
-  id: number;
+  id: string;
   title: string;
   dimensions?: object;
   description?: string;

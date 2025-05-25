@@ -12,4 +12,10 @@ export const API_ROUTES = {
   GET_PRODUCT_DETAIL: '/products',
 
   GET_CATEGORIES: '/categories',
+
+  POST_IMAGES: '/cloudinary/upload-multiple',
+  POST_VISUAL_REPRESENTATION: '/visual-representation',
+  GET_PRINCIPAL_IMAGE: '/visual-representation/principal-image',
+  GET_ALL_IMAGES: '/visual-representation/images',
+  DELETE_VISUAL_REPRESENTATION: '/visual-representation',
 } as const;
