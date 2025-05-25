@@ -6,10 +6,23 @@ import { CommonModule } from '@angular/common';
 import { ProductsService } from '../../services/products.service';
 import { CategorySelectorComponent } from '../../components/category-selector/category-selector.component';
 import { ProductFormBase } from '../../services/productFormBase.service';
+import { forkJoin, firstValueFrom } from 'rxjs';
+import { VisualRepresentation } from '../../interfaces/visual-representation.interface';
+import { VisualRepresentationService } from '../../services/visual-representation.service';
+import { ImageUploadService } from '../../services/image-upload.service';
 
 interface ImagePreview {
+  id?: string;
   name: string;
   url: string | ArrayBuffer;
+  isExisting: boolean;
+}
+
+interface ImageState {
+  existing: VisualRepresentation[];
+  pendingDelete: string[];
+  newImages: File[];
+  previews: ImagePreview[];
 }
 
 @Component({
@@ -23,15 +36,32 @@ export class ProductVendorEditComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly productService = inject(ProductsService);
+  private readonly visualRepresentationService = inject(VisualRepresentationService);
+  private readonly imageUploadService = inject(ImageUploadService);
   protected readonly formBaseService = inject(ProductFormBase);
 
   readonly ProductStatus = ProductStatus;
+  private readonly MAX_IMAGES = 10;
 
   readonly hierarchicalCategories = this.formBaseService.hierarchicalCategories;
   readonly selectedCategories = this.formBaseService.selectedCategories;
 
-  readonly images = signal<ImagePreview[]>([]);
+  private readonly imageState = signal<ImageState>({
+    existing: [],
+    pendingDelete: [],
+    newImages: [],
+    previews: []
+  });
+
   readonly selectedImageIndex = signal<number>(-1);
+  readonly isLoading = signal<boolean>(false);
+
+  readonly images = computed(() => this.imageState().previews);
+  readonly canAddMoreImages = computed(() => {
+    const state = this.imageState();
+    const currentCount = state.existing.length - state.pendingDelete.length + state.newImages.length;
+    return currentCount < this.MAX_IMAGES;
+  });
 
   readonly selectedImage = computed(() => {
     const index = this.selectedImageIndex();
@@ -61,7 +91,7 @@ export class ProductVendorEditComponent implements OnInit {
   }
 
   /**
-   * Configuración del efecto para sincronizar imágenes
+   * Efecto para sincronizar imágenes con FormArray
    */
   private setupImageSyncEffect(): void {
     effect(() => {
@@ -74,14 +104,65 @@ export class ProductVendorEditComponent implements OnInit {
 
   private initializeComponent(productId: string): void {
     this.loadCategories();
-    this.loadProduct(productId);
+    this.loadProductWithImages(productId);
+  }
+
+  /**
+   * Carga el producto y sus imágenes de forma paralela
+   */
+  private loadProductWithImages(productId: string): void {
+    this.isLoading.set(true);
+    
+    forkJoin({
+      product: this.productService.getVendorProduct(productId),
+      images: this.visualRepresentationService.findAllImages(productId)
+    }).subscribe({
+      next: ({ product, images }) => {
+        console.log('Producto cargado:', product);
+        console.log('Imágenes cargadas:', images);
+        this.populateFormWithProduct(product);
+        this.initializeImageState(images);
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Error al cargar producto e imágenes:', error);
+        this.isLoading.set(false);
+        // TODO: Mostrar mensaje de error al usuario
+      }
+    });
+  }
+
+  /**
+   * Inicializa el estado de imágenes con las imágenes existentes
+   */
+  private initializeImageState(visualRepresentations: VisualRepresentation[]): void {
+    if (!visualRepresentations || visualRepresentations.length === 0) {
+      console.log('No se encontraron imágenes para este producto');
+      return;
+    }
+
+    const previews: ImagePreview[] = visualRepresentations.map(visual => ({
+      id: visual.id,
+      name: this.extractFileNameFromUrl(visual.url),
+      url: visual.url,
+      isExisting: true
+    }));
+
+    this.imageState.update(state => ({
+      ...state,
+      existing: [...visualRepresentations],
+      previews: [...previews]
+    }));
+
+    // Seleccionar la primera imagen por defecto
+    if (previews.length > 0) {
+      this.selectedImageIndex.set(0);
+    }
   }
 
   private createEditForm(): FormGroup {
     const baseForm = this.formBaseService.createBaseProductForm();
-
     this.addEditSpecificControls(baseForm);
-
     return baseForm;
   }
 
@@ -104,9 +185,6 @@ export class ProductVendorEditComponent implements OnInit {
     });
   }
 
-  /**
-   * Carga las categorías disponibles
-   */
   private loadCategories(): void {
     this.formBaseService.loadCategories().subscribe({
       next: () => console.log('Categorías cargadas exitosamente'),
@@ -114,25 +192,6 @@ export class ProductVendorEditComponent implements OnInit {
     });
   }
 
-  /**
-   * Carga el producto por ID
-   */
-  private loadProduct(id: string): void {
-    this.productService.getVendorProduct(id).subscribe({
-      next: (product: Product) => {
-        console.log('Producto cargado:', product);
-        this.populateFormWithProduct(product);
-      },
-      error: (error) => {
-        console.error('Error al cargar producto:', error);
-        // TODO: Mostrar mensaje de error al usuario
-      }
-    });
-  }
-
-  /**
-   * Maneja el cambio de categorías
-   */
   public onCategoriesChange(categories: string[]): void {
     this.formBaseService.onCategoriesChange(categories, this.form);
   }
@@ -154,46 +213,17 @@ export class ProductVendorEditComponent implements OnInit {
     }
   }
 
-  /**
-   * Llena el formulario con los datos del producto
-   */
   private populateFormWithProduct(product: Product): void {
-    this.setupProductImages(product);
     this.setupProductCategories(product);
     this.patchFormWithProductData(product);
   }
 
-  /**
-   * Configura las imágenes del producto
-   */
-  private setupProductImages(product: Product): void {
-    if (!product.imageUrl) return;
-
-    const imageUrls = Array.isArray(product.imageUrl) ? product.imageUrl : [product.imageUrl];
-    const newImages = imageUrls.map(url => ({
-      name: this.extractFileNameFromUrl(url),
-      url: url
-    }));
-
-    this.images.set(newImages);
-
-    if (newImages.length > 0) {
-      this.selectedImageIndex.set(0);
-    }
-  }
-
-  /**
-   * Configura las categorías del producto
-   */
   private setupProductCategories(product: Product): void {
     if (product.idCategory) {
       this.formBaseService.onCategoriesChange(product.idCategory, this.form);
     }
   }
 
-  /**
-   * Aplica los valores del producto al formulario
-   */
   private patchFormWithProductData(product: Product): void {
     const dimensions = (product.dimensions as any) || {};
 
@@ -214,16 +244,10 @@ export class ProductVendorEditComponent implements OnInit {
     });
   }
 
-  /**
-   * Formatea las keywords para mostrar en el formulario
-   */
   private formatKeywordsForDisplay(keywords?: string[]): string {
     return keywords?.join(', ') || '';
   }
 
-  /**
-   * Extrae el nombre del archivo de una URL
-   */
   private extractFileNameFromUrl(url: string): string {
     const parts = url.split('/');
     return parts[parts.length - 1];
@@ -236,14 +260,32 @@ export class ProductVendorEditComponent implements OnInit {
     const files = (event.target as HTMLInputElement).files;
     if (!files || files.length === 0) return;
 
+    // Validar límite de imágenes
+    const currentState = this.imageState();
+    const currentCount = currentState.existing.length - currentState.pendingDelete.length + currentState.newImages.length;
+    const availableSlots = this.MAX_IMAGES - currentCount;
+
+    if (files.length > availableSlots) {
+      alert(`Solo puedes agregar ${availableSlots} imagen(es) más. Máximo ${this.MAX_IMAGES} imágenes por producto.`);
+      return;
+    }
+
     this.processSelectedFiles(files);
     this.resetFileInput(event.target as HTMLInputElement);
   }
 
   private processSelectedFiles(files: FileList): void {
-    Array.from(files).forEach(file => {
+    const fileArray = Array.from(files);
+    
+    fileArray.forEach(file => {
       this.readFileAsDataURL(file);
     });
+
+    // Agregar archivos al estado
+    this.imageState.update(state => ({
+      ...state,
+      newImages: [...state.newImages, ...fileArray]
+    }));
   }
 
   private readFileAsDataURL(file: File): void {
@@ -251,18 +293,21 @@ export class ProductVendorEditComponent implements OnInit {
 
     reader.onload = () => {
       if (reader.result) {
-        this.addImagePreview(file.name, reader.result);
+        this.addImagePreview(file.name, reader.result, false);
       }
     };
 
     reader.readAsDataURL(file);
   }
 
-  private addImagePreview(fileName: string, url: string | ArrayBuffer): void {
-    this.images.update(currentImages => [
-      ...currentImages,
-      { name: fileName, url }
-    ]);
+  private addImagePreview(fileName: string, url: string | ArrayBuffer, isExisting: boolean): void {
+    this.imageState.update(state => ({
+      ...state,
+      previews: [
+        ...state.previews,
+        { name: fileName, url, isExisting }
+      ]
+    }));
 
     this.selectedImageIndex.set(this.images().length - 1);
   }
@@ -275,20 +320,69 @@ export class ProductVendorEditComponent implements OnInit {
     this.selectedImageIndex.set(index);
   }
 
+  /**
+   * Remueve una imagen (existente o nueva)
+   */
   public removeImage(index: number): void {
-    const currentImages = [...this.images()];
-    const currentSelectedIndex = this.selectedImageIndex();
+    const currentPreviews = [...this.images()];
+    const imageToRemove = currentPreviews[index];
 
-    currentImages.splice(index, 1);
-    this.images.set(currentImages);
+    if (!imageToRemove) return;
 
-    this.updateSelectedIndexAfterRemoval(index, currentSelectedIndex, currentImages.length);
+    if (imageToRemove.isExisting && imageToRemove.id) {
+      // Es una imagen existente, marcar para eliminar
+      this.markImageForDeletion(imageToRemove.id, index);
+    } else {
+      // Es una imagen nueva, remover del array de nuevas imágenes
+      this.removeNewImage(index, imageToRemove);
+    }
+
+    this.updateSelectedIndexAfterRemoval(index);
   }
 
   /**
-   * Actualiza el índice seleccionado después de remover una imagen
+   * Marca una imagen existente para eliminación
    */
-  private updateSelectedIndexAfterRemoval(removedIndex: number, currentSelectedIndex: number, remainingImagesCount: number): void {
+  private markImageForDeletion(imageId: string, previewIndex: number): void {
+    this.imageState.update(state => {
+      const updatedPreviews = [...state.previews];
+      updatedPreviews.splice(previewIndex, 1);
+
+      return {
+        ...state,
+        pendingDelete: [...state.pendingDelete, imageId],
+        previews: updatedPreviews
+      };
+    });
+  }
+
+  /**
+   * Remueve una imagen nueva del estado
+   */
+  private removeNewImage(previewIndex: number, imageToRemove: ImagePreview): void {
+    this.imageState.update(state => {
+      const updatedPreviews = [...state.previews];
+      updatedPreviews.splice(previewIndex, 1);
+
+      // Encontrar y remover el archivo del array de nuevas imágenes
+      const newImageIndex = state.newImages.findIndex(file => file.name === imageToRemove.name);
+      const updatedNewImages = [...state.newImages];
+      if (newImageIndex > -1) {
+        updatedNewImages.splice(newImageIndex, 1);
+      }
+
+      return {
+        ...state,
+        newImages: updatedNewImages,
+        previews: updatedPreviews
+      };
+    });
+  }
+
+  private updateSelectedIndexAfterRemoval(removedIndex: number): void {
+    const currentSelectedIndex = this.selectedImageIndex();
+    const remainingImagesCount = this.images().length;
+
     if (currentSelectedIndex === removedIndex) {
       this.selectedImageIndex.set(remainingImagesCount > 0 ? 0 : -1);
     } else if (currentSelectedIndex > removedIndex) {
@@ -296,23 +390,135 @@ export class ProductVendorEditComponent implements OnInit {
     }
   }
 
-  public onSubmit(): void {
+  /**
+   * Cancela la edición y restaura el estado original
+   */
+  public onCancel(): void {
+    this.resetImageState();
+    this.navigateToMyProducts();
+  }
+
+  /**
+   * Resetea el estado de imágenes al original
+   */
+  private resetImageState(): void {
+    const originalPreviews: ImagePreview[] = this.imageState().existing.map(visual => ({
+      id: visual.id,
+      name: this.extractFileNameFromUrl(visual.url),
+      url: visual.url,
+      isExisting: true
+    }));
+
+    this.imageState.update(state => ({
+      ...state,
+      pendingDelete: [],
+      newImages: [],
+      previews: [...originalPreviews]
+    }));
+
+    if (originalPreviews.length > 0) {
+      this.selectedImageIndex.set(0);
+    } else {
+      this.selectedImageIndex.set(-1);
+    }
+  }
+
+  /**
+   * Guarda el producto ejecutando todas las operaciones pendientes
+   */
+  public async onSubmit(): Promise<void> {
     if (!this.form.valid) {
       this.formBaseService.markFormGroupTouched(this.form);
       return;
     }
 
-    const updateData = this.buildUpdateData();
-    this.updateProduct(updateData);
+    this.isLoading.set(true);
+
+    try {
+      await this.executeImageOperations();
+      await this.updateProductData();
+      this.navigateToMyProducts();
+    } catch (error) {
+      console.error('Error al guardar producto:', error);
+      // TODO: Mostrar mensaje de error específico
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   /**
-   * Construye los datos para actualizar el producto
+   * Ejecuta todas las operaciones de imágenes pendientes
    */
+  private async executeImageOperations(): Promise<void> {
+    const state = this.imageState();
+    
+    // 1. Eliminar imágenes marcadas
+    if (state.pendingDelete.length > 0) {
+      await this.deleteMarkedImages(state.pendingDelete);
+    }
+
+    // 2. Subir y crear nuevas imágenes
+    if (state.newImages.length > 0) {
+      await this.uploadAndCreateNewImages(state.newImages);
+    }
+  }
+
+  /**
+   * Elimina las imágenes marcadas para eliminación
+   */
+  private async deleteMarkedImages(imageIds: string[]): Promise<void> {
+    const deletePromises = imageIds.map(id => 
+      firstValueFrom(this.visualRepresentationService.deleteVisualRepresentation(id))
+    );
+
+    await Promise.all(deletePromises);
+    console.log(`${imageIds.length} imágenes eliminadas exitosamente`);
+  }
+
+  /**
+   * Sube nuevas imágenes y crea sus representaciones visuales
+   */
+  private async uploadAndCreateNewImages(files: File[]): Promise<void> {
+    // Subir a Cloudinary
+    const uploadResponse = await firstValueFrom(this.imageUploadService.uploadMultipleImages(files));
+    
+    if (!uploadResponse?.images || uploadResponse.images.length === 0) {
+      throw new Error('No se pudieron subir las imágenes');
+    }
+
+    // Crear visual representations
+    const productId = this.form.value.id;
+    const createPromises = uploadResponse.images.map((url, index) => {
+      const createDto = {
+        productId,
+        type: 'Image',
+        url,
+        altText: files[index].name,
+        isPrincipal: false
+      };
+      
+      return firstValueFrom(this.imageUploadService.createVisualRepresentation(createDto));
+    });
+
+    await Promise.all(createPromises);
+    console.log(`${files.length} nuevas imágenes creadas exitosamente`);
+  }
+
+  /**
+   * Actualiza los datos del producto
+   */
+  private async updateProductData(): Promise<void> {
+    const updateData = this.buildUpdateData();
+    const productId = this.form.value.id;
+
+    await firstValueFrom(this.productService.updateProduct(productId, updateData));
+    console.log('Datos del producto actualizados exitosamente');
+  }
+
   private buildUpdateData(): any {
     const formData = this.form.value;
 
-    const updateData = {
+    return {
       title: formData.title,
       description: formData.description,
       weight: formData.weight,
@@ -328,44 +534,14 @@ export class ProductVendorEditComponent implements OnInit {
       keywords: this.parseKeywords(formData.keywords),
       idCategory: formData.idCategory,
     };
-
-    return updateData;
   }
 
-  /**
-   * Parsea las keywords del string a array
-   */
   private parseKeywords(keywordsString: string): string[] {
     return keywordsString
       ? keywordsString.split(',').map(k => k.trim()).filter(k => k.length > 0)
       : [];
   }
 
-  private updateProduct(updateData: any): void {
-    const productId = this.form.value.id;
-
-    this.productService.updateProduct(productId, updateData).subscribe({
-      next: (response) => {
-        console.log('Producto actualizado:', response);
-        this.navigateToMyProducts();
-      },
-      error: (error) => {
-        console.error('Error al actualizar producto:', error);
-        // TODO: Mostrar mensaje de error al usuario
-      }
-    });
-  }
-
-  /**
-   * Cancela la edición y navega a mis productos
-   */
-  public onCancel(): void {
-    this.navigateToMyProducts();
-  }
-
-  /**
-   * Navega a la página de mis productos
-   */
   private navigateToMyProducts(): void {
     this.router.navigate(['/home/my-products']);
   }

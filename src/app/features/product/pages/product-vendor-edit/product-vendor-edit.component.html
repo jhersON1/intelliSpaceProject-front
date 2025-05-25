@@ -4,6 +4,9 @@
         <div class="bg-white p-6 border-b border-gray-200">
             <div class="flex items-center space-x-3">
                 <h2 class="text-xl font-medium text-gray-800">Editar Producto</h2>
+                @if (isLoading()) {
+                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
+                }
             </div>
         </div>
 
@@ -134,7 +137,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="group">
                         <label class="block text-sm font-medium mb-1 text-gray-700">
-                            Imágenes
+                            Imágenes ({{ images().length }}/10)
                         </label>
                         <div class="space-y-3">
                             <!-- Previsualización principal -->
@@ -153,16 +156,12 @@
                                 <img [src]="selectedImage()?.url" class="max-h-64 max-w-full object-contain"
                                     alt="Imagen seleccionada">
                                 }
-
                             </div>
 
                             <!-- Lista de miniaturas -->
                             @if (images().length > 0) {
-
                             <div class="flex flex-wrap gap-2 mt-3">
-
                                 @for (image of images();track $index){
-
                                 <div class="relative group border border-gray-300"
                                     [class.border-indigo-500]="$index === selectedImageIndex()"
                                     [class.border-2]="$index === selectedImageIndex()">
@@ -174,6 +173,13 @@
                                             [alt]="image.name">
                                     </div>
 
+                                    <!-- Indicador de imagen nueva -->
+                                    @if (!image.isExisting) {
+                                    <div class="absolute top-0 left-0 bg-green-500 text-white text-xs px-1 rounded-br">
+                                        NUEVA
+                                    </div>
+                                    }
+
                                     <!-- Botón eliminar -->
                                     <button type="button"
                                         class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
@@ -181,24 +187,30 @@
                                         ×
                                     </button>
                                 </div>
-
                                 }
-
                             </div>
-
                             }
 
                             <!-- Selector de archivos múltiples -->
                             <div class="flex items-center">
                                 <label
-                                    class="cursor-pointer bg-white border border-gray-300 text-gray-700 py-2 px-4 w-full text-center hover:bg-gray-50 flex items-center justify-center">
+                                    class="cursor-pointer bg-white border border-gray-300 text-gray-700 py-2 px-4 w-full text-center hover:bg-gray-50 flex items-center justify-center"
+                                    [class.opacity-50]="!canAddMoreImages()"
+                                    [class.cursor-not-allowed]="!canAddMoreImages()">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 4v16m8-8H4" />
                                     </svg>
-                                    <span>Agregar imágenes</span>
+                                    <span>
+                                        @if (canAddMoreImages()) {
+                                        Agregar imágenes
+                                        } @else {
+                                        Máximo de imágenes alcanzado
+                                        }
+                                    </span>
                                     <input type="file" class="hidden" accept="image/*" multiple
+                                        [disabled]="!canAddMoreImages()"
                                         (change)="onFileSelected($event)">
                                 </label>
                             </div>
@@ -222,13 +234,18 @@
 
                 <!-- Botones de acción -->
                 <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                    <button type="button" (click)="onCancel()"
-                        class="px-4 py-2 border border-gray-300 hover:bg-gray-50 transition duration-200 text-gray-700">
+                    <button type="button" (click)="onCancel()" [disabled]="isLoading()"
+                        class="px-4 py-2 border border-gray-300 hover:bg-gray-50 transition duration-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
                         Cancelar
                     </button>
-                    <button type="submit" [disabled]="form.invalid"
-                        class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button type="submit" [disabled]="form.invalid || isLoading()"
+                        class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                        @if (isLoading()) {
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Guardando...
+                        } @else {
                         Guardar
+                        }
                     </button>
                 </div>
             </form>

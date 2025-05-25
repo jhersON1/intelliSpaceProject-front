@@ -17,4 +17,5 @@ export const API_ROUTES = {
   POST_VISUAL_REPRESENTATION: '/visual-representation',
   GET_PRINCIPAL_IMAGE: '/visual-representation/principal-image',
   GET_ALL_IMAGES: '/visual-representation/images',
+  DELETE_VISUAL_REPRESENTATION: '/visual-representation',
 } as const;
