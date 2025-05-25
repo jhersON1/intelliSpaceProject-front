@@ -18,4 +18,8 @@ export class VisualRepresentationService {
     return this.http.get<VisualRepresentation>(`${this.baseUrl}${API_ROUTES.GET_PRINCIPAL_IMAGE}/${productId}`);
   }
 
+  public findAllImages(productId: string): Observable<VisualRepresentation[]> {
+    return this.http.get<VisualRepresentation[]>(`${this.baseUrl}${API_ROUTES.GET_ALL_IMAGES}/${productId}`);
+  }
+
 }

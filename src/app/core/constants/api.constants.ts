@@ -16,4 +16,5 @@ export const API_ROUTES = {
   POST_IMAGES: '/cloudinary/upload-multiple',
   POST_VISUAL_REPRESENTATION: '/visual-representation',
   GET_PRINCIPAL_IMAGE: '/visual-representation/principal-image',
+  GET_ALL_IMAGES: '/visual-representation/images',
 } as const;
