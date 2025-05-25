@@ -1,254 +1,290 @@
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-8 px-4">
-    <div class="max-w-3xl w-full bg-white shadow-md border-t-4 border-indigo-500">
-        <!-- Encabezado -->
-        <div class="bg-white p-6 border-b border-gray-200">
-            <div class="flex items-center space-x-3">
-                <h2 class="text-xl font-medium text-gray-800">Editar Producto</h2>
-                @if (isLoading()) {
-                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
-                }
+  <div class="max-w-3xl w-full bg-white shadow-md border-t-4 border-indigo-500">
+    
+    <!-- Header -->
+    <header class="bg-white p-6 border-b border-gray-200">
+      <div class="flex items-center space-x-3">
+        <h2 class="text-xl font-medium text-gray-800">Editar Producto</h2>
+        @if (isLoading()) {
+          <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
+        }
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="p-6">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
+        
+        <!-- Basic Information Section -->
+        <section class="space-y-4">
+          <div class="group">
+            <label class="block text-sm font-medium mb-1 text-gray-700">Título</label>
+            <input 
+              formControlName="title" 
+              type="text" 
+              placeholder="Título del producto"
+              class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white" 
+            />
+          </div>
+
+          <div class="group">
+            <label class="block text-sm font-medium mb-1 text-gray-700">Descripción</label>
+            <textarea 
+              formControlName="description" 
+              rows="3"
+              class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white resize-none"
+              placeholder="Descripción detallada del producto..."
+            ></textarea>
+          </div>
+        </section>
+
+        <!-- Main Information Section -->
+        <section class="bg-gray-50 p-4 border-l-4 border-indigo-500">
+          <h3 class="text-md font-medium text-gray-700 mb-3">Información Principal</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Price Field -->
+            <div class="group">
+              <label class="block text-sm font-medium mb-1 text-gray-700">Precio</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span class="text-gray-500">$</span>
+                </div>
+                <input 
+                  formControlName="price" 
+                  type="number" 
+                  step="0.01"
+                  class="w-full pl-8 p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
+                  placeholder="0.00" 
+                />
+              </div>
             </div>
-        </div>
 
-        <div class="p-6">
-            <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
-                <!-- Título y Descripción -->
-                <div class="space-y-4">
-                    <div class="group">
-                        <label class="block text-sm font-medium mb-1 text-gray-700">
-                            Título
-                        </label>
-                        <input formControlName="title" type="text" placeholder="Título del producto"
-                            class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white" />
+            <!-- Stock Field -->
+            <div class="group">
+              <label class="block text-sm font-medium mb-1 text-gray-700">Stock</label>
+              <input 
+                formControlName="stock" 
+                type="number"
+                class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
+                placeholder="0" 
+              />
+            </div>
+
+            <!-- Weight Field -->
+            <div class="group">
+              <label class="block text-sm font-medium mb-1 text-gray-700">Peso (kg)</label>
+              <input 
+                formControlName="weight" 
+                type="number" 
+                step="0.01"
+                class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
+                placeholder="0.00" 
+              />
+            </div>
+
+            <!-- State Field -->
+            <div class="group">
+              <label class="block text-sm font-medium mb-1 text-gray-700">Estado</label>
+              <select 
+                formControlName="state"
+                class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white appearance-none"
+              >
+                <option [value]="ProductStatus.AVAILABLE">{{ ProductStatus.AVAILABLE }}</option>
+                <option [value]="ProductStatus.SOLD_OUT">{{ ProductStatus.SOLD_OUT }}</option>
+              </select>
+            </div>
+
+            <!-- Material Field -->
+            <div class="group">
+              <label class="block text-sm font-medium mb-1 text-gray-700">Material</label>
+              <input 
+                formControlName="material" 
+                type="text"
+                class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
+                placeholder="Material" 
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="bg-gray-50 p-4 border-l-4 border-indigo-500">
+          <h3 class="text-md font-medium text-gray-700 mb-3">Categorías</h3>
+          <app-category-selector 
+            [hierarchicalCategories]="hierarchicalCategories()"
+            [selectedCategories]="selectedCategories()"
+            [hasError]="form.get('idCategory')?.invalid || false"
+            [touched]="form.get('idCategory')?.touched || false"
+            (categoriesChange)="onCategoriesChange($event)"
+          />
+        </section>
+
+        <!-- Dimensions Section -->
+        <section class="bg-gray-50 p-4 border-l-4 border-indigo-500">
+          <h3 class="text-md font-medium text-gray-700 mb-3">Dimensiones</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            @for (dimension of ['Height', 'Width', 'Depth']; track dimension) {
+              <div class="group">
+                <label class="block text-sm font-medium mb-1 text-gray-700">
+                  {{ dimension === 'Height' ? 'Alto' : dimension === 'Width' ? 'Ancho' : 'Profundidad' }} (cm)
+                </label>
+                <input 
+                  [formControlName]="'dimensions' + dimension" 
+                  type="number" 
+                  step="0.1"
+                  class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
+                  placeholder="0.0" 
+                />
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Images and Keywords Section -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Images -->
+          <div class="group">
+            <label class="block text-sm font-medium mb-1 text-gray-700">
+              Imágenes ({{ images().length }}/10)
+            </label>
+            
+            <div class="space-y-3">
+              <!-- Main Preview -->
+              <div class="h-64 border border-gray-300 bg-gray-50 flex items-center justify-center overflow-hidden">
+                @if (selectedImageIndex() === -1) {
+                  <div class="flex flex-col items-center text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Seleccione una imagen para previsualizar</span>
+                  </div>
+                } @else if (selectedImage()) {
+                  <img 
+                    [src]="selectedImage()?.url" 
+                    class="max-h-64 max-w-full object-contain"
+                    alt="Imagen seleccionada"
+                  >
+                }
+              </div>
+
+              <!-- Thumbnails -->
+              @if (images().length > 0) {
+                <div class="flex flex-wrap gap-2 mt-3">
+                  @for (image of images(); track $index) {
+                    <div 
+                      class="relative group border border-gray-300"
+                      [class.border-indigo-500]="$index === selectedImageIndex()"
+                      [class.border-2]="$index === selectedImageIndex()"
+                    >
+                      <!-- Thumbnail -->
+                      <div 
+                        class="w-16 h-16 flex items-center justify-center overflow-hidden cursor-pointer"
+                        (click)="selectImage($index)"
+                      >
+                        <img 
+                          [src]="image.url" 
+                          class="max-h-full max-w-full object-contain"
+                          [alt]="image.name"
+                        >
+                      </div>
+
+                      <!-- New Image Badge -->
+                      @if (!image.isExisting) {
+                        <div class="absolute top-0 left-0 bg-green-500 text-white text-xs px-1 rounded-br">
+                          NUEVA
+                        </div>
+                      }
+
+                      <!-- Delete Button -->
+                      <button 
+                        type="button"
+                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        (click)="removeImage($index)"
+                      >
+                        ×
+                      </button>
                     </div>
-
-                    <div class="group">
-                        <label class="block text-sm font-medium mb-1 text-gray-700">
-                            Descripción
-                        </label>
-                        <textarea formControlName="description" rows="3"
-                            class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white resize-none"
-                            placeholder="Descripción detallada del producto...">
-            </textarea>
-                    </div>
+                  }
                 </div>
+              }
 
-                <!-- Información principal -->
-                <div class="bg-gray-50 p-4 border-l-4 border-indigo-500">
-                    <h3 class="text-md font-medium text-gray-700 mb-3">
-                        Información Principal
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="group">
-                            <label class="block text-sm font-medium mb-1 text-gray-700">
-                                Precio
-                            </label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <span class="text-gray-500">$</span>
-                                </div>
-                                <input formControlName="price" type="number" step="0.01"
-                                    class="w-full pl-8 p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
-                                    placeholder="0.00" />
-                            </div>
-                        </div>
+              <!-- File Input -->
+              <div class="flex items-center">
+                <label
+                  class="cursor-pointer bg-white border border-gray-300 text-gray-700 py-2 px-4 w-full text-center hover:bg-gray-50 flex items-center justify-center"
+                  [class.opacity-50]="!canAddMoreImages()"
+                  [class.cursor-not-allowed]="!canAddMoreImages()"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>
+                    @if (canAddMoreImages()) {
+                      Agregar imágenes
+                    } @else {
+                      Máximo de imágenes alcanzado
+                    }
+                  </span>
+                  <input 
+                    type="file" 
+                    class="hidden" 
+                    accept="image/*" 
+                    multiple
+                    [disabled]="!canAddMoreImages()"
+                    (change)="onFileSelected($event)"
+                  >
+                </label>
+              </div>
 
-                        <div class="group">
-                            <label class="block text-sm font-medium mb-1 text-gray-700">
-                                Stock
-                            </label>
-                            <input formControlName="stock" type="number"
-                                class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
-                                placeholder="0" />
-                        </div>
+              <!-- Image Info -->
+              <div class="space-y-1">
+                <p class="text-xs text-gray-500">Formatos aceptados: JPG, PNG, GIF (máx. 5MB por imagen)</p>
+                <p class="text-xs text-gray-500">Se pueden subir hasta 10 imágenes por producto</p>
+              </div>
+            </div>
+          </div>
 
-                        <div class="group">
-                            <label class="block text-sm font-medium mb-1 text-gray-700">
-                                Peso (kg)
-                            </label>
-                            <input formControlName="weight" type="number" step="0.01"
-                                class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
-                                placeholder="0.00" />
-                        </div>
+          <!-- Keywords -->
+          <div class="group">
+            <label class="block text-sm font-medium mb-1 text-gray-700">Palabras clave</label>
+            <input 
+              formControlName="keywords" 
+              type="text"
+              class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
+              placeholder="Palabras clave separadas por comas" 
+            />
+            <p class="mt-1 text-xs text-gray-500">Separadas por comas (ej: hogar, decoración, moderno)</p>
+          </div>
+        </section>
 
-                        <div class="group">
-                            <label class="block text-sm font-medium mb-1 text-gray-700">
-                                Estado
-                            </label>
-                            <select formControlName="state"
-                                class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white appearance-none">
-                                <option [value]="ProductStatus.AVAILABLE">{{ ProductStatus.AVAILABLE }}</option>
-                                <option [value]="ProductStatus.SOLD_OUT">{{ ProductStatus.SOLD_OUT }}</option>
-                            </select>
-                        </div>
-
-                        <div class="group">
-                            <label class="block text-sm font-medium mb-1 text-gray-700">
-                                Material
-                            </label>
-                            <input formControlName="material" type="text"
-                                class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
-                                placeholder="Material" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Categorías -->
-                <div class="bg-gray-50 p-4 border-l-4 border-indigo-500 mt-4">
-                    <h3 class="text-md font-medium text-gray-700 mb-3">
-                        Categorías
-                    </h3>
-                    <app-category-selector [hierarchicalCategories]="hierarchicalCategories()"
-                        [selectedCategories]="selectedCategories()"
-                        [hasError]="form.get('idCategory')?.invalid || false"
-                        [touched]="form.get('idCategory')?.touched || false"
-                        (categoriesChange)="onCategoriesChange($event)">
-                    </app-category-selector>
-                </div>
-
-                <!-- Dimensiones -->
-                <div class="bg-gray-50 p-4 border-l-4 border-indigo-500">
-                    <h3 class="text-md font-medium text-gray-700 mb-3">
-                        Dimensiones
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="group">
-                            <label class="block text-sm font-medium mb-1 text-gray-700">Alto (cm)</label>
-                            <input formControlName="dimensionsHeight" type="number" step="0.1"
-                                class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
-                                placeholder="0.0" />
-                        </div>
-                        <div class="group">
-                            <label class="block text-sm font-medium mb-1 text-gray-700">Ancho (cm)</label>
-                            <input formControlName="dimensionsWidth" type="number" step="0.1"
-                                class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
-                                placeholder="0.0" />
-                        </div>
-                        <div class="group">
-                            <label class="block text-sm font-medium mb-1 text-gray-700">Profundidad (cm)</label>
-                            <input formControlName="dimensionsDepth" type="number" step="0.1"
-                                class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
-                                placeholder="0.0" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Imagen y Keywords -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="group">
-                        <label class="block text-sm font-medium mb-1 text-gray-700">
-                            Imágenes ({{ images().length }}/10)
-                        </label>
-                        <div class="space-y-3">
-                            <!-- Previsualización principal -->
-                            <div
-                                class="h-64 border border-gray-300 bg-gray-50 flex items-center justify-center overflow-hidden">
-                                <div *ngIf="selectedImageIndex() === -1"
-                                    class="flex flex-col items-center text-gray-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    <span>Seleccione una imagen para previsualizar</span>
-                                </div>
-                                @if (selectedImage()) {
-                                <img [src]="selectedImage()?.url" class="max-h-64 max-w-full object-contain"
-                                    alt="Imagen seleccionada">
-                                }
-                            </div>
-
-                            <!-- Lista de miniaturas -->
-                            @if (images().length > 0) {
-                            <div class="flex flex-wrap gap-2 mt-3">
-                                @for (image of images();track $index){
-                                <div class="relative group border border-gray-300"
-                                    [class.border-indigo-500]="$index === selectedImageIndex()"
-                                    [class.border-2]="$index === selectedImageIndex()">
-
-                                    <!-- Miniatura de la imagen -->
-                                    <div class="w-16 h-16 flex items-center justify-center overflow-hidden cursor-pointer"
-                                        (click)="selectImage($index)">
-                                        <img [src]="image.url" class="max-h-full max-w-full object-contain"
-                                            [alt]="image.name">
-                                    </div>
-
-                                    <!-- Indicador de imagen nueva -->
-                                    @if (!image.isExisting) {
-                                    <div class="absolute top-0 left-0 bg-green-500 text-white text-xs px-1 rounded-br">
-                                        NUEVA
-                                    </div>
-                                    }
-
-                                    <!-- Botón eliminar -->
-                                    <button type="button"
-                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                                        (click)="removeImage($index)">
-                                        ×
-                                    </button>
-                                </div>
-                                }
-                            </div>
-                            }
-
-                            <!-- Selector de archivos múltiples -->
-                            <div class="flex items-center">
-                                <label
-                                    class="cursor-pointer bg-white border border-gray-300 text-gray-700 py-2 px-4 w-full text-center hover:bg-gray-50 flex items-center justify-center"
-                                    [class.opacity-50]="!canAddMoreImages()"
-                                    [class.cursor-not-allowed]="!canAddMoreImages()">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    <span>
-                                        @if (canAddMoreImages()) {
-                                        Agregar imágenes
-                                        } @else {
-                                        Máximo de imágenes alcanzado
-                                        }
-                                    </span>
-                                    <input type="file" class="hidden" accept="image/*" multiple
-                                        [disabled]="!canAddMoreImages()"
-                                        (change)="onFileSelected($event)">
-                                </label>
-                            </div>
-
-                            <!-- Información adicional -->
-                            <p class="text-xs text-gray-500">Formatos aceptados: JPG, PNG, GIF (máx. 5MB por imagen)</p>
-                            <p class="text-xs text-gray-500">Se pueden subir hasta 10 imágenes por producto</p>
-                        </div>
-                    </div>
-
-                    <div class="group">
-                        <label class="block text-sm font-medium mb-1 text-gray-700">
-                            Palabras clave
-                        </label>
-                        <input formControlName="keywords" type="text"
-                            class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
-                            placeholder="Palabras clave separadas por comas" />
-                        <p class="mt-1 text-xs text-gray-500">Separadas por comas (ej: hogar, decoración, moderno)</p>
-                    </div>
-                </div>
-
-                <!-- Botones de acción -->
-                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                    <button type="button" (click)="onCancel()" [disabled]="isLoading()"
-                        class="px-4 py-2 border border-gray-300 hover:bg-gray-50 transition duration-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                        Cancelar
-                    </button>
-                    <button type="submit" [disabled]="form.invalid || isLoading()"
-                        class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
-                        @if (isLoading()) {
-                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Guardando...
-                        } @else {
-                        Guardar
-                        }
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+        <!-- Action Buttons -->
+        <footer class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+          <button 
+            type="button" 
+            (click)="onCancel()" 
+            [disabled]="isLoading()"
+            class="px-4 py-2 border border-gray-300 hover:bg-gray-50 transition duration-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancelar
+          </button>
+          
+          <button 
+            type="submit" 
+            [disabled]="form.invalid || isLoading()"
+            class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+          >
+            @if (isLoading()) {
+              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Guardando...
+            } @else {
+              Guardar
+            }
+          </button>
+        </footer>
+      </form>
+    </main>
+  </div>
 </div>
