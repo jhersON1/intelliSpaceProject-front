@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Product } from '../../interfaces/product.interface';
 import { ProductsService } from '../../services/products.service';
@@ -6,7 +6,6 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { catchError, of, forkJoin } from 'rxjs';
 import { VisualRepresentationService } from '../../services/visual-representation.service';
-import { HttpErrorResponse } from '@angular/common/http';
 
 interface ProductWithImage extends Product {
   imageUrl?: string | string[];
