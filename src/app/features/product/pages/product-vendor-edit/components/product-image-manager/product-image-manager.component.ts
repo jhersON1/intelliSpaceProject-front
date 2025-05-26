@@ -6,8 +6,7 @@ import {
     inject,
     input,
     model,
-    output,
-    signal
+    output
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ImageStateService } from '../../services/image-state.service';
@@ -19,12 +18,11 @@ import { ImageStateService } from '../../services/image-state.service';
     imports: [CommonModule],
     templateUrl: './product-image-manager.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [ImageStateService] // Cada instancia tendrá su propio estado
+    providers: [ImageStateService]
 })
 export class ProductImageManagerComponent {
     private readonly imageStateService = inject(ImageStateService);
 
-    // Inputs
     readonly maxImages = input<number>(10);
     readonly acceptedFormats = input<string>('image/*');
     readonly maxFileSize = input<number>(5); // MB
@@ -32,20 +30,16 @@ export class ProductImageManagerComponent {
     readonly allowMultiple = input<boolean>(true);
     readonly disabled = input<boolean>(false);
 
-    // Two-way binding
     readonly imageNames = model<string[]>([]);
 
-    // Outputs
     readonly imagesChange = output<string[]>();
     readonly validationError = output<string>();
 
-    // Computed properties from service
     readonly images = this.imageStateService.images;
     readonly canAddMoreImages = this.imageStateService.canAddMoreImages;
     readonly selectedImage = this.imageStateService.selectedImage;
     readonly selectedImageIndex = this.imageStateService.selectedImageIndex;
 
-    // Local computed properties
     readonly imageCount = computed(() => this.images().length);
     readonly remainingSlots = computed(() => {
         const state = this.imageStateService.getState();
@@ -61,7 +55,6 @@ export class ProductImageManagerComponent {
         this.setupImageNamesSync();
     }
 
-    // Public methods
     public onFileSelected(event: Event): void {
         const files = this.getFilesFromEvent(event);
         if (!files?.length) return;
@@ -104,7 +97,6 @@ export class ProductImageManagerComponent {
         this.imageStateService.reset();
     }
 
-    // Private methods
     private setupImageNamesSync(): void {
         effect(() => {
             const currentImages = this.images();
@@ -151,7 +143,7 @@ export class ProductImageManagerComponent {
     }
 
     private isValidFileSize(file: File): boolean {
-        const maxSizeBytes = this.maxFileSize() * 1024 * 1024; // Convert MB to bytes
+        const maxSizeBytes = this.maxFileSize() * 1024 * 1024;
         return file.size <= maxSizeBytes;
     }
 
