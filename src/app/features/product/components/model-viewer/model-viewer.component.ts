@@ -162,14 +162,7 @@ export class ModelViewerComponent implements OnInit, AfterViewInit {
   iosModelUrl = signal<string>('');
   
   // Datos mock de anotaciones
-  annotations = signal<ModelAnnotation[]>([
-    {
-      id: '1',
-      title: 'Detalle',
-      content: 'Característica destacada',
-      position: { x: 0, y: 0.5, z: 0 }
-    }
-  ]);
+  annotations = signal<ModelAnnotation[]>([]);
 
   ngOnInit(): void {
     const model = this.model3D();
