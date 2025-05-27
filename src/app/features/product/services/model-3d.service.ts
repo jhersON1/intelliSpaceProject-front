@@ -73,7 +73,7 @@ export class Model3DService {
       '1': './models/bugatti.usdz',
       '2': './models/car.usdz',
       '3': './models/Car1.usdz',
-      '8fa31403-3d9e-4dc9-bb6f-53e723e8cb08': './models/OfficeChair.usdz'
+      '4': './models/OfficeChair.usdz'
     };
     
     return iosModels[productId] || './models/default.usdz';
