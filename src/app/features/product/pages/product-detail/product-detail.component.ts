@@ -6,10 +6,14 @@ import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { VisualRepresentation } from '../../interfaces/visual-representation.interface';
 import { VisualRepresentationService } from '../../services/visual-representation.service';
+import { Model3DService } from '../../services/model-3d.service';
+import { Model3D } from '../../interfaces/model-3d.interface';
+import { ModelViewerComponent } from '../../components/model-viewer/model-viewer.component';
+import { QrCodeComponent } from '../../components/qr-code/qr-code.component';
 
 @Component({
   selector: 'app-product-detail',
-  imports: [CommonModule],
+  imports: [CommonModule, ModelViewerComponent, QrCodeComponent],
   templateUrl: './product-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -18,6 +22,7 @@ export class ProductDetailComponent {
   private router = inject(Router);
   private productsService = inject(ProductsService);
   private visualRepresentationService = inject(VisualRepresentationService);
+  private model3DService = inject(Model3DService);
 
   product = signal<Product | null>(null);
   loading = signal(true);
@@ -28,11 +33,15 @@ export class ProductDetailComponent {
   currentImage = signal<string | null>(null);
   isMobileDevice = signal(false);
 
+  // Nuevos signals para 3D/AR
+  model3D = signal<Model3D | null>(null);
+  loading3D = signal(false);
+
   ngOnInit(): void {
     this.isMobileDevice.set(
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     );
-    
+
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       if (id) {
@@ -45,28 +54,27 @@ export class ProductDetailComponent {
 
   loadProduct(id: string): void {
     this.loading.set(true);
-    
-    // Cargar producto y todas sus imágenes en paralelo
+
+    // Cargar producto, imágenes y modelo 3D en paralelo
     forkJoin({
       product: this.productsService.getProductDetail(id),
-      images: this.visualRepresentationService.findAllImages(id)
+      images: this.visualRepresentationService.findAllImages(id),
+      model3D: this.model3DService.getProductModel(id)
     }).subscribe({
-      next: ({ product, images }) => {
+      next: ({ product, images, model3D }) => {
         this.product.set(product);
         this.visualRepresentations.set(images);
+        this.model3D.set(model3D);
         this.setupImages(images);
         this.loading.set(false);
-        
-        if (this.displayMode() === '3d') {
-          console.log('Aquí va la implementación de la visualización 3D');
-        } else if (this.displayMode() === 'ar') {
-          console.log('Aquí va la implementación de la visualización en Realidad Aumentada');
-        }
+
+        console.log('Producto cargado:', product);
+
+        console.log('Modelo 3D cargado:', model3D);
       },
       error: (error) => {
-        console.error('Error al cargar el producto o las imágenes:', error);
+        console.error('Error al cargar el producto:', error);
         this.loading.set(false);
-        // Si falla la carga de imágenes, intentar cargar solo el producto
         this.loadProductOnly(id);
       }
     });
@@ -89,32 +97,30 @@ export class ProductDetailComponent {
 
   setupImages(visualRepresentations: VisualRepresentation[]): void {
     if (visualRepresentations && visualRepresentations.length > 0) {
-      // Usar las imágenes del servicio de visual representations
-      const imageUrls = visualRepresentations.map(vr =>vr.url).filter(url => url);
+      const imageUrls = visualRepresentations.map(vr => vr.url).filter(url => url);
       this.images.set(imageUrls);
-      
+
       if (imageUrls.length > 0) {
         this.currentImage.set(imageUrls[0]);
         this.currentImageIndex.set(0);
         return;
       }
     }
-    
-    // Fallback a las imágenes del producto si no hay visual representations
+
     this.setupFallbackImages();
   }
 
   private setupFallbackImages(): void {
     const currentProduct = this.product();
     if (!currentProduct) return;
-    
+
     if (currentProduct.imageUrl) {
       if (Array.isArray(currentProduct.imageUrl)) {
         this.images.set(currentProduct.imageUrl);
       } else {
         this.images.set([currentProduct.imageUrl]);
       }
-      
+
       if (this.images().length > 0) {
         this.currentImage.set(this.images()[0]);
         this.currentImageIndex.set(0);
@@ -129,18 +135,18 @@ export class ProductDetailComponent {
 
   setDisplayMode(mode: 'images' | '3d' | 'ar'): void {
     this.displayMode.set(mode);
-    
+
     if (mode === '3d') {
-      console.log('Aquí va la implementación de la visualización 3D');
+      console.log('Mostrando visualización 3D');
     } else if (mode === 'ar') {
-      console.log('Aquí va la implementación de la visualización en Realidad Aumentada');
+      console.log('Mostrando visualización AR');
     }
   }
 
   getDimensionsString(): string {
     const currentProduct = this.product();
     if (!currentProduct?.dimensions) return 'No disponible';
-    
+
     const dim = currentProduct.dimensions as any;
     if (dim.width && dim.height && dim.depth) {
       return `${dim.width} × ${dim.height} × ${dim.depth} cm`;
@@ -152,7 +158,6 @@ export class ProductDetailComponent {
     this.router.navigate(['/products']);
   }
 
-  // Métodos para navegación de imágenes con teclado
   nextImage(): void {
     const totalImages = this.images().length;
     if (totalImages > 1) {
