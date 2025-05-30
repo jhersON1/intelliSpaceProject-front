@@ -18,4 +18,7 @@ export const API_ROUTES = {
   GET_PRINCIPAL_IMAGE: '/visual-representation/principal-image',
   GET_ALL_IMAGES: '/visual-representation/images',
   DELETE_VISUAL_REPRESENTATION: '/visual-representation',
+
+  GET_MODEL_3D: '/visual-representation/model3D',
+  GET_EXPERIENCE_AR: '/visual-representation/experienceAR',
 } as const;

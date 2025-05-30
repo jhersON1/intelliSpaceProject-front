@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, CUSTOM_ELEMENTS_SCHEMA, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Product } from '../../interfaces/product.interface';
 import { ProductsService } from '../../services/products.service';
@@ -7,13 +7,15 @@ import { forkJoin } from 'rxjs';
 import { VisualRepresentation } from '../../interfaces/visual-representation.interface';
 import { VisualRepresentationService } from '../../services/visual-representation.service';
 import { Model3DService } from '../../services/model-3d.service';
-import { Model3D } from '../../interfaces/model-3d.interface';
+import { ExperienceARResponse, Model3DResponse } from '../../interfaces/model-3d.interface';
 import { ModelViewerComponent } from '../../components/model-viewer/model-viewer.component';
 import { QrCodeComponent } from '../../components/qr-code/qr-code.component';
+
 
 @Component({
   selector: 'app-product-detail',
   imports: [CommonModule, ModelViewerComponent, QrCodeComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './product-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -34,8 +36,10 @@ export class ProductDetailComponent {
   isMobileDevice = signal(false);
 
   // Nuevos signals para 3D/AR
-  model3D = signal<Model3D | null>(null);
+  model3DResponse = signal<Model3DResponse | null>(null);
+  experienceARResponse = signal<ExperienceARResponse | null>(null);
   loading3D = signal(false);
+  loadingAR = signal(false);
 
   ngOnInit(): void {
     this.isMobileDevice.set(
@@ -55,22 +59,24 @@ export class ProductDetailComponent {
   loadProduct(id: string): void {
     this.loading.set(true);
 
-    // Cargar producto, imágenes y modelo 3D en paralelo
+    // Cargar producto, imágenes, modelo 3D y experiencia AR en paralelo
     forkJoin({
       product: this.productsService.getProductDetail(id),
       images: this.visualRepresentationService.findAllImages(id),
-      model3D: this.model3DService.getProductModel(id)
+      model3D: this.model3DService.getModel3D(id),
+      experienceAR: this.model3DService.getExperienceAR(id)
     }).subscribe({
-      next: ({ product, images, model3D }) => {
+      next: ({ product, images, model3D, experienceAR }) => {
         this.product.set(product);
         this.visualRepresentations.set(images);
-        this.model3D.set(model3D);
+        this.model3DResponse.set(model3D);
+        this.experienceARResponse.set(experienceAR);
         this.setupImages(images);
         this.loading.set(false);
 
         console.log('Producto cargado:', product);
-
         console.log('Modelo 3D cargado:', model3D);
+        console.log('Experiencia AR cargada:', experienceAR);
       },
       error: (error) => {
         console.error('Error al cargar el producto:', error);
@@ -133,16 +139,6 @@ export class ProductDetailComponent {
     this.currentImage.set(this.images()[index]);
   }
 
-  setDisplayMode(mode: 'images' | '3d' | 'ar'): void {
-    this.displayMode.set(mode);
-
-    if (mode === '3d') {
-      console.log('Mostrando visualización 3D');
-    } else if (mode === 'ar') {
-      console.log('Mostrando visualización AR');
-    }
-  }
-
   getDimensionsString(): string {
     const currentProduct = this.product();
     if (!currentProduct?.dimensions) return 'No disponible';
@@ -172,5 +168,61 @@ export class ProductDetailComponent {
       const prevIndex = this.currentImageIndex() === 0 ? totalImages - 1 : this.currentImageIndex() - 1;
       this.selectImage(prevIndex);
     }
+  }
+
+
+
+  setDisplayMode(mode: 'images' | '3d' | 'ar'): void {
+    this.displayMode.set(mode);
+
+    if (mode === '3d') {
+      console.log('Mostrando visualización 3D');
+      if (!this.model3DResponse()) {
+        console.warn('No hay modelo 3D disponible para este producto');
+      }
+    } else if (mode === 'ar') {
+      console.log('Mostrando visualización AR');
+      if (!this.experienceARResponse()) {
+        console.warn('No hay experiencia AR disponible para este producto');
+      }
+    }
+  }
+
+  // Métodos auxiliares para verificar disponibilidad
+  hasModel3D(): boolean {
+    return !!this.model3DResponse();
+  }
+
+  hasExperienceAR(): boolean {
+    return !!this.experienceARResponse();
+  }
+
+  // Métodos para obtener URLs de los modelos
+  getModel3DUrl(): string | null {
+    return this.model3DResponse()?.url || null;
+  }
+
+  getModel3DFormat(): string | null {
+    return this.model3DResponse()?.format || null;
+  }
+
+  getIOSModel3DUrl(): string | null {
+    return this.model3DResponse()?.urlIOS3D || null;
+  }
+
+  getExperienceARUrl(): string | null {
+    return this.experienceARResponse()?.url || null;
+  }
+
+  getIOSARUrl(): string | null {
+    return this.experienceARResponse()?.urlIOSAR || null;
+  }
+
+  getARInstructions(): string | null {
+    return this.experienceARResponse()?.instructions || null;
+  }
+
+  getARDeviceRequirements(): string[] {
+    return this.experienceARResponse()?.devicerequirements || [];
   }
 }

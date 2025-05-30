@@ -27,6 +27,9 @@
           <button (click)="setDisplayMode('3d')" [class]="displayMode() === '3d' ? 
                 'bg-white text-gray-900 shadow-sm' : 
                 'text-gray-500 hover:text-gray-700'"
+            [disabled]="!hasModel3D()"
+            [class.opacity-50]="!hasModel3D()"
+            [class.cursor-not-allowed]="!hasModel3D()"
             class="px-6 py-2 text-sm font-medium rounded-md transition-all duration-200">
             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -37,6 +40,9 @@
           <button (click)="setDisplayMode('ar')" [class]="displayMode() === 'ar' ? 
                 'bg-white text-gray-900 shadow-sm' : 
                 'text-gray-500 hover:text-gray-700'"
+            [disabled]="!hasExperienceAR()"
+            [class.opacity-50]="!hasExperienceAR()"
+            [class.cursor-not-allowed]="!hasExperienceAR()"
             class="hidden lg:inline-flex px-6 py-2 text-sm font-medium rounded-md transition-all duration-200">
             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -103,8 +109,13 @@
       @if (displayMode() === '3d') {
       <div class="w-full bg-gray-50">
         <div class="aspect-square lg:aspect-[4/3] relative">
-          @if (model3D()) {
-          <app-model-viewer [model]="model3D()!" [productId]="product()?.id || ''" class="w-full h-full">
+          @if (hasModel3D() && getModel3DUrl()) {
+          <app-model-viewer 
+            [modelUrl]="getModel3DUrl()!" 
+            [format]="getModel3DFormat()" 
+            [iosModelUrl]="getIOSModel3DUrl()"
+            [productTitle]="product()?.title || ''"
+            class="w-full h-full">
           </app-model-viewer>
           } @else {
           <div class="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
@@ -126,13 +137,37 @@
       @if (displayMode() === 'ar') {
       <div class="w-full bg-gray-50 hidden lg:block">
         <div class="aspect-square lg:aspect-[4/3] flex items-center justify-center p-8">
-          @if (model3D()) {
-          <!-- Solo QR Code centrado -->
-          <div class="flex items-center justify-center">
-            <app-qr-code [productId]="product()?.id || ''"></app-qr-code>
+          @if (hasExperienceAR()) {
+          <div class="text-center">
+            <!-- QR Code para AR -->
+            <app-qr-code 
+              [arUrl]="getExperienceARUrl()!" 
+              [iosArUrl]="getIOSARUrl()"
+              [productTitle]="product()?.title || ''">
+            </app-qr-code>
+            
+            <!-- Instrucciones AR -->
+            @if (getARInstructions()) {
+            <div class="mt-6 max-w-md mx-auto">
+              <h4 class="text-lg font-semibold mb-2">Instrucciones</h4>
+              <p class="text-gray-600 text-sm">{{ getARInstructions() }}</p>
+            </div>
+            }
+
+            <!-- Requisitos del dispositivo -->
+            @if (getARDeviceRequirements().length > 0) {
+            <div class="mt-4 max-w-md mx-auto">
+              <h5 class="text-sm font-medium mb-2">Requisitos del dispositivo:</h5>
+              <ul class="text-xs text-gray-500 space-y-1">
+                @for (requirement of getARDeviceRequirements(); track $index) {
+                <li>• {{ requirement }}</li>
+                }
+              </ul>
+            </div>
+            }
           </div>
           } @else {
-          <!-- Estado sin modelo 3D -->
+          <!-- Estado sin experiencia AR -->
           <div class="text-center max-w-md">
             <svg class="w-20 h-20 mx-auto mb-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -140,7 +175,7 @@
             </svg>
             <h3 class="text-xl font-semibold mb-3">AR no disponible</h3>
             <p class="text-gray-600 mb-4">
-              Este producto aún no tiene un modelo 3D disponible para Realidad Aumentada.
+              Este producto aún no tiene una experiencia de Realidad Aumentada disponible.
             </p>
             <button (click)="setDisplayMode('images')"
               class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
@@ -209,21 +244,53 @@
 
         <!-- indicador AR -->
         <div class="lg:col-span-1">
-          <!-- Indicador de compatibilidad AR -->
-          @if (model3D()) {
-          <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div class="flex items-center gap-2 mb-2">
-              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-              <span class="font-medium text-green-800">Compatible con AR</span>
+          <!-- Indicadores de compatibilidad -->
+          <div class="space-y-4">
+            @if (hasModel3D()) {
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <span class="font-medium text-green-800">Modelo 3D disponible</span>
+              </div>
+              <p class="text-sm text-green-700">
+                Este producto se puede visualizar en 3D
+              </p>
             </div>
-            <p class="text-sm text-green-700">
-              Este producto se puede visualizar en Realidad Aumentada
-            </p>
+            }
+
+            @if (hasExperienceAR()) {
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span class="font-medium text-blue-800">Compatible con AR</span>
+              </div>
+              <p class="text-sm text-blue-700">
+                Este producto se puede visualizar en Realidad Aumentada
+              </p>
+            </div>
+            }
+
+            @if (!hasModel3D() && !hasExperienceAR()) {
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="font-medium text-gray-600">Solo imágenes disponibles</span>
+              </div>
+              <p class="text-sm text-gray-500">
+                Este producto no tiene modelos 3D o AR disponibles
+              </p>
+            </div>
+            }
           </div>
-          }
         </div>
       </div>
     </div>

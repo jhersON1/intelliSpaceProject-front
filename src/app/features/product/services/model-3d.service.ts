@@ -1,6 +1,9 @@
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { Model3D } from '../interfaces/model-3d.interface';
+import { inject, Injectable } from '@angular/core';
+import { catchError, Observable, of } from 'rxjs';
+import { ExperienceARResponse, Model3D, Model3DResponse } from '../interfaces/model-3d.interface';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '@environments/environments';
+import { API_ROUTES } from 'src/app/core/constants';
 
 @Injectable({
   providedIn: 'root'
@@ -84,5 +87,39 @@ export class Model3DService {
    */
   hasModel(productId: string): boolean {
     return !!this.staticModels[productId];
+  }
+
+
+  private http = inject(HttpClient);
+  private readonly baseUrl: string = environment.baseUrl;
+
+    /**
+   * Obtiene el modelo 3D para un producto específico
+   */
+  getModel3D(productId: string): Observable<Model3DResponse | null> {
+    console.log('Obteniendo modelo 3D para producto ID:', productId);
+
+    return this.http.get<Model3DResponse>(`${this.baseUrl}${API_ROUTES.GET_MODEL_3D}/${productId}`)
+      .pipe(
+        catchError(error => {
+          console.error('Error al obtener modelo 3D:', error);
+          return of(null);
+        })
+      );
+  }
+
+  /**
+   * Obtiene la experiencia AR para un producto específico
+   */
+  getExperienceAR(productId: string): Observable<ExperienceARResponse | null> {
+    console.log('Obteniendo experiencia AR para producto ID:', productId);
+
+    return this.http.get<ExperienceARResponse>(`${this.baseUrl}${API_ROUTES.GET_EXPERIENCE_AR}/${productId}`)
+      .pipe(
+        catchError(error => {
+          console.error('Error al obtener experiencia AR:', error);
+          return of(null);
+        })
+      );
   }
 }

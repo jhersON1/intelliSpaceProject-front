@@ -1,4 +1,4 @@
-import { VisualRepresentation } from "../../../interfaces/indes";
+import { VisualRepresentation } from "../../../interfaces";
 
 export interface ImagePreview {
   id?: string;

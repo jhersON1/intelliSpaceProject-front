@@ -9,6 +9,10 @@ export interface ImageUploadResponse {
   images: string[];
 }
 
+export interface FileUploadResponse {
+  files: string[];
+}
+
 export interface CreateVisualRepresentationDto {
   productId: string;
   type: string;
@@ -38,6 +42,21 @@ export class ImageUploadService {
     });
 
     return this.http.post<ImageUploadResponse>(`${this.baseUrl}${API_ROUTES.POST_IMAGES}`, formData);
+  }
+
+  /**
+ * Sube múltiples archivos 3D/AR a Cloudinary
+ * @param files - Array de archivos File a subir
+ * @returns Observable con las URLs de los archivos subidos
+ */
+  uploadMultiple3DFiles(files: File[]): Observable<FileUploadResponse> {
+    const formData = new FormData();
+
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    return this.http.post<FileUploadResponse>(`${this.baseUrl}${API_ROUTES.POST_IMAGES}`, formData);
   }
 
   /**
