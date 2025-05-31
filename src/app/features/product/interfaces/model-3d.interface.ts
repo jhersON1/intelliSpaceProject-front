@@ -69,3 +69,30 @@ export interface ExperienceARResponse {
   devicerequirements: string[];
   urlIOSAR: string;
 }
+
+// lo nuevo
+
+export enum FormatModel3D {
+    GLB = '.glb',
+    FBX = '.fbx',
+    OBJ = '.obj',
+    DAE = '.dae',
+    USD = '.usd',
+    GLTF = '.gltf',
+    USDZ = '.usdz',
+}
+
+export interface Model3DFile {
+    file: File;
+    url: string | ArrayBuffer;
+    name: string;
+    format: FormatModel3D;
+    isIOS: boolean;
+}
+
+export interface ARFile {
+    file: File;
+    url: string | ArrayBuffer;
+    name: string;
+    isIOS: boolean;
+}

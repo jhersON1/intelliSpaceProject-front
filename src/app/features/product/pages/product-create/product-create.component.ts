@@ -6,7 +6,7 @@ import { CreateProduct } from '../../interfaces/product.interface';
 import { ProductsService } from '../../services/products.service';
 import { CategorySelectorComponent } from '../../components/category-selector/category-selector.component';
 import { ProductFormBase } from '../../services/productFormBase.service';
-import { ImageUploadService } from '../../services/image-upload.service';
+import { ImageUploadService, CreateVisualRepresentationDto, ImageUploadResponse, FileUploadResponse, TypeRepresentation, FormatModel3D } from '../../services/image-upload.service';
 import { forkJoin } from 'rxjs';
 
 interface ImagePreview {
@@ -15,9 +15,49 @@ interface ImagePreview {
   file?: File;
 }
 
+/**
+ * Interfaz para definir la estructura de un archivo AR seleccionado.
+ */
+interface ARFile {
+  file: File;
+  url: string;
+  name: string;
+  size: number;
+  format: string;
+}
+
+/**
+ * Interfaz para los archivos AR organizados por tipo y plataforma.
+ */
+interface ARFiles {
+  model3D: {
+    android: ARFile | null;  // .glb para Android
+    ios: ARFile | null;      // .usdz para iOS
+  };
+  experienceAR: {
+    android: ARFile | null;  // .glb para Android  
+    ios: ARFile | null;      // .usdz para iOS
+  };
+}
+
+/**
+ * Tipos de archivo AR disponibles.
+ */
+type ARFileType = 'model3D' | 'experienceAR';
+
+/**
+ * Plataformas soportadas para AR.
+ */
+type ARPlatform = 'android' | 'ios';
+
 @Component({
   selector: 'app-product-create',
-  imports: [CommonModule, ReactiveFormsModule, CategorySelectorComponent],
+  standalone: true,
+  imports: [
+    CommonModule, 
+    ReactiveFormsModule, 
+    CategorySelectorComponent
+  ],
   templateUrl: './product-create.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -35,6 +75,13 @@ export class ProductCreateComponent implements OnInit {
   readonly selectedCategories = this.productFormBase.selectedCategories;
   readonly isUploadingImages = signal<boolean>(false);
 
+  // Nuevas propiedades para archivos AR
+  readonly currentARFiles = signal<ARFiles>({
+    model3D: { android: null, ios: null },
+    experienceAR: { android: null, ios: null }
+  });
+  readonly isUploadingAR = signal<boolean>(false);
+
   readonly formSuccess = signal<boolean>(false);
   readonly images = signal<ImagePreview[]>([]);
   readonly selectedImageIndex = signal<number>(-1);
@@ -51,19 +98,20 @@ export class ProductCreateComponent implements OnInit {
     const control = this.productForm.get('imageUrls') as FormArray;
     return control || this.fb.array([]);
   }
-
   constructor() {
+    console.log('🔧 ProductCreateComponent constructor ejecutándose...');
     this.setupImageSyncEffect();
+    console.log('✅ ProductCreateComponent constructor completado');
   }
-
   ngOnInit(): void {
+    console.log('🚀 ProductCreateComponent inicializado');
     this.loadCategories();
   }
-
   /**
    * Configuración del efecto para sincronizar imágenes
    */
   private setupImageSyncEffect(): void {
+    console.log('🔄 Configurando effect para sincronización de imágenes...');
     effect(() => {
       const currentImages = this.images();
       const imageArray = this.imageUrlsArray;
@@ -72,8 +120,8 @@ export class ProductCreateComponent implements OnInit {
         this.syncImagesWithFormArray(currentImages);
       }
     });
+    console.log('✅ Effect configurado exitosamente');
   }
-
   /**
    * Inicializa el formulario de producto agregando el FormArray de keywords
    * al formulario base proporcionado por ProductFormBase.
@@ -81,12 +129,14 @@ export class ProductCreateComponent implements OnInit {
    * @returns FormGroup configurado para creación de productos
    */
   private initializeProductForm(): FormGroup {
+    console.log('📝 Inicializando formulario de producto...');
     const baseForm = this.productFormBase.createBaseProductForm();
 
     // Agregar controles adicionales para creación
     (baseForm as any).addControl('keywords', this.fb.array([]));
     (baseForm as any).addControl('imageUrls', this.fb.array([]));
 
+    console.log('✅ Formulario de producto inicializado:', baseForm.controls);
     return baseForm;
   }
 
@@ -263,47 +313,104 @@ export class ProductCreateComponent implements OnInit {
   private handleInvalidForm(): void {
     this.productFormBase.markFormGroupTouched(this.productForm);
     this.formError.set('Por favor, complete correctamente todos los campos requeridos.');
-  }
-
-  private submitProduct(): void {
-    this.isSubmitting.set(true);
-    this.formError.set(null);
-
-    // Primero subir las imágenes, luego crear el producto
-    this.uploadImagesAndCreateProduct();
-  }
-
-  /**
-   * Sube las imágenes a Cloudinary y luego crea el producto
-   */
-  private uploadImagesAndCreateProduct(): void {
-    const imagesToUpload = this.getFilesToUpload();
-
-    if (imagesToUpload.length === 0) {
-      // No hay imágenes para subir, crear producto directamente
-      this.createProductAndHandleImages([]);
+  }  private submitProduct(): void {
+    // Prevenir llamadas múltiples mientras se está procesando
+    if (this.isSubmitting()) {
       return;
     }
 
-    this.isUploadingImages.set(true);
+    this.isSubmitting.set(true);
+    this.formError.set(null);
 
-    this.imageUploadService.uploadMultipleImages(imagesToUpload).subscribe({
-      next: (response) => {
+    // Subir archivos (imágenes y AR) y luego crear el producto
+    this.uploadAllFilesAndCreateProduct();
+  }  /**
+   * Sube todos los archivos (imágenes, Model3D y ExperienceAR) a Cloudinary por separado y luego crea el producto
+   */
+  private uploadAllFilesAndCreateProduct(): void {
+    const imagesToUpload = this.getFilesToUpload();
+    const model3DFilesToUpload = this.getModel3DFilesToUpload();
+    const experienceARFilesToUpload = this.getExperienceARFilesToUpload();
+    
+    const hasImages = imagesToUpload.length > 0;
+    const hasModel3D = model3DFilesToUpload.length > 0;
+    const hasExperienceAR = experienceARFilesToUpload.length > 0;
+
+    console.log('🔄 uploadAllFilesAndCreateProduct iniciado');
+    console.log('📸 Imágenes a subir:', imagesToUpload.length, imagesToUpload.map(f => f.name));
+    console.log('🎯 Archivos Model3D a subir:', model3DFilesToUpload.length, model3DFilesToUpload.map(f => f.name));
+    console.log('🚀 Archivos ExperienceAR a subir:', experienceARFilesToUpload.length, experienceARFilesToUpload.map(f => f.name));
+    console.log('✅ hasImages:', hasImages, 'hasModel3D:', hasModel3D, 'hasExperienceAR:', hasExperienceAR);
+
+    if (!hasImages && !hasModel3D && !hasExperienceAR) {
+      console.log('⚠️ No hay archivos para subir, creando producto directamente');
+      this.createProductAndHandleAllFiles([], [], []);
+      return;
+    }
+
+    // Crear requests separados para cada tipo de archivo
+    const uploadRequests = [];
+    
+    if (hasImages) {
+      console.log('📤 Agregando request de imágenes');
+      this.isUploadingImages.set(true);
+      uploadRequests.push(this.imageUploadService.uploadMultipleImages(imagesToUpload));
+    }
+    
+    if (hasModel3D) {
+      console.log('📤 Agregando request de archivos Model3D');
+      this.isUploadingAR.set(true);
+      uploadRequests.push(this.imageUploadService.uploadModel3DFiles(model3DFilesToUpload));
+    }
+
+    if (hasExperienceAR) {
+      console.log('📤 Agregando request de archivos ExperienceAR');
+      this.isUploadingAR.set(true);
+      uploadRequests.push(this.imageUploadService.uploadExperienceARFiles(experienceARFilesToUpload));
+    }
+
+    console.log('🚀 Enviando', uploadRequests.length, 'requests de upload a Cloudinary');
+
+    forkJoin(uploadRequests).subscribe({
+      next: (responses) => {
+        console.log('✅ Respuestas de Cloudinary recibidas:', responses);
         this.isUploadingImages.set(false);
-        this.createProductAndHandleImages(response.images);
+        this.isUploadingAR.set(false);
+        
+        // Procesar respuestas por posición
+        let requestIndex = 0;
+        let imageUrls: string[] = [];
+        let model3DUrls: string[] = [];
+        let experienceARUrls: string[] = [];
+        
+        if (hasImages) {
+          imageUrls = (responses[requestIndex++] as ImageUploadResponse)?.images || [];
+          console.log('🖼️ URLs de imágenes procesadas:', imageUrls);
+        }
+        
+        if (hasModel3D) {
+          model3DUrls = (responses[requestIndex++] as ImageUploadResponse)?.images || [];
+          console.log('🎯 URLs de Model3D procesadas:', model3DUrls);
+        }
+        
+        if (hasExperienceAR) {
+          experienceARUrls = (responses[requestIndex++] as ImageUploadResponse)?.images || [];
+          console.log('� URLs de ExperienceAR procesadas:', experienceARUrls);
+        }
+        
+        this.createProductAndHandleAllFiles(imageUrls, model3DUrls, experienceARUrls);
       },
       error: (error) => {
         this.isUploadingImages.set(false);
-        this.handleImageUploadError(error);
+        this.isUploadingAR.set(false);
+        this.handleFileUploadError(error);
       }
     });
-  }
-
-    /**
-   * Crea el producto y luego envía las imágenes al backend
+  }  /**
+   * Crea el producto y luego envía todos los archivos al backend
    */
-  private createProductAndHandleImages(imageUrls: string[]): void {
-    // Crear el producto SIN imageUrls
+  private createProductAndHandleAllFiles(imageUrls: string[], model3DUrls: string[], experienceARUrls: string[]): void {
+    // Crear el producto SIN archivos
     const formValue = this.productForm.value;
     const createProduct: CreateProduct = {
       title: formValue.title,
@@ -320,38 +427,168 @@ export class ProductCreateComponent implements OnInit {
 
     this.productService.createProduct(createProduct).subscribe({
       next: (createdProduct) => {
-        // Una vez creado el producto, enviar las imágenes si las hay
-        if (imageUrls.length > 0) {
-          this.sendProductImages(createdProduct.id, imageUrls);
-        } else {
-          this.handleSuccessfulCreation();
-        }
+        // Una vez creado el producto, enviar los archivos si los hay
+        this.sendAllFilesToBackend(createdProduct.id, imageUrls, model3DUrls, experienceARUrls);
       },
       error: (error) => this.handleCreationError(error)
     });
+  }  /**
+   * Envía todos los archivos al backend: imágenes, Model3D y ExperienceAR
+   */
+  private sendAllFilesToBackend(productId: string, imageUrls: string[], model3DUrls: string[], experienceARUrls: string[]): void {
+    console.log('🔧 sendAllFilesToBackend iniciado');
+    console.log('📦 ProductID:', productId);
+    console.log('🖼️ ImageUrls recibidas:', imageUrls);
+    console.log('🎯 Model3DUrls recibidas:', model3DUrls);
+    console.log('🚀 ExperienceARUrls recibidas:', experienceARUrls);
+    
+    const requests = [];
+
+    // Agregar requests de imágenes
+    if (imageUrls.length > 0) {
+      console.log('📸 Procesando imágenes...');
+      const imageRequests = imageUrls.map((url, index) => {
+        const visualRepresentation: CreateVisualRepresentationDto = {
+          productId: productId,
+          type: TypeRepresentation.IMAGE,
+          url: url,
+          altText: `Imagen ${index + 1} del producto`,
+          isPrincipal: index === 0
+        };
+        console.log('📸 Creando request de imagen:', visualRepresentation);
+        return this.imageUploadService.createVisualRepresentation(visualRepresentation);
+      });
+      requests.push(...imageRequests);
+      console.log('📸 Requests de imágenes agregados:', imageRequests.length);
+    } else {
+      console.log('ℹ️ No hay imágenes para procesar');
+    }    // Agregar requests de archivos Model3D
+    if (model3DUrls.length > 0) {
+      console.log('🎯 Procesando archivos Model3D...');
+      const model3DRequests = this.createModel3DVisualRepresentations(productId, model3DUrls);
+      requests.push(...model3DRequests);
+      console.log('🎯 Requests de Model3D agregados:', model3DRequests.length);
+    } else {
+      console.log('ℹ️ No hay archivos Model3D para procesar');
+    }
+
+    // Agregar requests de archivos ExperienceAR
+    if (experienceARUrls.length > 0) {
+      console.log('🚀 Procesando archivos ExperienceAR...');
+      const experienceARRequests = this.createExperienceARVisualRepresentations(productId, experienceARUrls);
+      requests.push(...experienceARRequests);
+      console.log('🚀 Requests de ExperienceAR agregados:', experienceARRequests.length);
+    } else {
+      console.log('ℹ️ No hay archivos ExperienceAR para procesar');
+    }
+
+    console.log('📋 Total requests a enviar:', requests.length);
+    if (requests.length > 0) {
+      console.log('🚀 Enviando requests al backend...');
+      forkJoin(requests).subscribe({
+        next: (responses) => {
+          console.log('✅ Respuestas del backend recibidas:', responses);
+          this.handleSuccessfulCreation();
+        },
+        error: (error) => {
+          console.error('❌ Error en requests al backend:', error);
+          this.handleCreationError(error);
+        }
+      });
+    } else {
+      console.log('ℹ️ No hay requests para enviar, finalizando...');
+      this.handleSuccessfulCreation();
+    }
   }
 
-    /**
+  /**
    * Envía las imágenes al backend con la estructura correcta
+   */  /**
+   * Crea las representaciones visuales para archivos Model3D
    */
-  private sendProductImages(productId: string, imageUrls: string[]): void {
-    const imageRequests = imageUrls.map((url, index) => {
-      const visualRepresentation = {
-        productId: productId,
-        type: "Image",
-        url: url,
-        altText: `Imagen ${index + 1} del producto`,
-        isPrincipal: index === 0 // La primera imagen es principal
-      };
+  private createModel3DVisualRepresentations(productId: string, model3DUrls: string[]): any[] {
+    const requests = [];
+    const arFiles = this.currentARFiles();
+    
+    console.log('🎯 createModel3DVisualRepresentations - productId:', productId);
+    console.log('📁 URLs de Model3D recibidas:', model3DUrls);
+    console.log('🗂️ Estado de archivos Model3D:', arFiles.model3D);
 
-      return this.imageUploadService.createVisualRepresentation(visualRepresentation);
-    });
+    if (model3DUrls.length > 0) {
+      let urlIndex = 0;
+      const androidUrl = arFiles.model3D.android ? model3DUrls[urlIndex++] : undefined;
+      const iosUrl = arFiles.model3D.ios ? model3DUrls[urlIndex++] : undefined;
+      
+      if (androidUrl || iosUrl) {
+        const model3DData: CreateVisualRepresentationDto = {
+          productId: productId,
+          type: TypeRepresentation.MODEL3D,
+          url: androidUrl,                                    // URL para Android (.glb)
+          urlIOS3D: iosUrl,                                  // URL para iOS (.usdz)
+          format: this.getFormatFromFile(arFiles.model3D.android || arFiles.model3D.ios),
+          texture: undefined,                                 // Opcional
+          scale: { x: 1, y: 1, z: 1 }                        // Escala por defecto
+        };
+        console.log('🚀 Creando Visual Representation para Model3D:', model3DData);
+        requests.push(this.imageUploadService.createVisualRepresentation(model3DData));
+      }
+    }
 
-    // Enviar todas las imágenes en paralelo
-    forkJoin(imageRequests).subscribe({
-      next: () => this.handleSuccessfulCreation(),
-      error: (error) => this.handleCreationError(error)
-    });
+    console.log('📝 Total requests de Model3D a enviar:', requests.length);
+    return requests;
+  }
+
+  /**
+   * Crea las representaciones visuales para archivos ExperienceAR
+   */
+  private createExperienceARVisualRepresentations(productId: string, experienceARUrls: string[]): any[] {
+    const requests = [];
+    const arFiles = this.currentARFiles();
+    
+    console.log('🚀 createExperienceARVisualRepresentations - productId:', productId);
+    console.log('📁 URLs de ExperienceAR recibidas:', experienceARUrls);
+    console.log('🗂️ Estado de archivos ExperienceAR:', arFiles.experienceAR);
+
+    if (experienceARUrls.length > 0) {
+      let urlIndex = 0;
+      const androidUrl = arFiles.experienceAR.android ? experienceARUrls[urlIndex++] : undefined;
+      const iosUrl = arFiles.experienceAR.ios ? experienceARUrls[urlIndex++] : undefined;
+      
+      if (androidUrl || iosUrl) {
+        const experienceARData: CreateVisualRepresentationDto = {
+          productId: productId,
+          type: TypeRepresentation.EXPERIENCEAR,
+          url: androidUrl,                                    // URL para Android (.glb)
+          urlIOSAR: iosUrl,                                  // URL para iOS (.usdz)
+          instructions: 'Experiencia de realidad aumentada del producto',
+          devicerequirements: ['ARCore', 'ARKit']           // Requerimientos por defecto
+        };
+        console.log('🚀 Creando Visual Representation para ExperienceAR:', experienceARData);
+        requests.push(this.imageUploadService.createVisualRepresentation(experienceARData));
+      }
+    }
+
+    console.log('📝 Total requests de ExperienceAR a enviar:', requests.length);
+    return requests;
+  }
+
+  /**
+   * Obtiene el formato del archivo basado en su extensión
+   */
+  private getFormatFromFile(arFile: ARFile | null): FormatModel3D {
+    if (!arFile) return FormatModel3D.GLB;
+    
+    const format = arFile.format.toLowerCase();
+    switch (format) {
+      case 'glb': return FormatModel3D.GLB;
+      case 'gltf': return FormatModel3D.GLTF;
+      case 'usdz': return FormatModel3D.USDZ;
+      case 'fbx': return FormatModel3D.FBX;
+      case 'obj': return FormatModel3D.OBJ;
+      case 'dae': return FormatModel3D.DAE;
+      case 'usd': return FormatModel3D.USD;
+      default: return FormatModel3D.GLB;
+    }
   }
 
   /**
@@ -361,8 +598,55 @@ export class ProductCreateComponent implements OnInit {
     return this.images()
       .map(img => img.file)
       .filter((file): file is File => file instanceof File);
+  }  /**
+   * Obtiene solo los archivos Model3D para subir
+   */
+  private getModel3DFilesToUpload(): File[] {
+    const files: File[] = [];
+    const model3DFiles = this.currentARFiles().model3D;
+    
+    if (model3DFiles.android?.file) {
+      files.push(model3DFiles.android.file);
+    }
+    if (model3DFiles.ios?.file) {
+      files.push(model3DFiles.ios.file);
+    }
+    
+    return files;
   }
 
+  /**
+   * Obtiene solo los archivos ExperienceAR para subir
+   */
+  private getExperienceARFilesToUpload(): File[] {
+    const files: File[] = [];
+    const experienceARFiles = this.currentARFiles().experienceAR;
+    
+    if (experienceARFiles.android?.file) {
+      files.push(experienceARFiles.android.file);
+    }
+    if (experienceARFiles.ios?.file) {
+      files.push(experienceARFiles.ios.file);
+    }
+    
+    return files;
+  }
+
+  /**
+   * Verifica si hay archivos Model3D seleccionados
+   */
+  private hasModel3DFiles(): boolean {
+    const model3DFiles = this.currentARFiles().model3D;
+    return !!(model3DFiles.android?.file || model3DFiles.ios?.file);
+  }
+
+  /**
+   * Verifica si hay archivos ExperienceAR seleccionados
+   */
+  private hasExperienceARFiles(): boolean {
+    const experienceARFiles = this.currentARFiles().experienceAR;
+    return !!(experienceARFiles.android?.file || experienceARFiles.ios?.file);
+  }
 
   /**
    * Maneja los errores durante la subida de imágenes
@@ -372,6 +656,16 @@ export class ProductCreateComponent implements OnInit {
     const errorMessage = error?.error?.message || 'Error al subir las imágenes. Inténtelo nuevamente.';
     this.formError.set(errorMessage);
     console.error('Error uploading images:', error);
+  }
+
+  /**
+   * Maneja los errores durante la subida de archivos
+   */
+  private handleFileUploadError(error: any): void {
+    this.isSubmitting.set(false);
+    const errorMessage = error?.error?.message || 'Error al subir los archivos. Inténtelo nuevamente.';
+    this.formError.set(errorMessage);
+    console.error('Error uploading files:', error);
   }
 
   /**
@@ -422,5 +716,71 @@ export class ProductCreateComponent implements OnInit {
     while (keywordsArray.length > 0) {
       keywordsArray.removeAt(0);
     }
+  }
+  // ==============================================
+  // MÉTODOS PARA MANEJO DE ARCHIVOS AR
+  // ==============================================
+  /**
+   * Maneja la selección de archivos AR
+   * @param eventData - Datos del evento que incluye event, type y platform
+   */
+  onARFileSelected(eventData: { event: Event; type: ARFileType; platform: ARPlatform }): void {
+    console.log('🎯 ProductCreateComponent.onARFileSelected recibido:', eventData);
+    
+    const input = eventData.event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    
+    console.log('📁 Archivo en componente padre:', file?.name, file?.size);
+    
+    if (!file) return;
+
+    // Crear la representación del archivo AR
+    const reader = new FileReader();
+    reader.onload = () => {
+      const arFile: ARFile = {
+        file: file,
+        url: reader.result as string,
+        name: file.name,
+        size: file.size,
+        format: file.name.split('.').pop()?.toLowerCase() || ''
+      };
+
+      // Actualizar el estado de archivos AR
+      this.currentARFiles.update(current => ({
+        ...current,
+        [eventData.type]: {
+          ...current[eventData.type],
+          [eventData.platform]: arFile
+        }
+      }));
+    };
+    
+    reader.readAsDataURL(file);
+    
+    // Limpiar el input
+    input.value = '';
+  }
+
+  /**
+   * Maneja la eliminación de archivos AR
+   * @param type - Tipo de archivo AR (model3D o experienceAR)
+   * @param platform - Plataforma (android o ios)
+   */
+  onARFileRemoved(type: ARFileType, platform: ARPlatform): void {
+    this.currentARFiles.update(current => ({
+      ...current,
+      [type]: {
+        ...current[type],
+        [platform]: null
+      }
+    }));
+  }
+  /**
+   * Maneja la actualización de archivos AR
+   * @param files - Estructura completa de archivos AR
+   */
+  onARFilesUpdated(files: ARFiles): void {
+    console.log('🔄 ProductCreateComponent.onARFilesUpdated recibido:', files);
+    this.currentARFiles.set(files);
   }
 }
