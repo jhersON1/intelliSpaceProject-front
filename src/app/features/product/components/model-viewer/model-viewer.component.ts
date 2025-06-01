@@ -24,10 +24,11 @@ import { Model3DService } from '../../services/model-3d.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ModelViewerComponent implements OnInit, AfterViewInit {
-
   private model3DService = inject(Model3DService);
+  
   @ViewChild('modelViewer', { static: false }) modelViewerRef!: ElementRef;
   
+  // Propiedades originales para compatibilidad con otras partes del código
   @Input() set model(value: Model3D | null) {
     this.model3D.set(value);
   }
@@ -36,13 +37,43 @@ export class ModelViewerComponent implements OnInit, AfterViewInit {
     this.currentProductId.set(value);
   }
 
+  // Nuevas propiedades @Input para compatibilidad con product-detail
+  @Input() set modelUrl(value: string | null) {
+    if (value) {
+      this.directModelUrl.set(value);
+    }
+  }
+  
+  @Input() set format(value: string | null) {
+    if (value) {
+      this.directFormat.set(value);
+    }
+  }
+
+  @Input() set iosModelUrl(value: string | null) {
+    if (value) {
+      this.directIosUrl.set(value);
+    }
+  }
+
+  @Input() set productTitle(value: string) {
+    if (value) {
+      this.directProductTitle.set(value);
+    }
+  }
+
+  // Signals del componente
   model3D = signal<Model3D | null>(null);
   currentProductId = signal<string>('');
   showHelp = signal<boolean>(false);
   isFullscreen = signal<boolean>(false);
   loadingMessage = signal<string>('Cargando modelo 3D...');
-  iosModelUrl = signal<string>('');
   
+  // Nuevos signals para datos directos
+  directModelUrl = signal<string>('');
+  directFormat = signal<string>('');
+  directIosUrl = signal<string>('');
+  directProductTitle = signal<string>('');  
   // Datos mock de anotaciones
   annotations = signal<ModelAnnotation[]>([]);
 
@@ -53,9 +84,36 @@ export class ModelViewerComponent implements OnInit, AfterViewInit {
     if (model && productId) {
       // ✅ Usar el servicio para obtener la URL correcta de iOS
       const iosUrl = this.model3DService.getIOSModelUrl(productId);
-      this.iosModelUrl.set(iosUrl);
-      console.log('iOS model URL configurada:', iosUrl);
+      console.log('iOS model URL configurada desde servicio:', iosUrl);
     }
+  }
+
+  // Métodos auxiliares para determinar qué datos usar
+  getCurrentModelUrl(): string {
+    const directUrl = this.directModelUrl();
+    const modelUrl = this.model3D()?.url;
+    return directUrl || modelUrl || '';
+  }
+
+  getCurrentIosUrl(): string {
+    const directIos = this.directIosUrl();
+    if (directIos) return directIos;
+    
+    const productId = this.currentProductId();
+    if (productId) {
+      return this.model3DService.getIOSModelUrl(productId);
+    }
+    return '';
+  }
+
+  getCurrentAltText(): string {
+    const directTitle = this.directProductTitle();
+    const modelAlt = this.model3D()?.altText;
+    return directTitle || modelAlt || 'Modelo 3D';
+  }
+
+  hasModel(): boolean {
+    return !!(this.getCurrentModelUrl());
   }
 
   ngAfterViewInit(): void {

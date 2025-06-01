@@ -1,9 +1,19 @@
 <div class="relative w-full h-full bg-gray-50 rounded-lg overflow-hidden">
-    @if (model3D()) {
+    @if (hasModel()) {
     <!-- Model Viewer -->
-    <model-viewer #modelViewer [src]="model3D()!.url" [alt]="model3D()!.altText || 'Modelo 3D'"
-        [ios-src]="iosModelUrl()" camera-controls auto-rotate ar ar-modes="webxr scene-viewer quick-look"
-        [style.width.%]="100" [style.height.%]="100" class="w-full h-full" loading="lazy" interaction-prompt="auto"
+    <model-viewer #modelViewer 
+        [src]="getCurrentModelUrl()" 
+        [alt]="getCurrentAltText()"
+        [ios-src]="getCurrentIosUrl()" 
+        camera-controls 
+        auto-rotate 
+        ar 
+        ar-modes="webxr scene-viewer quick-look"
+        [style.width.%]="100" 
+        [style.height.%]="100" 
+        class="w-full h-full" 
+        loading="lazy" 
+        interaction-prompt="auto"
         environment-image="neutral">
 
         <!-- Botón AR integrado -->

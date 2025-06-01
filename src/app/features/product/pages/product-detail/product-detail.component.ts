@@ -33,11 +33,9 @@ export class ProductDetailComponent {
   visualRepresentations = signal<VisualRepresentation[]>([]);
   currentImageIndex = signal(0);
   currentImage = signal<string | null>(null);
-  isMobileDevice = signal(false);
-
-  // Nuevos signals para 3D/AR
-  model3DResponse = signal<Model3DResponse | null>(null);
-  experienceARResponse = signal<ExperienceARResponse | null>(null);
+  isMobileDevice = signal(false);  // Nuevos signals para 3D/AR - corregidos para manejar arrays
+  model3DResponse = signal<Model3DResponse[]>([]);
+  experienceARResponse = signal<ExperienceARResponse[]>([]);
   loading3D = signal(false);
   loadingAR = signal(false);
 
@@ -64,13 +62,12 @@ export class ProductDetailComponent {
       product: this.productsService.getProductDetail(id),
       images: this.visualRepresentationService.findAllImages(id),
       model3D: this.model3DService.getModel3D(id),
-      experienceAR: this.model3DService.getExperienceAR(id)
-    }).subscribe({
-      next: ({ product, images, model3D, experienceAR }) => {
+      experienceAR: this.model3DService.getExperienceAR(id)    }).subscribe({      next: ({ product, images, model3D, experienceAR }) => {
         this.product.set(product);
         this.visualRepresentations.set(images);
-        this.model3DResponse.set(model3D);
-        this.experienceARResponse.set(experienceAR);
+        // Convertir a arrays y manejar casos null/undefined
+        this.model3DResponse.set(Array.isArray(model3D) ? model3D : (model3D ? [model3D] : []));
+        this.experienceARResponse.set(Array.isArray(experienceAR) ? experienceAR : (experienceAR ? [experienceAR] : []));
         this.setupImages(images);
         this.loading.set(false);
 
@@ -187,42 +184,49 @@ export class ProductDetailComponent {
       }
     }
   }
-
-  // Métodos auxiliares para verificar disponibilidad
+  // Métodos auxiliares para verificar disponibilidad - corregidos para arrays
   hasModel3D(): boolean {
-    return !!this.model3DResponse();
+    const response = this.model3DResponse();
+    return !!(response && response.length > 0 && response[0]?.url);
   }
 
   hasExperienceAR(): boolean {
-    return !!this.experienceARResponse();
+    const response = this.experienceARResponse();
+    return !!(response && response.length > 0 && response[0]?.url);
   }
-
-  // Métodos para obtener URLs de los modelos
+  // Métodos para obtener URLs de los modelos - corregidos para arrays
   getModel3DUrl(): string | null {
-    return this.model3DResponse()?.url || null;
+    const response = this.model3DResponse();
+    return (response && response.length > 0) ? (response[0]?.url || null) : null;
   }
 
   getModel3DFormat(): string | null {
-    return this.model3DResponse()?.format || null;
+    const response = this.model3DResponse();
+    return (response && response.length > 0) ? (response[0]?.format || null) : null;
   }
 
   getIOSModel3DUrl(): string | null {
-    return this.model3DResponse()?.urlIOS3D || null;
+    const response = this.model3DResponse();
+    return (response && response.length > 0) ? (response[0]?.urlIOS3D || null) : null;
   }
 
   getExperienceARUrl(): string | null {
-    return this.experienceARResponse()?.url || null;
+    const response = this.experienceARResponse();
+    return (response && response.length > 0) ? (response[0]?.url || null) : null;
   }
 
   getIOSARUrl(): string | null {
-    return this.experienceARResponse()?.urlIOSAR || null;
+    const response = this.experienceARResponse();
+    return (response && response.length > 0) ? (response[0]?.urlIOSAR || null) : null;
   }
 
   getARInstructions(): string | null {
-    return this.experienceARResponse()?.instructions || null;
+    const response = this.experienceARResponse();
+    return (response && response.length > 0) ? (response[0]?.instructions || null) : null;
   }
 
   getARDeviceRequirements(): string[] {
-    return this.experienceARResponse()?.devicerequirements || [];
+    const response = this.experienceARResponse();
+    return (response && response.length > 0) ? (response[0]?.devicerequirements || []) : [];
   }
 }
