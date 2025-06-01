@@ -8,6 +8,9 @@ import { CategorySelectorComponent } from '../../components/category-selector/ca
 import { ProductFormBase } from '../../services/productFormBase.service';
 import { ImageUploadService, CreateVisualRepresentationDto, ImageUploadResponse, FileUploadResponse, TypeRepresentation, FormatModel3D } from '../../services/image-upload.service';
 import { forkJoin } from 'rxjs';
+import { environment } from '@environments/environments';
+import { API_ROUTES } from 'src/app/core/constants';
+import { TokenService } from 'src/app/auth/services/token.service';
 
 interface ImagePreview {
   name: string;
@@ -67,6 +70,7 @@ export class ProductCreateComponent implements OnInit {
   private productService = inject(ProductsService);
   protected productFormBase = inject(ProductFormBase);
   private imageUploadService = inject(ImageUploadService);
+  private tokenService = inject(TokenService);
 
   readonly productStatuses = this.productFormBase.productStatuses;
   readonly isSubmitting = this.productFormBase.isSubmitting;
@@ -296,13 +300,27 @@ export class ProductCreateComponent implements OnInit {
   /**
    * Maneja el envío del formulario de creación de producto.
    * Valida los datos, envía la petición al servicio y maneja la respuesta.
-   */
-  onSubmit(): void {
+   */  onSubmit(): void {
+    console.log('🚀 onSubmit iniciado');
+    console.log('📋 Estado del formulario - valid:', this.productForm.valid, 'invalid:', this.productForm.invalid);
+    console.log('🔍 Valores del formulario:', this.productForm.value);
+    console.log('❌ Errores del formulario:', this.productForm.errors);
+    
+    // Revisar errores específicos por campo
+    Object.keys(this.productForm.controls).forEach(key => {
+      const control = this.productForm.get(key);
+      if (control && control.errors) {
+        console.log(`❌ Campo '${key}' tiene errores:`, control.errors);
+      }
+    });
+    
     if (this.productForm.invalid) {
+      console.log('⚠️ Formulario inválido, manejando errores...');
       this.handleInvalidForm();
       return;
     }
 
+    console.log('✅ Formulario válido, procediendo con submitProduct...');
     this.submitProduct();
   }
 
@@ -314,17 +332,23 @@ export class ProductCreateComponent implements OnInit {
     this.productFormBase.markFormGroupTouched(this.productForm);
     this.formError.set('Por favor, complete correctamente todos los campos requeridos.');
   }  private submitProduct(): void {
+    console.log('📤 submitProduct iniciado');
+    console.log('🔄 Estado isSubmitting actual:', this.isSubmitting());
+    
     // Prevenir llamadas múltiples mientras se está procesando
     if (this.isSubmitting()) {
+      console.log('⚠️ Ya se está procesando una submisión, saltando...');
       return;
     }
 
+    console.log('🔓 Configurando estado de submisión...');
     this.isSubmitting.set(true);
     this.formError.set(null);
 
+    console.log('📂 Iniciando proceso de upload y creación...');
     // Subir archivos (imágenes y AR) y luego crear el producto
     this.uploadAllFilesAndCreateProduct();
-  }  /**
+  }/**
    * Sube todos los archivos (imágenes, Model3D y ExperienceAR) a Cloudinary por separado y luego crea el producto
    */
   private uploadAllFilesAndCreateProduct(): void {
@@ -410,6 +434,9 @@ export class ProductCreateComponent implements OnInit {
    * Crea el producto y luego envía todos los archivos al backend
    */
   private createProductAndHandleAllFiles(imageUrls: string[], model3DUrls: string[], experienceARUrls: string[]): void {
+    console.log('🏭 createProductAndHandleAllFiles iniciado');
+    console.log('📋 Datos recibidos - imageUrls:', imageUrls.length, 'model3DUrls:', model3DUrls.length, 'experienceARUrls:', experienceARUrls.length);
+    
     // Crear el producto SIN archivos
     const formValue = this.productForm.value;
     const createProduct: CreateProduct = {
@@ -425,14 +452,26 @@ export class ProductCreateComponent implements OnInit {
       idCategory: formValue.idCategory
     };
 
+    console.log('📦 Datos del producto a crear:', createProduct);
+    console.log('🚀 Enviando producto al backend...');
+
     this.productService.createProduct(createProduct).subscribe({
       next: (createdProduct) => {
+        console.log('✅ Producto creado exitosamente en el backend:', createdProduct);
+        console.log('🆔 ID del producto creado:', createdProduct.id);
+        
         // Una vez creado el producto, enviar los archivos si los hay
         this.sendAllFilesToBackend(createdProduct.id, imageUrls, model3DUrls, experienceARUrls);
       },
-      error: (error) => this.handleCreationError(error)
+      error: (error) => {
+        console.error('❌ Error al crear el producto en el backend:', error);
+        console.error('📊 Status del error:', error.status);
+        console.error('📝 Mensaje del error:', error.message);
+        console.error('🔍 Detalles completos del error:', error);
+        this.handleCreationError(error);
+      }
     });
-  }  /**
+  }/**
    * Envía todos los archivos al backend: imágenes, Model3D y ExperienceAR
    */
   private sendAllFilesToBackend(productId: string, imageUrls: string[], model3DUrls: string[], experienceARUrls: string[]): void {
@@ -666,17 +705,58 @@ export class ProductCreateComponent implements OnInit {
     const errorMessage = error?.error?.message || 'Error al subir los archivos. Inténtelo nuevamente.';
     this.formError.set(errorMessage);
     console.error('Error uploading files:', error);
-  }
-
-  /**
+  }  /**
    * Maneja la respuesta exitosa de creación de producto.
    * Actualiza el estado, resetea el formulario y navega a la lista de productos.
    */
   private handleSuccessfulCreation(): void {
+    console.log('🎉 handleSuccessfulCreation iniciado - Producto creado exitosamente!');
+    console.log('🔄 Actualizando estados del componente...');
+    
     this.formSuccess.set(true);
     this.isSubmitting.set(false);
+    
+    console.log('📝 Reseteando formulario...');
     this.resetForm();
-    this.router.navigate(['/products']);
+    
+    console.log('🧭 Iniciando navegación a /products...');
+    console.log('🧭 Router actual URL:', this.router.url);
+    console.log('🧭 Window location:', window.location.href);
+    
+    // Método 1: Router navigate normal
+    this.router.navigate(['/products']).then(
+      (success) => {
+        console.log('✅ Navegación con router.navigate exitosa:', success);
+        console.log('🧭 Nueva URL después de navigate:', this.router.url);
+        
+        // Verificar si realmente navegó
+        setTimeout(() => {
+          console.log('🕐 Verificación después de 1 segundo:');
+          console.log('🧭 URL final:', this.router.url);
+          console.log('🧭 Window location final:', window.location.href);
+          
+          if (!this.router.url.includes('/products')) {
+            console.log('⚠️ La navegación no funcionó, intentando método alternativo...');
+            
+            // Método 2: NavigateByUrl
+            this.router.navigateByUrl('/products').then(
+              (success2) => console.log('✅ NavigateByUrl resultado:', success2),
+              (error2) => console.error('❌ NavigateByUrl error:', error2)
+            );
+          }
+        }, 1000);
+      },
+      (error) => {
+        console.error('❌ Error en navegación a /products:', error);
+        console.log('🔄 Intentando navegación alternativa...');
+        
+        // Método 3: Window location como último recurso
+        setTimeout(() => {
+          console.log('🔄 Intentando window.location.href...');
+          window.location.href = '/products';
+        }, 500);
+      }
+    );
   }
 
   /**
@@ -686,9 +766,17 @@ export class ProductCreateComponent implements OnInit {
    * @param error - Error recibido del servicio
    */
   private handleCreationError(error: any): void {
+    console.error('💥 handleCreationError iniciado');
+    console.error('📊 Error recibido:', error);
+    console.error('🏷️ Error status:', error?.status);
+    console.error('📝 Error message:', error?.error?.message);
+    console.error('🔍 Error completo:', JSON.stringify(error, null, 2));
+    
     this.isSubmitting.set(false);
     const errorMessage = error?.error?.message || 'Ocurrió un error al crear el producto.';
     this.formError.set(errorMessage);
+    
+    console.error('⚠️ Mensaje de error mostrado al usuario:', errorMessage);
   }
 
 
@@ -782,5 +870,150 @@ export class ProductCreateComponent implements OnInit {
   onARFilesUpdated(files: ARFiles): void {
     console.log('🔄 ProductCreateComponent.onARFilesUpdated recibido:', files);
     this.currentARFiles.set(files);
+  }
+
+  /**
+   * MÉTODO TEMPORAL DE PRUEBA - Para diagnosticar el problema
+   * Crea un producto SIN archivos para verificar si el backend funciona
+   */
+  testCreateProductWithoutFiles(): void {
+    console.log('🧪 TEST: Creando producto sin archivos para diagnóstico');
+    
+    if (this.productForm.invalid) {
+      console.log('❌ TEST: Formulario inválido');
+      this.handleInvalidForm();
+      return;
+    }
+
+    const formValue = this.productForm.value;
+    const createProduct: CreateProduct = {
+      title: formValue.title,
+      description: formValue.description,
+      dimensions: formValue.dimensions,
+      weight: formValue.weight,
+      material: formValue.material,
+      price: formValue.price,
+      stock: formValue.stock,
+      state: formValue.state,
+      keywords: formValue.keywords,
+      idCategory: formValue.idCategory
+    };
+
+    console.log('🧪 TEST: Datos del producto para prueba:', createProduct);
+
+    this.productService.createProduct(createProduct).subscribe({
+      next: (createdProduct) => {
+        console.log('🧪 TEST: ✅ Producto creado SIN archivos:', createdProduct);
+        alert(`TEST EXITOSO: Producto creado con ID: ${createdProduct.id}`);
+        
+        // NO navegar automáticamente para poder hacer más pruebas
+        // this.router.navigate(['/products']);
+      },
+      error: (error) => {
+        console.error('🧪 TEST: ❌ Error al crear producto sin archivos:', error);
+        alert(`TEST FALLIDO: ${error.message || 'Error desconocido'}`);
+      }
+    });
+  }
+  /**
+   * MÉTODO DE SUPER DIAGNÓSTICO - Revisa TODO el flujo
+   */
+  superDiagnostic(): void {
+    console.log('🚨 SUPER DIAGNÓSTICO INICIADO');
+    console.log('🌐 Environment URL:', environment.baseUrl);
+    console.log('📋 API Routes disponibles:', API_ROUTES);
+    console.log('🔑 Token actual:', this.tokenService.getToken() ? 'Token presente' : 'Sin token');
+    console.log('👤 Usuario logueado:', localStorage.getItem('user') || 'No encontrado');
+    console.log('🗂️ LocalStorage keys:', Object.keys(localStorage));
+    console.log('📍 URL actual:', window.location.href);
+    console.log('🎯 Router estado:', this.router.url);
+    
+    // Verificar estado del formulario
+    console.log('📝 Estado formulario válido:', this.productForm.valid);
+    console.log('📝 Valores formulario:', this.productForm.value);
+    
+    // Verificar conectividad básica
+    fetch(`${environment.baseUrl}/health`)
+      .then(response => {
+        console.log('💗 Health check del backend:', response.status);
+        return response.text();
+      })
+      .then(data => console.log('💗 Health data:', data))
+      .catch(error => console.log('💗 Health check falló:', error));
+      
+    // Verificar endpoint de productos
+    fetch(`${environment.baseUrl}${API_ROUTES.CONSUMER_PRODUCTS}`)
+      .then(response => {
+        console.log('📦 Endpoint productos disponible:', response.status);
+        return response.json();
+      })
+      .then(data => console.log('📦 Productos actuales count:', Array.isArray(data) ? data.length : 'Error en formato'))
+      .catch(error => console.log('📦 Error al obtener productos:', error));
+  }
+
+  /**
+   * MÉTODO DE COMPARACIÓN - Hace una petición HTTP idéntica a la del flujo normal
+   */
+  compareWithNormalFlow(): void {
+    console.log('🔍 COMPARACIÓN CON FLUJO NORMAL INICIADA');
+    
+    if (this.productForm.invalid) {
+      console.log('❌ COMPARACIÓN: Formulario inválido');
+      return;
+    }
+
+    const formValue = this.productForm.value;
+    const createProduct: CreateProduct = {
+      title: formValue.title,
+      description: formValue.description,
+      dimensions: formValue.dimensions,
+      weight: formValue.weight,
+      material: formValue.material,
+      price: formValue.price,
+      stock: formValue.stock,
+      state: formValue.state,
+      keywords: formValue.keywords,
+      idCategory: formValue.idCategory
+    };
+
+    console.log('🔍 COMPARACIÓN: Datos idénticos al flujo normal:', createProduct);
+
+    // Hacer la misma petición que hace el servicio pero con fetch para comparar
+    const token = this.tokenService.getToken();
+    const url = `${environment.baseUrl}${API_ROUTES.CREATE_VENDOR_PRODUCTS}`;
+    
+    console.log('🔍 COMPARACIÓN: URL:', url);
+    console.log('🔍 COMPARACIÓN: Token:', token ? 'Presente' : 'Ausente');
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(createProduct)
+    })
+    .then(async response => {
+      console.log('🔍 COMPARACIÓN: Response status:', response.status);
+      console.log('🔍 COMPARACIÓN: Response headers:', [...response.headers.entries()]);
+      
+      const responseText = await response.text();
+      console.log('🔍 COMPARACIÓN: Response body (raw):', responseText);
+      
+      if (response.ok) {
+        try {
+          const jsonData = JSON.parse(responseText);
+          console.log('🔍 COMPARACIÓN: ✅ Producto creado con fetch:', jsonData);
+          alert(`COMPARACIÓN EXITOSA: Producto creado con ID ${jsonData.id}`);
+        } catch (e) {
+          console.log('🔍 COMPARACIÓN: ⚠️ Respuesta no es JSON válido:', e);
+        }
+      } else {
+        console.log('🔍 COMPARACIÓN: ❌ Error en respuesta:', response.status, responseText);
+      }
+    })
+    .catch(error => {
+      console.error('🔍 COMPARACIÓN: ❌ Error de fetch:', error);
+    });
   }
 }

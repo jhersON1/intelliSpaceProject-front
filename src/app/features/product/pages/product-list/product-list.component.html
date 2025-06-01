@@ -76,9 +76,8 @@
         </div>
       }
     </div>
-    
-    <!-- Pagination -->
-    @if (totalPages > 1) {
+      <!-- Pagination -->
+    @if (totalPages > 1 || hasMore) {
       <div class="flex justify-center mt-8">
         <nav class="flex items-center space-x-1">
           <button 
@@ -102,17 +101,25 @@
               {{ page }}
             </button>
           }
-          
-          <button 
+            <button 
             (click)="nextPage()" 
-            [disabled]="currentPage === totalPages"
+            [disabled]="!hasMore && currentPage >= totalPages"
             class="px-3 py-1 rounded-md"
-            [class.text-gray-400]="currentPage === totalPages"
-            [class.text-blue-600]="currentPage !== totalPages"
+            [class.text-gray-400]="!hasMore && currentPage >= totalPages"
+            [class.text-blue-600]="hasMore || currentPage < totalPages"
           >
             Siguiente
           </button>
         </nav>
+      </div>
+      
+      <!-- Información de página actual -->
+      <div class="flex justify-center mt-4 text-sm text-gray-600">
+        @if (hasMore) {
+          <span>Página {{ currentPage }} de muchas páginas ({{ totalItems }}+ elementos)</span>
+        } @else {
+          <span>Página {{ currentPage }} de {{ totalPages }} ({{ totalItems }} elementos)</span>
+        }
       </div>
     }
   }

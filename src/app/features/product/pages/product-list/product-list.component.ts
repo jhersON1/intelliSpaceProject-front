@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit }
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Product } from '../../interfaces/product.interface';
-import { ProductsService } from '../../services/products.service';
+import { ProductsService, PaginatedResponse } from '../../services/products.service';
 import { Router } from '@angular/router';
 import { VisualRepresentationService } from '../../services/visual-representation.service';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -23,7 +23,6 @@ export class ProductListComponent implements OnInit {
   private visualService = inject(VisualRepresentationService);
   private router = inject(Router);
   private cd = inject(ChangeDetectorRef);
-
   loading = false;
   allProducts: ProductWithImage[] = [];
   displayedProducts: ProductWithImage[] = [];
@@ -32,6 +31,7 @@ export class ProductListComponent implements OnInit {
   pageSize = 10;
   totalItems = 0;
   totalPages = 0;
+  hasMore = false;
 
   ngOnInit(): void {
     this.loadProducts();
@@ -42,15 +42,20 @@ export class ProductListComponent implements OnInit {
     const offset = (this.currentPage - 1) * this.pageSize;
 
     this.productService.findAllProducts(this.pageSize, offset).subscribe({
-      next: (products) => {
-        console.log(products);
-        if (products && products.length > 0) {
-          this.loadProductsWithImages(products);
+      next: (response: PaginatedResponse<Product>) => {
+        console.log('📦 Respuesta paginada:', response);
+        
+        if (response.data && response.data.length > 0) {
+          this.totalItems = response.total;
+          this.hasMore = response.hasMore;
+          this.calculateTotalPages();
+          this.loadProductsWithImages(response.data);
         } else {
           console.log('📭 No hay productos');
           this.allProducts = [];
           this.displayedProducts = [];
           this.totalItems = 0;
+          this.hasMore = false;
           this.calculateTotalPages();
           this.loading = false;
           this.cd.markForCheck();
@@ -63,12 +68,12 @@ export class ProductListComponent implements OnInit {
       }
     });
   }
-
   private loadProductsWithImages(products: Product[]): void {
     if (products.length === 0) {
       this.allProducts = [];
       this.displayedProducts = [];
       this.totalItems = 0;
+      this.hasMore = false;
       this.calculateTotalPages();
       this.loading = false;
       this.cd.markForCheck();
@@ -97,30 +102,19 @@ export class ProductListComponent implements OnInit {
           return result;
         });
 
-        this.allProducts = productsWithImages;
-        this.totalItems = productsWithImages.length;
-        this.calculateTotalPages();
-        this.updateDisplayedProducts();
+        // Los productos ya vienen paginados del backend, no necesitamos paginar del lado del cliente
+        this.displayedProducts = productsWithImages;
         this.loading = false;
         this.cd.markForCheck();
       },
       error: (error) => {
         console.error('❌ Error en forkJoin:', error);
         const productsWithoutImages = products.map(p => ({ ...p, imageAlt: p.title }));
-        this.allProducts = productsWithoutImages;
-        this.totalItems = productsWithoutImages.length;
-        this.calculateTotalPages();
-        this.updateDisplayedProducts();
+        this.displayedProducts = productsWithoutImages;
         this.loading = false;
         this.cd.markForCheck();
       }
-    });
-  }
-
-  updateDisplayedProducts(): void {
-    const start = (this.currentPage - 1) * this.pageSize;
-    this.displayedProducts = this.allProducts.slice(start, start + this.pageSize);
-  }
+    });  }
 
   prevPage(): void {
     if (this.currentPage > 1) {
@@ -130,7 +124,8 @@ export class ProductListComponent implements OnInit {
   }
 
   nextPage(): void {
-    if (this.currentPage < this.totalPages) {
+    // Usamos hasMore para determinar si hay una página siguiente disponible
+    if (this.hasMore || this.currentPage < this.totalPages) {
       this.currentPage++;
       this.loadProducts();
     }
@@ -144,6 +139,8 @@ export class ProductListComponent implements OnInit {
   getPages(): number[] {
     const pages: number[] = [];
     const max = 5;
+    
+    // Si no tenemos un total exacto, mostramos páginas basadas en la página actual
     if (this.totalPages <= max) {
       for (let i = 1; i <= this.totalPages; i++) pages.push(i);
     } else {
@@ -152,11 +149,25 @@ export class ProductListComponent implements OnInit {
       if (end === this.totalPages) start = Math.max(1, end - max + 1);
       for (let i = start; i <= end; i++) pages.push(i);
     }
+    
+    // Si hay más páginas disponibles, asegurémonos de mostrar al menos la página siguiente
+    if (this.hasMore && pages.length > 0) {
+      const lastPage = pages[pages.length - 1];
+      if (this.currentPage === lastPage) {
+        pages.push(lastPage + 1);
+      }
+    }
+    
     return pages;
   }
 
   private calculateTotalPages(): void {
-    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    if (this.totalItems > 0) {
+      this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    } else {
+      // Si no tenemos un total exacto, calculamos basado en si hay más páginas
+      this.totalPages = this.hasMore ? this.currentPage + 1 : this.currentPage;
+    }
   }
 
   viewDetails(p: ProductWithImage) {
