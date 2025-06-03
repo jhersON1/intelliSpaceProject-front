@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Product } from '../../interfaces/product.interface';
-import { ProductsService } from '../../services/products.service';
+import { ProductsService, PaginatedResponse } from '../../services/products.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { catchError, of, forkJoin } from 'rxjs';
@@ -22,22 +22,15 @@ export class ProductVendorListComponent {
   private productService = inject(ProductsService);
   private visualService = inject(VisualRepresentationService);
   private router = inject(Router);
-
   loading = signal(false);
-  allProducts = signal<ProductWithImage[]>([]);
+  displayedProducts = signal<ProductWithImage[]>([]);
   currentPage = signal(1);
   pageSize = signal(10);
   initialized = signal(false);
+  totalItems = signal(0);
+  hasMore = signal(false);
 
-  totalItems = computed(() => this.allProducts().length);
   totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
-
-  displayedProducts = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize();
-    const displayed = this.allProducts().slice(start, start + this.pageSize());
-
-    return displayed;
-  });
 
   // Effect para cargar productos cuando cambia la página (solo después de inicializar)
   private loadProductsEffect = effect(() => {
@@ -49,32 +42,36 @@ export class ProductVendorListComponent {
   ngOnInit(): void {
     this.initialized.set(true);
   }
-
   private loadProducts(): void {
     this.loading.set(true);
     const offset = (this.currentPage() - 1) * this.pageSize();
 
     this.productService.findVendorProducts(this.pageSize(), offset).subscribe({
-      next: (products) => {
-        if (products && products.length > 0) {
-          this.loadProductsWithImages(products);
+      next: (response: PaginatedResponse<Product>) => {
+        console.log('📦 Respuesta paginada del vendor:', response);
+        
+        if (response.data && response.data.length > 0) {
+          this.totalItems.set(response.total);
+          this.hasMore.set(response.hasMore);
+          this.loadProductsWithImages(response.data);
         } else {
-          console.log('📭 No hay productos');
-          this.allProducts.set([]);
+          console.log('📭 No hay productos del vendor');
+          this.displayedProducts.set([]);
+          this.totalItems.set(0);
+          this.hasMore.set(false);
           this.loading.set(false);
         }
       },
       error: (error) => {
-        console.error('❌ Error al cargar productos:', error);
+        console.error('❌ Error al cargar productos del vendor:', error);
         this.loading.set(false);
       }
     });
   }
-
   private loadProductsWithImages(products: Product[]): void {
 
     if (products.length === 0) {
-      this.allProducts.set([]);
+      this.displayedProducts.set([]);
       this.loading.set(false);
       return;
     }
@@ -101,18 +98,17 @@ export class ProductVendorListComponent {
           return result;
         });
 
-        this.allProducts.set(productsWithImages);
+        this.displayedProducts.set(productsWithImages);
         this.loading.set(false);
       },
       error: (error) => {
         console.error('❌ Error en forkJoin:', error);
         const productsWithoutImages = products.map(p => ({ ...p, imageAlt: p.title }));
-        this.allProducts.set(productsWithoutImages);
+        this.displayedProducts.set(productsWithoutImages);
         this.loading.set(false);
       }
     });
   }
-
   prevPage(): void {
     if (this.currentPage() > 1) {
       this.currentPage.set(this.currentPage() - 1);
@@ -120,7 +116,8 @@ export class ProductVendorListComponent {
   }
 
   nextPage(): void {
-    if (this.currentPage() < this.totalPages()) {
+    // Usamos hasMore para determinar si hay una página siguiente disponible
+    if (this.hasMore() || this.currentPage() < this.totalPages()) {
       this.currentPage.set(this.currentPage() + 1);
     }
   }
@@ -143,6 +140,15 @@ export class ProductVendorListComponent {
       if (end === totalPages) start = Math.max(1, end - max + 1);
       for (let i = start; i <= end; i++) pages.push(i);
     }
+    
+    // Si hay más páginas disponibles, asegurémonos de mostrar al menos la página siguiente
+    if (this.hasMore() && pages.length > 0) {
+      const lastPage = pages[pages.length - 1];
+      if (currentPage === lastPage) {
+        pages.push(lastPage + 1);
+      }
+    }
+    
     return pages;
   }
 

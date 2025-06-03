@@ -1,0 +1,281 @@
+<div [formGroup]="productForm">
+<!-- Basic Information Section -->
+<div class="mb-10">
+  <div class="border-b border-gray-200 pb-4 mb-6">
+    <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+      <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      Información Básica
+    </h2>
+    <p class="text-sm text-gray-600 mt-1">Detalles principales de tu producto</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Title -->
+    <div class="lg:col-span-2">
+      <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+        Título del Producto *
+      </label>
+      <input type="text" id="title" formControlName="title"
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+        [ngClass]="{'border-red-500 focus:ring-red-500 focus:border-red-500': productForm.get('title')?.invalid && productForm.get('title')?.touched}"
+        placeholder="Ej: Sofá moderno de 3 plazas" />
+      @if (productForm.get('title')?.invalid && productForm.get('title')?.touched) {
+      <p class="mt-2 text-sm text-red-600 flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd" />
+        </svg>
+        @if (productForm.get('title')?.errors?.['required']) {
+        El título es requerido
+        } @else if (productForm.get('title')?.errors?.['minlength']) {
+        El título debe tener al menos 2 caracteres
+        }
+      </p>
+      }
+    </div>
+
+    <!-- Description -->
+    <div class="lg:col-span-2">
+      <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+        Descripción
+      </label>
+      <textarea id="description" formControlName="description" rows="4"
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 resize-none"
+        [ngClass]="{'border-red-500 focus:ring-red-500 focus:border-red-500': productForm.get('description')?.invalid && productForm.get('description')?.touched}"
+        placeholder="Describe tu producto de manera detallada..."></textarea>
+      @if (productForm.get('description')?.invalid && productForm.get('description')?.touched) {
+      <p class="mt-2 text-sm text-red-600 flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd" />
+        </svg>
+        La descripción debe tener al menos 10 caracteres
+      </p>
+      }
+    </div>
+
+    <!-- Price -->
+    <div>
+      <label for="price" class="block text-sm font-medium text-gray-700 mb-2">
+        Precio
+      </label>
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <span class="text-gray-500 text-lg">$</span>
+        </div>
+        <input type="number" id="price" formControlName="price"
+          class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+          [ngClass]="{'border-red-500 focus:ring-red-500 focus:border-red-500': productForm.get('price')?.invalid && productForm.get('price')?.touched}"
+          placeholder="0.00" />
+      </div>
+      @if (productForm.get('price')?.invalid && productForm.get('price')?.touched) {
+      <p class="mt-2 text-sm text-red-600 flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd" />
+        </svg>
+        El precio debe ser un valor positivo
+      </p>
+      }
+    </div>
+
+    <!-- Stock -->
+    <div>
+      <label for="stock" class="block text-sm font-medium text-gray-700 mb-2">
+        Stock Disponible
+      </label>
+      <input type="number" id="stock" formControlName="stock"
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+        [ngClass]="{'border-red-500 focus:ring-red-500 focus:border-red-500': productForm.get('stock')?.invalid && productForm.get('stock')?.touched}"
+        placeholder="0" />
+      @if (productForm.get('stock')?.invalid && productForm.get('stock')?.touched) {
+      <p class="mt-2 text-sm text-red-600 flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd" />
+        </svg>
+        El stock debe ser un número entero positivo
+      </p>
+      }
+    </div>
+
+    <!-- Weight -->
+    <div>
+      <label for="weight" class="block text-sm font-medium text-gray-700 mb-2">
+        Peso (kg) *
+      </label>
+      <input type="number" id="weight" formControlName="weight"
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+        [ngClass]="{'border-red-500 focus:ring-red-500 focus:border-red-500': productForm.get('weight')?.invalid && productForm.get('weight')?.touched}"
+        placeholder="0.00" />
+      @if (productForm.get('weight')?.invalid && productForm.get('weight')?.touched) {
+      <p class="mt-2 text-sm text-red-600 flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd" />
+        </svg>
+        El peso debe ser mayor o igual a 0
+      </p>
+      }
+    </div>
+
+    <!-- Material -->
+    <div>
+      <label for="material" class="block text-sm font-medium text-gray-700 mb-2">
+        Material
+      </label>
+      <input type="text" id="material" formControlName="material"
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+        placeholder="Ej: Tela, Madera, Metal..." />
+    </div>
+  </div>
+</div>
+
+<!-- Dimensions Section -->
+<div class="mb-10">
+  <div class="border-b border-gray-200 pb-4 mb-6">
+    <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+      <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"></path>
+      </svg>
+      Dimensiones
+    </h2>
+    <p class="text-sm text-gray-600 mt-1">Medidas del producto en centímetros</p>
+  </div>
+
+  <div formGroupName="dimensions" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div>
+      <label for="width" class="block text-sm font-medium text-gray-700 mb-2">Ancho (cm)</label>
+      <input type="number" id="width" formControlName="width"
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+        placeholder="0.0" />
+    </div>
+    <div>
+      <label for="height" class="block text-sm font-medium text-gray-700 mb-2">Alto (cm)</label>
+      <input type="number" id="height" formControlName="height"
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+        placeholder="0.0" />
+    </div>
+    <div>
+      <label for="depth" class="block text-sm font-medium text-gray-700 mb-2">Profundidad (cm)</label>
+      <input type="number" id="depth" formControlName="depth"
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+        placeholder="0.0" />
+    </div>
+  </div>
+</div>
+
+<!-- State Section -->
+<div class="mb-10">
+  <div class="border-b border-gray-200 pb-4 mb-6">
+    <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+      <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      Estado del Producto
+    </h2>
+    <p class="text-sm text-gray-600 mt-1">Selecciona la disponibilidad actual</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @for (status of productStatuses; track status) {
+    <label
+      class="relative flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition duration-200">
+      <input type="radio" [id]="'state-' + status" formControlName="state" [value]="status"
+        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300" />
+      <div class="ml-3">
+        <span class="font-medium text-gray-900">{{ status }}</span>
+      </div>
+    </label>
+    }
+  </div>
+</div>
+
+<!-- Categories Section -->
+<div class="mb-10">
+  <div class="border-b border-gray-200 pb-4 mb-6">
+    <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+      <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+        </path>
+      </svg>
+      Categorías *
+    </h2>
+    <p class="text-sm text-gray-600 mt-1">Clasifica tu producto para facilitar su búsqueda</p>
+  </div>
+
+  <app-category-selector [hierarchicalCategories]="hierarchicalCategories()"
+    [selectedCategories]="selectedCategories()" [hasError]="productForm.get('idCategory')?.invalid || false"
+    [touched]="productForm.get('idCategory')?.touched || false" (categoriesChange)="onCategoriesChange($event)">
+  </app-category-selector>
+</div>
+
+<!-- Keywords Section -->
+<div class="mb-10">
+  <div class="border-b border-gray-200 pb-4 mb-6">
+    <div class="flex justify-between items-center">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+            </path>
+          </svg>
+          Palabras Clave
+        </h2>
+        <p class="text-sm text-gray-600 mt-1">Etiquetas para mejorar la búsqueda del producto</p>
+      </div>
+      <button type="button" (click)="addKeyword()"
+        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6">
+          </path>
+        </svg>
+        Añadir palabra clave
+      </button>
+    </div>
+  </div>
+
+  @if (keywordControls.length === 0) {
+  <div class="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+      </path>
+    </svg>
+    <p class="mt-2 text-sm text-gray-500">No hay palabras clave.</p>
+    <p class="text-xs text-gray-400">Haz clic en "Añadir palabra clave" para comenzar.</p>
+  </div>
+  } @else {
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @for (control of keywordControls; track $index) {
+    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+      <input type="text" [formControl]="control"
+        class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+        placeholder="Ej: ecológico, premium, etc." />
+      <button type="button" (click)="removeKeyword($index)"
+        class="p-2 text-red-500 hover:bg-red-100 rounded-full focus:outline-none transition duration-200"
+        title="Eliminar palabra clave">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+          <path fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+            clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+    }  </div>
+  }
+</div>
+</div>

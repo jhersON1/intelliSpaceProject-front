@@ -4,6 +4,7 @@ import { ImageUploadService } from '../../../services/image-upload.service';
 import { ProductsService } from '../../../services/products.service';
 import { VisualRepresentationService } from '../../../services/visual-representation.service';
 import { ImageOperationResult } from '../interface/image-state.interface';
+import { TypeRepresentation } from '../../../services/image-upload.service';
 
 
 @Injectable({
@@ -46,7 +47,7 @@ export class ProductOperationsService {
       const createPromises = uploadResponse.images.map((url, index) => {
         const createDto = {
           productId,
-          type: 'Image',
+          type: TypeRepresentation.IMAGE,
           url,
           altText: files[index].name,
           isPrincipal: false
