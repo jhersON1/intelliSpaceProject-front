@@ -1,6 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { ProductsService, PaginatedResponse } from '../product/services/products.service';
+import { Product } from '../product/interfaces/product.interface';
+import { VisualRepresentationService } from '../product/services/visual-representation.service';
+import { catchError, forkJoin, of } from 'rxjs';
+
+interface ProductWithImage extends Product {
+  imageUrl?: string | string[];
+  imageAlt?: string;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -8,46 +17,85 @@ import { RouterModule } from '@angular/router';
   templateUrl: './dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DashboardComponent {
-  // Datos de productos que vendrían desde un servicio
-  products = [
-    {
-      id: 1,
-      name: 'Table wood 1',
-      company: 'Company name 1',
-      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227233/taller%20de%20grado/wood1_vkp2st.png'
-    },
-    {
-      id: 2,
-      name: 'Table wood 2',
-      company: 'Company name 2',
-      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227313/taller%20de%20grado/wood2_meqhys.jpg'
-    },
-    {
-      id: 3,
-      name: 'Table wood 3',
-      company: 'Company name 3',
-      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227446/taller%20de%20grado/wood3_glmj46.png'
-    },
-    {
-      id: 4,
-      name: 'Table wood 4',
-      company: 'Company name 4',
-      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227448/taller%20de%20grado/wood4_tfrvtd.png'
-    },
-    {
-      id: 5,
-      name: 'Table wood 5',
-      company: 'Company name 5',
-      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227447/taller%20de%20grado/wood5_mycsor.png'
-    },
-    {
-      id: 6,
-      name: 'Table wood 6',
-      company: 'Company name 6',
-      image: 'https://res.cloudinary.com/intellispace-cloudinary/image/upload/v1744227460/taller%20de%20grado/wood6_hqmu5z.png'
+export class DashboardComponent implements OnInit {
+  private productService = inject(ProductsService);
+  private visualService = inject(VisualRepresentationService);
+  private cd = inject(ChangeDetectorRef);
+
+  products: ProductWithImage[] = [];
+  loading = false;
+
+  ngOnInit(): void {
+    this.loadFeaturedProducts();
+  }
+
+  private loadFeaturedProducts(): void {
+    this.loading = true;
+    
+    // Cargar solo 6 productos para mostrar en el dashboard
+    this.productService.findAllProducts(6, 0).subscribe({
+      next: (response: PaginatedResponse<Product>) => {
+        if (response.data && response.data.length > 0) {
+          this.loadProductsWithImages(response.data);
+        } else {
+          this.products = [];
+          this.loading = false;
+          this.cd.markForCheck();
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar productos destacados:', error);
+        this.products = [];
+        this.loading = false;
+        this.cd.markForCheck();
+      }
+    });
+  }
+
+  private loadProductsWithImages(products: Product[]): void {
+    if (products.length === 0) {
+      this.products = [];
+      this.loading = false;
+      this.cd.markForCheck();
+      return;
     }
-  ];
+
+    // Crear observables para cargar todas las imágenes en paralelo
+    const imageRequests = products.map(product => {
+      return this.visualService.findPrincipalImage(product.id).pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
+    });
+
+    forkJoin(imageRequests).subscribe({
+      next: (images) => {
+        const productsWithImages: ProductWithImage[] = products.map((product, index) => {
+          const image = images[index];
+          return {
+            ...product,
+            imageUrl: image?.url || undefined,
+            imageAlt: image?.altText || product.title
+          };
+        });
+
+        this.products = productsWithImages;
+        this.loading = false;
+        this.cd.markForCheck();
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar imágenes de productos:', error);
+        this.products = products.map(product => ({
+          ...product,
+          imageUrl: undefined,
+          imageAlt: product.title
+        }));
+        this.loading = false;
+        this.cd.markForCheck();
+      }
+    });
+  }
 
   // Categorías para explorar
   categories = [

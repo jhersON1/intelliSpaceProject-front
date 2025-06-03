@@ -169,14 +169,9 @@ export class ProductListComponent implements OnInit {
       this.totalPages = this.hasMore ? this.currentPage + 1 : this.currentPage;
     }
   }
-
   viewDetails(p: ProductWithImage) {
     console.log('Ver detalles:', p);
     this.router.navigate(['/home/products', p.id, 'detail']);
-  }
-
-  addToCart(p: ProductWithImage) {
-    console.log('Añadir al carrito:', p);
   }
 
   // Métodos para el manejo de imágenes
