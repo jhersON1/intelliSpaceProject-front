@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ProductsService, PaginatedResponse } from '../product/services/products.service';
 import { Product } from '../product/interfaces/product.interface';
 import { VisualRepresentationService } from '../product/services/visual-representation.service';
@@ -21,6 +21,7 @@ export class DashboardComponent implements OnInit {
   private productService = inject(ProductsService);
   private visualService = inject(VisualRepresentationService);
   private cd = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   products: ProductWithImage[] = [];
   loading = false;
@@ -93,8 +94,10 @@ export class DashboardComponent implements OnInit {
         }));
         this.loading = false;
         this.cd.markForCheck();
-      }
-    });
+      }    });
+  }
+  navigateToProductDetail(productId: string): void {
+    this.router.navigate(['/home/products', productId, 'detail']);
   }
 
   // Categorías para explorar

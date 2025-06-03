@@ -25,7 +25,7 @@
             </div>
         } @else {            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @for (product of products; track product.id) {
-                <div class="product-card flex flex-col">
+                <div class="product-card flex flex-col cursor-pointer" (click)="navigateToProductDetail(product.id)">
                     <div class="w-full min-w-[280px] h-[450px] overflow-hidden">
                         @if (product.imageUrl) {
                             <img [src]="product.imageUrl" [alt]="product.imageAlt || product.title" class="w-full h-full object-cover object-center opacity-90 transition-transform duration-300 hover:scale-105" />
