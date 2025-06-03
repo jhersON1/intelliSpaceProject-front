@@ -11,23 +11,37 @@
     <div class="container mx-auto text-center py-8 max-w-8xl">
         <h1 class="text-4xl md:text-5xl font-semibold text-black mb-2">Make your life better</h1>
         <p class="text-xl font-light text-black">Find the perfect product</p>
-    </div>
-
-    <!-- Our Products Section -->
+    </div>    <!-- Our Products Section -->
     <div class="container mx-auto px-4 py-12 max-w-8xl">
         <h2 class="text-3xl md:text-4xl font-normal mb-8">Our products</h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @for (product of products; track product.id) {
-            <div class="product-card flex flex-col">
-                <div class="w-full min-w-[280px] overflow-hidden">
-                    <img [src]="product.image" [alt]="product.name" class="w-full h-auto object-cover opacity-90" />
-                </div>
-                <h3 class="text-xl md:text-2xl font-normal mt-4">{{product.name}}</h3>
-                <p class="text-neutral-400">{{product.company}}</p>
+        @if (loading) {
+            <div class="flex justify-center items-center py-12">
+                <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
             </div>
-            }
-        </div>
+        } @else if (products.length === 0) {
+            <div class="text-center py-12">
+                <p class="text-gray-500">No hay productos disponibles en este momento.</p>
+            </div>
+        } @else {            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @for (product of products; track product.id) {
+                <div class="product-card flex flex-col cursor-pointer" (click)="navigateToProductDetail(product.id)">
+                    <div class="w-full min-w-[280px] h-[450px] overflow-hidden">
+                        @if (product.imageUrl) {
+                            <img [src]="product.imageUrl" [alt]="product.imageAlt || product.title" class="w-full h-full object-cover object-center opacity-90 transition-transform duration-300 hover:scale-105" />
+                        } @else {
+                            <div class="w-full h-full bg-gray-100 flex items-center justify-center opacity-90">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        }
+                    </div>                    <h3 class="text-lg md:text-xl font-normal mt-4">{{product.title}}</h3>
+                    <p class="text-sm text-neutral-400">{{product.description || 'Descripción no especificada'}}</p>
+                </div>
+                }
+            </div>
+        }
     </div>
 
     <div class="container mx-auto max-w-8xl flex justify-center my-2">
