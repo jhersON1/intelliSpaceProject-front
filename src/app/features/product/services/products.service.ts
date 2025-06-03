@@ -139,6 +139,36 @@ export class ProductsService {
     return this.http.patch<Product>(url, body, { headers });
   }
 
+  public deleteProduct(productId: string): Observable<void> {
+    console.log('🗑️ ProductsService.deleteProduct iniciado');
+    console.log('🆔 ID del producto a eliminar:', productId);
+    
+    const token = this.tokenService.getToken();
+    console.log('🔑 Token obtenido:', token ? 'Token presente' : 'Token NO encontrado');
+    
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    const url = `${this.baseUrl}${API_ROUTES.DELETE_VENDOR_PRODUCT}/${productId}`;
+    console.log('🌐 URL de eliminación:', url);
+
+    return this.http.delete<void>(url, { headers }).pipe(
+      tap({
+        next: () => {
+          console.log('✅ ProductsService.deleteProduct - Producto eliminado exitosamente');
+        },
+        error: (error) => {
+          console.error('❌ ProductsService.deleteProduct - Error:', error);
+          console.error('📊 Status del error:', error.status);
+          console.error('📝 Mensaje del error:', error.message);
+          console.error('🔍 Detalle completo del error:', error.error);
+        }
+      })
+    );
+  }
+
   public getProductDetail(id: string): Observable<Product> {
     const url = `${this.baseUrl}${API_ROUTES.GET_PRODUCT_DETAIL}/${id}`;
 
