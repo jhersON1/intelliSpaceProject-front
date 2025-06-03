@@ -160,6 +160,25 @@ export class ProductVendorListComponent {
     this.router.navigate(['/home/products', product.id]);
   }
 
+  deleteProduct(product: ProductWithImage): void {
+    if (confirm(`¿Estás seguro de que deseas eliminar el producto "${product.title}"?`)) {
+      this.loading.set(true);
+      
+      this.productService.deleteProduct(product.id).subscribe({
+        next: () => {
+          console.log('✅ Producto eliminado exitosamente');
+          // Recargar la página actual para actualizar la lista
+          this.loadProducts();
+        },
+        error: (error) => {
+          console.error('❌ Error al eliminar producto:', error);
+          this.loading.set(false);
+          alert('Error al eliminar el producto. Por favor, inténtalo de nuevo.');
+        }
+      });
+    }
+  }
+
   // Método para debug en el template
   onImageError(event: Event, product: ProductWithImage): void {
     const target = event.target as HTMLImageElement;
