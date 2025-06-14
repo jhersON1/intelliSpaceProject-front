@@ -1,10 +1,14 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable, tap, map } from 'rxjs';
+import { Observable, tap, map, finalize, of } from 'rxjs';
 import { Product, CreateProduct, UpdateProduct } from '../interfaces/product.interface';
 import { TokenService } from '../../../auth/services/token.service';
 import { environment } from '@environments/environments';
-import { API_ROUTES } from 'src/app/core/constants';
+import { API_ROUTES } from '../../../core/constants';
+import { LoggerService } from '../../../core/services';
+import { LoadingStateService } from '../../../core/services/loading-state.service';
+import { NotificationStateService } from '../../../core/services/notification-state.service';
+import { HttpCacheService } from '../../../core/services/http-cache.service';
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -19,41 +23,53 @@ export interface PaginatedResponse<T> {
   providedIn: 'root'
 })
 export class ProductsService {
-
   private http = inject(HttpClient);
   private readonly tokenService = inject(TokenService);
+  private readonly logger = inject(LoggerService);
+  private readonly loadingState = inject(LoadingStateService);
+  private readonly notificationState = inject(NotificationStateService);
+  private readonly cacheService = inject(HttpCacheService);
   private readonly baseUrl: string = environment.baseUrl;
-
   public findAllProducts(limit = 10, offset = 0): Observable<PaginatedResponse<Product>> {
+    const cacheKey = `products_${limit}_${offset}`;
+    
+    // Intentar obtener del caché primero
+    const cachedData = this.cacheService.get<PaginatedResponse<Product>>(cacheKey);
+    if (cachedData) {
+      this.logger.debug('Productos obtenidos del caché', { 
+        cacheKey,
+        count: cachedData.data.length 
+      }, 'ProductsService.findAllProducts');
+      return of(cachedData);
+    }
+
     const params = new HttpParams()
       .set('limit', limit.toString())
-      .set('offset', offset.toString());
-
-    // Por ahora, simularemos la respuesta paginada hasta que el backend la implemente
-    return this.http.get<Product[]>(`${this.baseUrl}${API_ROUTES.CONSUMER_PRODUCTS}`, { params }).pipe(
+      .set('offset', offset.toString());    return this.http.get<Product[]>(`${this.baseUrl}${API_ROUTES.CONSUMER_PRODUCTS}`, { params }).pipe(
       tap(products => {
-        console.log('🔍 Productos recibidos del backend:', products);
-        console.log('📊 Cantidad de productos:', products.length);
-        console.log('📄 Parámetros de paginación - limit:', limit, 'offset:', offset);
-      }),
-      // Transformamos la respuesta para incluir información de paginación
-      tap(products => {
-        // Si recibimos menos productos que el límite, significa que hemos llegado al final
+        this.logger.debug('Productos recibidos del backend', { 
+          count: products.length, 
+          limit, 
+          offset 
+        }, 'ProductsService.findAllProducts');
+        
         const hasMore = products.length === limit;
-        console.log('🔄 ¿Hay más páginas?', hasMore);
-      }),      // Mapear a la estructura de respuesta paginada
+        this.logger.debug('Información de paginación', { hasMore }, 'ProductsService.findAllProducts');
+      }),
       map((products: Product[]) => {
         const hasMore = products.length === limit;
-        // Estimamos el total basado en si hay más páginas
-        const estimatedTotal = hasMore ? (offset + limit + 1) : (offset + products.length);
-        
-        return {
+        const response: PaginatedResponse<Product> = {
           data: products,
-          total: estimatedTotal, // Esto es una estimación hasta que el backend nos dé el total real
-          limit: limit,
-          offset: offset,
-          hasMore: hasMore
-        } as PaginatedResponse<Product>;
+          total: hasMore ? (offset + limit + 1) : (offset + products.length),
+          limit,
+          offset,
+          hasMore
+        };
+
+        // Almacenar en caché con TTL de 2 minutos para listas de productos
+        this.cacheService.set(cacheKey, response, { ttl: 2 * 60 * 1000 });
+        
+        return response;
       })
     );
   }
@@ -68,12 +84,11 @@ export class ProductsService {
 
     const params = new HttpParams()
       .set('limit', limit.toString())
-      .set('offset', offset.toString());
-
-    return this.http.get<Product[]>(url, { params, headers }).pipe(
+      .set('offset', offset.toString());    return this.http.get<Product[]>(url, { params, headers }).pipe(
       tap(products => {
-        console.log('🔍 Productos del vendor recibidos del backend:', products);
-        console.log('📊 Cantidad de productos del vendor:', products.length);
+        this.logger.debug('Productos del vendor recibidos del backend', { 
+          count: products.length 
+        }, 'ProductsService.findVendorProducts');
       }),
       map((products: Product[]) => {
         const hasMore = products.length === limit;
@@ -94,13 +109,13 @@ export class ProductsService {
     const url = `${this.baseUrl}${API_ROUTES.GET_VENDOR_PRODUCT}/${id}`;
 
     return this.http.get<Product>(url);
-  }
-  public createProduct(createProduct: CreateProduct): Observable<Product> {
-    console.log('🏭 ProductsService.createProduct iniciado');
-    console.log('📦 Datos del producto a enviar:', createProduct);
+  }  public createProduct(createProduct: CreateProduct): Observable<Product> {
+    const loadingKey = 'createProduct';
+    this.loadingState.startLoading(loadingKey, 'Creando producto...');
+    this.logger.info('Iniciando creación de producto', { productTitle: createProduct.title }, 'ProductsService.createProduct');
     
     const token = this.tokenService.getToken();
-    console.log('🔑 Token obtenido:', token ? 'Token presente' : 'Token NO encontrado');
+    this.logger.debug('Token de autenticación obtenido', { hasToken: !!token }, 'ProductsService.createProduct');
     
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -108,22 +123,27 @@ export class ProductsService {
     });
 
     const url = `${this.baseUrl}${API_ROUTES.CREATE_VENDOR_PRODUCTS}`;
-    console.log('🌐 URL de la petición:', url);
-    console.log('📋 Headers de la petición:', headers);
+    this.logger.debug('Enviando petición de creación', { url }, 'ProductsService.createProduct');
 
     return this.http.post<Product>(url, createProduct, { headers }).pipe(
       tap({
         next: (response) => {
-          console.log('✅ ProductsService.createProduct - Respuesta exitosa:', response);
-          console.log('🆔 ID del producto creado:', response.id);
+          this.logger.info('Producto creado exitosamente', { 
+            productId: response.id,
+            productTitle: response.title 
+          }, 'ProductsService.createProduct');
+          this.notificationState.success(`Producto "${response.title}" creado exitosamente`);
         },
         error: (error) => {
-          console.error('❌ ProductsService.createProduct - Error:', error);
-          console.error('📊 Status del error:', error.status);
-          console.error('📝 Mensaje del error:', error.message);
-          console.error('🔍 Detalle completo del error:', error.error);
+          this.logger.error('Error al crear producto', { 
+            status: error.status,
+            message: error.message,
+            details: error.error 
+          }, 'ProductsService.createProduct');
+          this.notificationState.error('Error al crear el producto. Inténtalo de nuevo.');
         }
-      })
+      }),
+      finalize(() => this.loadingState.stopLoading(loadingKey))
     );
   }
 
@@ -137,14 +157,13 @@ export class ProductsService {
     const url = `${this.baseUrl}${API_ROUTES.UPDATE_VENDOR_PRODUCT}/${productId}`;
 
     return this.http.patch<Product>(url, body, { headers });
-  }
-
-  public deleteProduct(productId: string): Observable<void> {
-    console.log('🗑️ ProductsService.deleteProduct iniciado');
-    console.log('🆔 ID del producto a eliminar:', productId);
+  }  public deleteProduct(productId: string): Observable<void> {
+    const loadingKey = `deleteProduct_${productId}`;
+    this.loadingState.startLoading(loadingKey, 'Eliminando producto...');
+    this.logger.info('Iniciando eliminación de producto', { productId }, 'ProductsService.deleteProduct');
     
     const token = this.tokenService.getToken();
-    console.log('🔑 Token obtenido:', token ? 'Token presente' : 'Token NO encontrado');
+    this.logger.debug('Token de autenticación obtenido', { hasToken: !!token }, 'ProductsService.deleteProduct');
     
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -152,20 +171,25 @@ export class ProductsService {
     });
 
     const url = `${this.baseUrl}${API_ROUTES.DELETE_VENDOR_PRODUCT}/${productId}`;
-    console.log('🌐 URL de eliminación:', url);
+    this.logger.debug('URL de eliminación configurada', { url }, 'ProductsService.deleteProduct');
 
     return this.http.delete<void>(url, { headers }).pipe(
       tap({
         next: () => {
-          console.log('✅ ProductsService.deleteProduct - Producto eliminado exitosamente');
+          this.logger.info('Producto eliminado exitosamente', { productId }, 'ProductsService.deleteProduct');
+          this.notificationState.success('Producto eliminado exitosamente');
         },
         error: (error) => {
-          console.error('❌ ProductsService.deleteProduct - Error:', error);
-          console.error('📊 Status del error:', error.status);
-          console.error('📝 Mensaje del error:', error.message);
-          console.error('🔍 Detalle completo del error:', error.error);
+          this.logger.error('Error al eliminar producto', { 
+            productId,
+            status: error.status,
+            message: error.message,
+            details: error.error 
+          }, 'ProductsService.deleteProduct');
+          this.notificationState.error('Error al eliminar el producto. Inténtalo de nuevo.');
         }
-      })
+      }),
+      finalize(() => this.loadingState.stopLoading(loadingKey))
     );
   }
 

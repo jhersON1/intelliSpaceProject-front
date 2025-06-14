@@ -4,10 +4,11 @@ import { FooterComponent } from './core/components/footer/footer.component';
 import { Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './auth/services/auth.service';
 import { AuthStatus } from './auth/interfaces';
+import { NotificationContainerComponent } from './shared/components/notification-container/notification-container.component';
 
 @Component({
   selector: 'app-root',
-  imports: [ NavbarComponent, FooterComponent, RouterOutlet ],
+  imports: [ NavbarComponent, FooterComponent, RouterOutlet, NotificationContainerComponent ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

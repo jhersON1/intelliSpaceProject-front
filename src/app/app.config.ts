@@ -1,8 +1,10 @@
 import { ApplicationConfig, provideExperimentalZonelessChangeDetection, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withHashLocation, withViewTransitions } from '@angular/router';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { routes } from './app.routes';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { LoggerService, ConsoleLoggerService } from './core/services';
+import { HttpInterceptorService } from './core/interceptors';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,6 +16,12 @@ export const appConfig: ApplicationConfig = {
         {skipInitialTransition: true}
       )
     ), 
-    provideHttpClient(withInterceptorsFromDi())
+    provideHttpClient(withInterceptorsFromDi()),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: HttpInterceptorService,
+      multi: true
+    },
+    { provide: LoggerService, useClass: ConsoleLoggerService }
   ]
 };
