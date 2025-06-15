@@ -8,22 +8,23 @@ import { NotificationStateService, NotificationState } from '../../../core/servi
 @Component({
   selector: 'app-notification-container',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="fixed top-4 right-4 z-50 space-y-2">
+  imports: [CommonModule],  template: `
+    <!-- Container responsive -->
+    <div class="fixed top-4 right-4 z-50 space-y-2 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-sm xl:max-w-sm 
+                px-4 sm:px-0 pointer-events-none">
       @for (notification of notificationService.notifications(); track notification.id) {
         <div 
           [class]="getNotificationClasses(notification)"
-          class="max-w-sm w-full shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden transform transition-all duration-300 ease-in-out"
-          [style.animation]="'slideInRight 0.3s ease-out'">
+          class="w-full shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden 
+                 transform transition-all duration-300 ease-in-out animate-slide-in-right">
           
-          <div class="p-4">
+          <div class="p-3 sm:p-4">
             <div class="flex items-start">
-              <!-- Icono -->
+              <!-- Icono - más pequeño en móviles -->
               <div class="flex-shrink-0">
                 <svg 
                   [class]="getIconClasses(notification)" 
-                  class="h-6 w-6" 
+                  class="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" 
                   fill="none" 
                   stroke="currentColor" 
                   viewBox="0 0 24 24">
@@ -48,21 +49,23 @@ import { NotificationStateService, NotificationState } from '../../../core/servi
                 </svg>
               </div>
               
-              <!-- Contenido -->
-              <div class="ml-3 w-0 flex-1 pt-0.5">
-                <p [class]="getTextClasses(notification)" class="text-sm font-medium">
+              <!-- Contenido - texto más pequeño en móviles -->
+              <div class="ml-2 sm:ml-3 w-0 flex-1 pt-0.5">
+                <p [class]="getTextClasses(notification)" 
+                   class="text-xs sm:text-sm font-medium leading-tight break-words">
                   {{ notification.message }}
                 </p>
               </div>
               
-              <!-- Botón cerrar -->
-              <div class="ml-4 flex-shrink-0 flex">
+              <!-- Botón cerrar - más pequeño en móviles -->
+              <div class="ml-2 sm:ml-4 flex-shrink-0 flex">
                 <button 
                   (click)="closeNotification(notification.id)"
                   [class]="getCloseButtonClasses(notification)"
-                  class="inline-flex rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2">
+                  class="inline-flex rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                         hover:bg-gray-100 transition-colors duration-200">
                   <span class="sr-only">Cerrar</span>
-                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg class="h-3 w-3 sm:h-4 sm:w-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" 
                           d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" 
                           clip-rule="evenodd"></path>
@@ -74,11 +77,10 @@ import { NotificationStateService, NotificationState } from '../../../core/servi
           
           <!-- Barra de progreso para duración -->
           @if (notification.duration && notification.duration > 0) {
-            <div [class]="getProgressBarClasses(notification)" class="h-1">
+            <div [class]="getProgressBarClasses(notification)" class="h-0.5 sm:h-1">
               <div 
-                class="h-full transition-all ease-linear"
-                [style.width.%]="getProgressPercentage(notification)"
-                [style.animation]="'progressBar ' + notification.duration + 'ms linear'">
+                class="h-full transition-all ease-linear animate-progress-bar"
+                [style.animation-duration]="notification.duration + 'ms'">
               </div>
             </div>
           }
@@ -101,6 +103,34 @@ import { NotificationStateService, NotificationState } from '../../../core/servi
       @keyframes progressBar {
         from { width: 100%; }
         to { width: 0%; }
+      }
+      
+      .animate-slide-in-right {
+        animation: slideInRight 0.3s ease-out;
+      }
+      
+      .animate-progress-bar {
+        animation: progressBar linear;
+        width: 100%;
+        animation-fill-mode: forwards;
+      }
+      
+      /* Adaptaciones para pantallas muy pequeñas */
+      @media (max-width: 320px) {
+        .fixed.top-4.right-4 {
+          top: 0.5rem;
+          right: 0.5rem;
+          left: 0.5rem;
+          width: auto;
+          max-width: none;
+        }
+      }
+      
+      /* Mejoras para tablets */
+      @media (min-width: 768px) and (max-width: 1024px) {
+        .fixed.top-4.right-4 {
+          max-width: 20rem;
+        }
       }
     </style>
   `,

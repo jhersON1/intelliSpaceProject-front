@@ -18,12 +18,30 @@ export class AuthStateService {
   });
   
   private readonly _authStatus = signal<AuthStatus>(AuthStatus.checking);
-
   // Public readonly signals
   public readonly currentUser = computed(() => this._currentUser());
   public readonly authStatus = computed(() => this._authStatus());
   public readonly isAuthenticated = computed(() => this._authStatus() === AuthStatus.authenticated);
-  public readonly isChecking = computed(() => this._authStatus() === AuthStatus.checking);
+  public readonly isChecking = computed(() => this._authStatus() === AuthStatus.checking);  public readonly isVendor = computed(() => {
+    const user = this._currentUser();
+    const role = this.getCurrentUserRole();
+    this.logger.debug('Computed isVendor:', { 
+      hasUser: !!user, 
+      role, 
+      isVendor: role === userRole.VENDOR 
+    }, 'AuthStateService');
+    return role === userRole.VENDOR;
+  });
+  public readonly isConsumer = computed(() => {
+    const user = this._currentUser();
+    const role = this.getCurrentUserRole();
+    this.logger.debug('Computed isConsumer:', { 
+      hasUser: !!user, 
+      role, 
+      isConsumer: role === userRole.CONSUMER 
+    }, 'AuthStateService');
+    return role === userRole.CONSUMER;
+  });
 
   /**
    * Establece el usuario autenticado y cambia el estado a autenticado
@@ -42,33 +60,17 @@ export class AuthStateService {
     this._currentUser.set(null);
     this._authStatus.set(AuthStatus.notAuthenticated);
   }
-
   /**
    * Establece el estado como "verificando"
    */
   setCheckingStatus(): void {
     this._authStatus.set(AuthStatus.checking);
   }
+  
   /**
    * Obtiene el rol del usuario actual
    */
   getCurrentUserRole(): userRole | null {
     return this.tokenDecoder.getUserRoleFromToken();
-  }
-
-  /**
-   * Verifica si el usuario actual es vendor
-   */
-  isVendor(): boolean {
-    const role = this.getCurrentUserRole();
-    return role === userRole.VENDOR;
-  }
-
-  /**
-   * Verifica si el usuario actual es consumer
-   */
-  isConsumer(): boolean {
-    const role = this.getCurrentUserRole();
-    return role === userRole.CONSUMER;
   }
 }

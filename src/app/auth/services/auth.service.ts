@@ -6,6 +6,7 @@ import { ErrorHandlingService } from './error-handling-service.service';
 import { TokenService } from './token.service';
 import { AuthStateService } from './auth-state.service';
 import { AuthHttpService } from './auth-http.service';
+import { TokenDecoderService } from './token-decoder.service';
 import { LoggerService } from '../../core/services/logger.service';
 
 /**
@@ -15,18 +16,19 @@ import { LoggerService } from '../../core/services/logger.service';
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService {
-  private readonly errorHandler = inject(ErrorHandlingService);
+export class AuthService {  private readonly errorHandler = inject(ErrorHandlingService);
   private readonly tokenService = inject(TokenService);
   private readonly authState = inject(AuthStateService);
   private readonly authHttp = inject(AuthHttpService);
+  private readonly tokenDecoder = inject(TokenDecoderService);
   private readonly logger = inject(LoggerService);
   private readonly destroyRef = inject(DestroyRef);
-
-  // Exponer propiedades del estado
+  // Exponer propiedades del estado como computed signals
   public readonly currentUser = this.authState.currentUser;
   public readonly authStatus = this.authState.authStatus;
   public readonly isAuthenticated = this.authState.isAuthenticated;
+  public readonly isVendor = this.authState.isVendor;
+  public readonly isConsumer = this.authState.isConsumer;
 
   constructor() {
     this.checkAuthStatus()
@@ -99,7 +101,6 @@ export class AuthService {
       catchError(err => throwError(() => err.error.message))
     );
   }
-
   /**
    * Verifica el estado de autenticación actual
    */
@@ -107,19 +108,50 @@ export class AuthService {
     const token = this.tokenService.getToken();
 
     if (!token) {
+      this.logger.debug('No hay token, usuario no autenticado', {}, 'AuthService.checkAuthStatus');
       this.logout();
       return of(false);
     }
 
+    // Verificar si el token ha expirado
+    if (this.tokenDecoder.isTokenExpired()) {
+      this.logger.warn('Token expirado, cerrando sesión', {}, 'AuthService.checkAuthStatus');
+      this.logout();
+      return of(false);
+    }
+
+    // Intentar obtener información del usuario desde el token local
+    const userInfo = this.tokenDecoder.getUserInfoFromToken();
+    if (userInfo) {
+      const user: User = {
+        id: userInfo.id,
+        email: userInfo.email,
+        role: userInfo.rol
+      };
+      
+      this.logger.debug('Usuario autenticado desde token local', { 
+        userId: user.id, 
+        role: user.role 
+      }, 'AuthService.checkAuthStatus');
+      
+      this.setAuthentication(user, token);
+      return of(true);
+    }
+
+    // Si no se puede obtener info del token local, verificar con el backend
+    this.logger.debug('Verificando token con el backend', {}, 'AuthService.checkAuthStatus');
     return this.authHttp.checkToken().pipe(
-      map(({ user, token }) => this.setAuthentication(user, token)),
-      catchError(() => {
+      map(({ user, token: newToken }) => {
+        this.logger.info('Token verificado exitosamente con el backend', { userId: user.id }, 'AuthService.checkAuthStatus');
+        return this.setAuthentication(user, newToken || token);
+      }),
+      catchError((error) => {
+        this.logger.warn('Error verificando token con el backend', { error: error.message }, 'AuthService.checkAuthStatus');
         this.authState.clearAuthState();
         return of(false);
       })
     );
   }
-
   /**
    * Cierra la sesión del usuario
    */
@@ -127,19 +159,5 @@ export class AuthService {
     this.logger.info('Cerrando sesión de usuario', {}, 'AuthService');
     this.tokenService.removeToken();
     this.authState.clearAuthState();
-  }
-
-  /**
-   * Verifica si el usuario actual es vendor
-   */
-  public isVendor(): boolean {
-    return this.authState.isVendor();
-  }
-
-  /**
-   * Verifica si el usuario actual es consumer
-   */
-  public isConsumer(): boolean {
-    return this.authState.isConsumer();
   }
 }

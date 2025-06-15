@@ -1,33 +1,53 @@
-import { ChangeDetectionStrategy, Component, effect, HostListener, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, HostListener, inject, signal, computed } from '@angular/core';
+import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../auth/services/auth.service';
 import { AuthStatus } from 'src/app/auth/interfaces';
 
 @Component({
   selector: 'app-navbar',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NavbarComponent {
   private authService = inject(AuthService);
-  public isVendor = signal(false);
+  private router = inject(Router);
 
+  // Signals para el estado de autenticación
+  public readonly isAuthenticated = computed(() => this.authService.isAuthenticated());
+  public readonly isVendor = computed(() => this.authService.isVendor());
+  public readonly currentUser = computed(() => this.authService.currentUser());
 
   isNavbarHidden = false;
   private lastScrollTop = 0;
 
   isMobileMenuOpen = false;
-  isMobileSearchOpen = false;
-
-  constructor() {
+  isMobileSearchOpen = false;  constructor() {
+    // Verificar el estado de autenticación al inicializar
+    this.authService.checkAuthStatus().subscribe({
+      next: (isAuth) => {
+        console.log('Estado de autenticación verificado:', isAuth);
+        console.log('Usuario actual:', this.currentUser());
+        console.log('Es vendor:', this.isVendor());
+        console.log('Está autenticado:', this.isAuthenticated());
+      },
+      error: (err) => {
+        console.error('Error verificando estado de autenticación:', err);
+      }
+    });
+    
+    // Efecto para debug - escuchar cambios en las signals
     effect(() => {
-      const status = this.authService.authStatus();
-      this.isVendor.set(
-        status === AuthStatus.authenticated && this.authService.isVendor()
-      );
+      console.log('Navbar - Estado de auth cambió:', {
+        isAuthenticated: this.isAuthenticated(),
+        isVendor: this.isVendor(),
+        currentUser: this.currentUser()
+      });
     });
   }
-
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
@@ -58,4 +78,9 @@ export class NavbarComponent {
     }
   }
 
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/home']);
+    this.isMobileMenuOpen = false;
+  }
 }

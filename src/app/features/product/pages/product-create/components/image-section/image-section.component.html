@@ -1,9 +1,10 @@
-<!-- Images Section -->
+<!-- Images Section - Responsive Design -->
 <div class="mb-10">
+  <!-- Header Section -->
   <div class="border-b border-gray-200 pb-4 mb-6">
-    <div class="flex justify-between items-center">
-      <div>
-        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start space-y-3 sm:space-y-0">
+      <div class="flex-1">
+        <h2 class="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
           <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
@@ -11,11 +12,13 @@
           </svg>
           Galería de Imágenes
         </h2>
-        <p class="text-sm text-gray-600 mt-1">Sube hasta 10 imágenes del producto (JPG, PNG, GIF - máx. 5MB cada una)</p>
+        <p class="text-xs sm:text-sm text-gray-600 mt-1">
+          Sube hasta 10 imágenes del producto (JPG, PNG, GIF - máx. 5MB cada una)
+        </p>
       </div>
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-2 flex-shrink-0">
         <span class="text-sm text-gray-500">{{ images().length }}/10</span>
-        <div class="w-20 bg-gray-200 rounded-full h-2">
+        <div class="w-16 sm:w-20 bg-gray-200 rounded-full h-2">
           <div class="bg-indigo-600 h-2 rounded-full transition-all duration-300"
             [style.width.%]="(images().length / 10) * 100"></div>
         </div>
@@ -23,148 +26,139 @@
     </div>
   </div>
 
-  <!-- Layout responsivo mejorado para pantallas grandes -->
-  <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-    <!-- Image Preview - Ocupa más espacio en pantallas grandes -->
-    <div class="xl:col-span-2">
-      <label class="block text-sm font-medium text-gray-700 mb-3">Previsualización Principal</label>
-      <div
-        class="h-96 xl:h-[500px] border-2 border-dashed border-gray-300 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden shadow-inner">
-        @if (selectedImageIndex() === -1) {
-        <div class="text-center p-8">
-          <div class="bg-white rounded-full p-6 inline-block shadow-lg mb-4">
-            <svg class="h-16 w-16 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-              <path
-                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold text-gray-700 mb-2">Vista previa de imagen</h3>
-          <p class="text-lg text-gray-600 mb-2">Selecciona una imagen para previsualizar</p>
-          <p class="text-sm text-gray-500">JPG, PNG, GIF hasta 5MB</p>
-        </div>
-        } @else {
-        <div class="relative w-full h-full p-4">
-          <img [src]="selectedImage()?.url" class="w-full h-full object-contain rounded-lg shadow-lg"
-            alt="Imagen seleccionada">
-          <!-- Información de la imagen seleccionada -->
-          <div class="absolute bottom-6 left-6 bg-black bg-opacity-75 text-white px-3 py-2 rounded-lg text-sm">
-            {{ selectedImage()?.name }}
-          </div>
-        </div>
-        }
+  <!-- Mobile-First Layout -->
+  
+  <!-- Upload Section - Always visible and prominent on mobile -->
+  <div class="mb-6">
+    <label
+      class="relative cursor-pointer bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg p-4 sm:p-6 block transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95 touch-manipulation">
+      <div class="text-center">
+        <svg class="mx-auto h-6 w-6 sm:h-8 sm:w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        <p class="text-sm font-semibold">Subir Imágenes</p>
+        <p class="text-xs opacity-90">Toca o arrastra aquí</p>
       </div>
-    </div>
+      <input type="file" class="sr-only" accept="image/*" multiple (change)="onFileSelected($event)">
+    </label>
+  </div>
 
-    <!-- Image Controls - Panel lateral en pantallas grandes -->
-    <div class="xl:col-span-1">
-      <div class="bg-gray-50 rounded-xl p-6 h-fit">
-        <div class="flex justify-between items-center mb-6">
-          <label class="block text-sm font-medium text-gray-700">Galería de Imágenes</label>
-          <div class="flex items-center space-x-2">
-            <span class="text-sm text-gray-500">{{ images().length }}/10</span>
-            <div class="w-16 bg-gray-200 rounded-full h-2">
-              <div class="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-                [style.width.%]="(images().length / 10) * 100"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Upload button prominente -->
-        <label
-          class="relative cursor-pointer bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg p-6 mb-6 block transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-          <div class="text-center">
-            <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            <p class="text-sm font-semibold">Subir Imágenes</p>
-            <p class="text-xs opacity-90">Arrastra o haz clic</p>
-          </div>
-          <input type="file" class="sr-only" accept="image/*" multiple (change)="onFileSelected($event)">
-        </label>
-
-        <!-- Image thumbnails - Grid adaptativo -->
-        @if (images().length > 0) {
-        <div class="space-y-4">
-          <h4 class="text-sm font-medium text-gray-700">Imagen Principal</h4>
-          <div class="flex justify-center">
-            <div class="relative w-20 h-20">
-              <div
-                class="aspect-square border-2 border-green-500 rounded-lg overflow-hidden cursor-pointer transition-all duration-200 transform hover:scale-105 shadow-lg"
-                (click)="selectImage(0)">
-                <img [src]="images()[0].url" class="w-full h-full object-cover" [alt]="images()[0].name">
-              </div>
-
-              <!-- Indicador de imagen principal -->
-              <div
-                class="absolute -top-2 -left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg">
-                Principal
-              </div>
-            </div>
-          </div>
-
-          <!-- Información adicional -->
-          <div class="text-center">
-            <p class="text-sm text-green-700 font-medium">{{ images()[0].name }}</p>
-          </div>
-        </div>
-        } @else {
-        <div class="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-          <svg class="mx-auto h-10 w-10 text-gray-400 mb-3" fill="none" stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z">
-            </path>
+  <!-- Main Image Preview -->
+  <div class="mb-6">
+    <label class="block text-sm font-medium text-gray-700 mb-3">Previsualización Principal</label>
+    <div
+      class="h-64 sm:h-80 lg:h-96 border-2 border-dashed border-gray-300 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden shadow-inner">
+      @if (selectedImageIndex() === -1) {
+      <div class="text-center p-4 sm:p-8">
+        <div class="bg-white rounded-full p-4 sm:p-6 inline-block shadow-lg mb-4">
+          <svg class="h-8 w-8 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+            <path
+              d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
-          <p class="text-sm text-gray-500 font-medium">No hay imágenes</p>
-          <p class="text-xs text-gray-400">Sube la primera imagen</p>
         </div>
-        }
-
-        <!-- Información de ayuda -->
-        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h5 class="text-sm font-medium text-blue-900 mb-2 flex items-center">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                clip-rule="evenodd" />
-            </svg>
-            Consejos para imágenes
-          </h5>
-          <ul class="text-xs text-blue-800 space-y-1">
-            <li>• La primera imagen será la principal</li>
-            <li>• Muestra diferentes ángulos</li>
-            <li>• Formato: JPG, PNG, GIF</li>
-            <li>• Máximo 5MB por imagen</li>
-          </ul>
-        </div>
+        <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-700 mb-2">Vista previa de imagen</h3>
+        <p class="text-sm sm:text-base lg:text-lg text-gray-600 mb-2">Selecciona una imagen para previsualizar</p>
+        <p class="text-xs sm:text-sm text-gray-500">JPG, PNG, GIF hasta 5MB</p>
       </div>
+      } @else {
+      <div class="relative w-full h-full p-2 sm:p-4">
+        <img [src]="selectedImage()?.url" class="w-full h-full object-contain rounded-lg shadow-lg"
+          alt="Imagen seleccionada">
+        <!-- Image info overlay -->
+        <div class="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 bg-black bg-opacity-75 text-white px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-xs sm:text-sm max-w-[calc(100%-1rem)] sm:max-w-[calc(100%-2rem)] truncate">
+          {{ selectedImage()?.name }}
+        </div>
+        <!-- Delete button for selected image -->
+        <button type="button"
+          class="absolute top-2 sm:top-4 right-2 sm:right-4 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shadow-lg transition-all duration-200 active:scale-95"
+          (click)="removeImage(selectedImageIndex())" title="Eliminar imagen">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+      }
     </div>
   </div>
 
-  <!-- Vista de cuadrícula para pantallas muy grandes - CON botones de eliminar -->
+  <!-- Image Gallery -->
   @if (images().length > 0) {
-  <div class="mt-8 hidden 2xl:block">
-    <div class="flex justify-between items-center mb-4">
-      <h4 class="text-lg font-semibold text-gray-900">Vista de cuadrícula completa</h4>
-      <p class="text-sm text-gray-600">Haz clic en las imágenes para seleccionar o eliminar</p>
+  <div class="space-y-4">
+    <div class="flex justify-between items-center">
+      <label class="block text-sm font-medium text-gray-700">Galería ({{ images().length }}/10)</label>
+      <button type="button" 
+        class="text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+        (click)="selectImage(-1)">
+        Deseleccionar
+      </button>
     </div>
-    <div class="grid grid-cols-6 3xl:grid-cols-8 gap-4">
+
+    <!-- Mobile: Horizontal scroll gallery -->
+    <div class="block lg:hidden">
+      <div class="flex space-x-3 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        @for (image of images(); track $index) {
+        <div class="relative flex-shrink-0 group">
+          <div
+            class="w-20 h-20 sm:w-24 sm:h-24 border-2 rounded-lg overflow-hidden cursor-pointer transition-all duration-200 active:scale-95"
+            [class.border-indigo-500]="$index === selectedImageIndex()"
+            [class.border-gray-300]="$index !== selectedImageIndex()"
+            [class.shadow-lg]="$index === selectedImageIndex()"
+            [class.border-green-500]="$index === 0 && $index !== selectedImageIndex()"
+            [class.ring-2]="$index === selectedImageIndex()"
+            [class.ring-indigo-200]="$index === selectedImageIndex() && $index !== 0"
+            [class.ring-green-200]="$index === 0 && $index === selectedImageIndex()"
+            (click)="selectImage($index)">
+            <img [src]="image.url" class="w-full h-full object-cover" [alt]="image.name">
+          </div>
+
+          <!-- Position indicator -->
+          @if ($index === 0) {
+          <div class="absolute -top-1 -left-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium text-center leading-none">
+            1
+          </div>
+          } @else {
+          <div class="absolute -top-1 -left-1 bg-gray-600 text-white text-xs px-1.5 py-0.5 rounded-full font-medium text-center leading-none">
+            {{ $index + 1 }}
+          </div>
+          }
+
+          <!-- Delete button - Always visible on mobile for accessibility -->
+          <button type="button"
+            class="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition-all duration-200 active:scale-90 shadow-lg"
+            (click)="removeImage($index)" title="Eliminar imagen">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Desktop: Grid gallery -->
+    <div class="hidden lg:grid lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
       @for (image of images(); track $index) {
       <div class="relative group">
         <div
-          class="aspect-square border-2 rounded-lg overflow-hidden cursor-pointer transition-all duration-200 transform hover:scale-105"
+          class="aspect-square border-2 rounded-lg overflow-hidden cursor-pointer transition-all duration-200 hover:scale-105"
           [class.border-indigo-500]="$index === selectedImageIndex()"
           [class.border-gray-300]="$index !== selectedImageIndex()"
-          [class.shadow-lg]="$index === selectedImageIndex()" [class.border-green-500]="$index === 0"
+          [class.shadow-lg]="$index === selectedImageIndex()"
+          [class.border-green-500]="$index === 0 && $index !== selectedImageIndex()"
           [class.ring-2]="$index === selectedImageIndex()"
           [class.ring-indigo-200]="$index === selectedImageIndex() && $index !== 0"
-          [class.ring-green-200]="$index === 0" (click)="selectImage($index)">
+          [class.ring-green-200]="$index === 0 && $index === selectedImageIndex()"
+          (click)="selectImage($index)">
           <img [src]="image.url" class="w-full h-full object-cover" [alt]="image.name">
         </div>
 
-        <!-- Botón eliminar - Solo visible en hover -->
+        <!-- Delete button - Hover on desktop -->
         <button type="button"
           class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-600 shadow-lg transform hover:scale-110"
           (click)="removeImage($index)" title="Eliminar imagen">
@@ -175,15 +169,13 @@
           </svg>
         </button>
 
-        <!-- Indicadores de posición -->
+        <!-- Position indicators -->
         @if ($index === 0) {
-        <div
-          class="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded font-medium shadow-lg">
+        <div class="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded font-medium shadow-lg">
           Principal
         </div>
         } @else {
-        <div
-          class="absolute top-2 left-2 bg-gray-600 text-white text-xs px-2 py-1 rounded font-medium shadow-lg">
+        <div class="absolute top-2 left-2 bg-gray-600 text-white text-xs px-2 py-1 rounded font-medium shadow-lg">
           {{ $index + 1 }}
         </div>
         }
@@ -191,24 +183,34 @@
       }
     </div>
 
-    <!-- Instrucciones para la cuadrícula -->
-    <div class="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-      <div class="flex items-start">
-        <svg class="w-5 h-5 text-yellow-600 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+    <!-- Instructions -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+      <h5 class="text-sm font-medium text-blue-900 mb-2 flex items-center">
+        <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd"
-            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
             clip-rule="evenodd" />
         </svg>
-        <div>
-          <h5 class="text-sm font-medium text-yellow-800">Gestión de imágenes</h5>
-          <p class="text-sm text-yellow-700 mt-1">
-            • Haz clic en una imagen para seleccionarla en la previsualización<br>
-            • Pasa el mouse sobre una imagen y haz clic en ❌ para eliminarla<br>
-            • La primera imagen siempre será la imagen principal del producto
-          </p>
-        </div>
-      </div>
+        Consejos para imágenes
+      </h5>
+      <ul class="text-xs sm:text-sm text-blue-800 space-y-1">
+        <li>• La primera imagen será la imagen principal del producto</li>
+        <li>• Toca una imagen para seleccionarla en la previsualización</li>
+        <li>• Usa el botón ❌ para eliminar imágenes</li>
+        <li>• Formatos permitidos: JPG, PNG, GIF (máx. 5MB)</li>
+      </ul>
     </div>
+  </div>
+  } @else {
+  <!-- Empty state -->
+  <div class="text-center py-8 sm:py-12 border-2 border-dashed border-gray-300 rounded-lg">
+    <svg class="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z">
+      </path>
+    </svg>
+    <h3 class="text-base sm:text-lg font-medium text-gray-700 mb-2">No hay imágenes</h3>
+    <p class="text-sm text-gray-500">Sube la primera imagen usando el botón de arriba</p>
   </div>
   }
 </div>
