@@ -14,21 +14,21 @@
     </div>
   } @else if (displayedProducts().length === 0) {
     <!-- Empty state -->
-    <div class="bg-white rounded-lg shadow-md p-8 text-center">
+    <div class="bg-white shadow-md p-8 text-center">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
       </svg>
       <h2 class="text-xl font-semibold text-gray-700 mb-2">No hay productos disponibles</h2>
       <p class="text-gray-500">Vuelve a intentarlo más tarde o prueba con otra búsqueda.</p>
     </div>
-  } @else {
-    <!-- Products grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">      @for (product of displayedProducts(); track product.id) {
-        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative group">
+  } @else {    <!-- Products grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      @for (product of displayedProducts(); track product.id) {
+        <div class="bg-white border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors duration-300 relative group">
           <!-- Botón de eliminar que aparece al hacer hover -->
           <button 
             (click)="deleteProduct(product)"
-            class="absolute top-2 right-2 z-10 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg"
+            class="absolute top-2 right-2 z-10 bg-red-500 hover:bg-red-600 text-white w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             title="Eliminar producto"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -61,7 +61,7 @@
             </div>
             
             @if (product.category) {
-              <span class="inline-block px-2 py-1 mt-2 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+              <span class="inline-block px-2 py-1 mt-2 text-xs font-semibold bg-blue-100 text-blue-800">
                 {{ product.category }}
               </span>
             }
@@ -76,10 +76,9 @@
               >
                 Ver detalles
               </button>
-              
-              <button 
+                <button 
                 (click)="editProduct(product)" 
-                class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-300"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm transition-colors duration-300"
               >
                 Editar
               </button>
@@ -91,11 +90,10 @@
       <!-- Pagination -->
     @if (totalPages() > 1 || hasMore()) {
       <div class="flex justify-center mt-8">
-        <nav class="flex items-center space-x-1">
-          <button 
+        <nav class="flex items-center space-x-1">          <button 
             (click)="prevPage()" 
             [disabled]="currentPage() === 1"
-            class="px-3 py-1 rounded-md" 
+            class="px-3 py-1" 
             [class.text-gray-400]="currentPage() === 1"
             [class.text-blue-600]="currentPage() !== 1"
           >
@@ -105,7 +103,7 @@
           @for (page of getPages(); track page) {
             <button 
               (click)="goToPage(page)" 
-              class="px-3 py-1 rounded-md" 
+              class="px-3 py-1" 
               [class.bg-blue-600]="page === currentPage()"
               [class.text-white]="page === currentPage()"
               [class.text-blue-600]="page !== currentPage()"
@@ -117,7 +115,7 @@
           <button 
             (click)="nextPage()" 
             [disabled]="!hasMore() && currentPage() >= totalPages()"
-            class="px-3 py-1 rounded-md"
+            class="px-3 py-1"
             [class.text-gray-400]="!hasMore() && currentPage() >= totalPages()"
             [class.text-blue-600]="hasMore() || currentPage() < totalPages()"
           >

@@ -5,6 +5,7 @@ export interface ProductWithImage {
   id: string;
   title: string;
   price?: number;
+  description?: string;
   imageUrl?: string | string[];
   imageAlt?: string;
 }
@@ -23,42 +24,29 @@ export interface PaginationData {
 @Component({
   selector: 'app-product-grid',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  imports: [CommonModule],  template: `
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       @for (product of products; track product.id) {
-        <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-             (click)="onProductClick(product)">
-          <div class="aspect-square overflow-hidden rounded-t-lg">
-            @if (product.imageUrl) {
+        <div class="product-card flex flex-col cursor-pointer" (click)="onProductClick(product)">
+          <div class="w-full min-w-[280px] h-[450px] overflow-hidden">            @if (product.imageUrl) {
               <img 
                 [src]="getImageUrl(product.imageUrl)" 
                 [alt]="product.imageAlt || product.title"
-                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                class="w-full h-full object-cover object-center opacity-90 transition-transform duration-300 hover:scale-105"
                 loading="lazy"
+                (error)="onImageError($event, product)"
               />
             } @else {
-              <div class="w-full h-full bg-gray-200 flex items-center justify-center">
-                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-                  </path>
+              <div class="w-full h-full bg-gray-100 flex items-center justify-center opacity-90">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
             }
           </div>
           
-          <div class="p-4">
-            <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-2">
-              {{ product.title }}
-            </h3>
-            
-            @if (product.price) {
-              <p class="text-2xl font-bold text-indigo-600">
-                {{ product.price | currency:'USD':'symbol':'1.2-2' }}
-              </p>
-            }
-          </div>
+          <h3 class="text-lg md:text-xl font-normal mt-4">{{ product.title }}</h3>
+          <p class="text-sm text-neutral-400">{{ getProductDescription(product) }}</p>
         </div>
       } @empty {
         <div class="col-span-full text-center py-12">
@@ -75,11 +63,10 @@ export interface PaginationData {
 
     <!-- Paginación -->
     @if (pagination && pagination.totalPages > 1) {
-      <div class="mt-8 flex justify-center">
-        <nav class="flex items-center space-x-2">
+      <div class="mt-8 flex justify-center">        <nav class="flex items-center space-x-2">
           <button 
             (click)="onPageChange(pagination.currentPage - 1)"
-            [disabled]="pagination.currentPage <= 1"
+            [disabled]="pagination.currentPage <= 1 || isLoading"
             class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
             Anterior
           </button>
@@ -87,16 +74,17 @@ export interface PaginationData {
           @for (page of getPageNumbers(); track page) {
             <button 
               (click)="onPageChange(page)"
+              [disabled]="isLoading"
               [class]="page === pagination.currentPage 
-                ? 'px-3 py-2 text-sm font-medium text-white bg-indigo-600 border border-indigo-600 rounded-md'
-                : 'px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50'">
+                ? 'px-3 py-2 text-sm font-medium text-white bg-indigo-600 border border-indigo-600 rounded-md disabled:opacity-50'
+                : 'px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'">
               {{ page }}
             </button>
           }
           
           <button 
             (click)="onPageChange(pagination.currentPage + 1)"
-            [disabled]="pagination.currentPage >= pagination.totalPages"
+            [disabled]="pagination.currentPage >= pagination.totalPages || isLoading"
             class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
             Siguiente
           </button>
@@ -110,6 +98,7 @@ export class ProductGridComponent {
   @Input() products: ProductWithImage[] = [];
   @Input() pagination: PaginationData | null = null;
   @Input() emptyMessage = 'No se encontraron productos disponibles.';
+  @Input() isLoading = false; // Nueva propiedad para controlar el estado de carga
   
   @Output() productClick = new EventEmitter<ProductWithImage>();
   @Output() pageChange = new EventEmitter<number>();
@@ -117,9 +106,13 @@ export class ProductGridComponent {
   onProductClick(product: ProductWithImage): void {
     this.productClick.emit(product);
   }
-
   onPageChange(page: number): void {
-    if (this.pagination && page >= 1 && page <= this.pagination.totalPages) {
+    // Evitar múltiples clics si está cargando
+    if (this.isLoading) {
+      return;
+    }
+    
+    if (this.pagination && page >= 1 && page <= this.pagination.totalPages && page !== this.pagination.currentPage) {
       this.pageChange.emit(page);
     }
   }
@@ -129,6 +122,10 @@ export class ProductGridComponent {
       return imageUrl[0] || '';
     }
     return imageUrl || '';
+  }
+
+  getProductDescription(product: ProductWithImage): string {
+    return product.description || 'Descripción no especificada';
   }
 
   getPageNumbers(): number[] {
@@ -152,5 +149,29 @@ export class ProductGridComponent {
     }
     
     return pages;
+  }
+
+  onImageError(event: Event, product: ProductWithImage): void {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      // Ocultar la imagen que falló y mostrar el placeholder
+      target.style.display = 'none';
+      
+      // Encontrar el contenedor padre y añadir el placeholder
+      const container = target.parentElement;
+      if (container && !container.querySelector('.error-placeholder')) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'error-placeholder w-full h-full bg-gray-100 flex items-center justify-center opacity-90';
+        placeholder.innerHTML = `
+          <div class="text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.684-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <p class="text-xs text-gray-500">Imagen no disponible</p>
+          </div>
+        `;
+        container.appendChild(placeholder);
+      }
+    }
   }
 }

@@ -14,7 +14,7 @@
     </div>
   } @else if (displayedProducts.length === 0) {
     <!-- Empty state -->
-    <div class="bg-white rounded-lg shadow-md p-8 text-center">
+    <div class="bg-white shadow-md p-8 text-center">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
       </svg>
@@ -22,20 +22,19 @@
       <p class="text-gray-500">Vuelve a intentarlo más tarde o prueba con otra búsqueda.</p>
     </div>
   } @else {    <!-- Products grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       @for (product of displayedProducts; track product.id) {
-        <div class="bg-white hover:shadow-md transition-shadow duration-300 cursor-pointer group" (click)="viewDetails(product)">
-          <!-- Product image -->
-          <div class="relative overflow-hidden">
+        <div class="product-card flex flex-col cursor-pointer" (click)="viewDetails(product)">
+          <div class="w-full min-w-[280px] h-[450px] overflow-hidden">
             @if (product.imageUrl) {
               <img 
                 [src]="product.imageUrl" 
                 [alt]="product.title" 
-                class="w-full h-72 object-cover"
+                class="w-full h-full object-cover object-center opacity-90 transition-transform duration-300 hover:scale-105"
                 loading="lazy"
               />
             } @else {
-              <div class="w-full h-72 bg-gray-100 flex items-center justify-center">
+              <div class="w-full h-full bg-gray-100 flex items-center justify-center opacity-90">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -43,18 +42,8 @@
             }
           </div>
           
-          <div class="p-4">
-            <!-- Product title -->
-            <h3 class="text-base font-normal text-gray-900 mb-1 leading-snug">{{ product.title }}</h3>
-            
-            <!-- Product description -->
-            <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ product.description }}</p>
-            
-            <!-- Category -->
-            @if (product.category) {
-              <span class="text-xs text-gray-500 uppercase">{{ product.category }}</span>
-            }
-          </div>
+          <h3 class="text-lg md:text-xl font-normal mt-4">{{ product.title }}</h3>
+          <p class="text-sm text-neutral-400">{{ product.description || 'Descripción no especificada' }}</p>
         </div>
       }
     </div>
