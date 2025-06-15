@@ -5,6 +5,7 @@ import { Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './auth/services/auth.service';
 import { AuthStatus } from './auth/interfaces';
 import { NotificationContainerComponent } from './shared/components/notification-container/notification-container.component';
+import { ScrollToTopService } from './core/services';
 
 @Component({
   selector: 'app-root',
@@ -15,6 +16,7 @@ import { NotificationContainerComponent } from './shared/components/notification
 export class AppComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private scrollToTopService = inject(ScrollToTopService); // Inicializa el servicio
 
   public finishedAuthCheck = computed<boolean>( () => {
     if ( this.authService.authStatus() === AuthStatus.checking ) {

@@ -5,3 +5,4 @@ export * from './loading-state.service';
 export * from './form-error-handling.service';
 export * from './http-cache.service';
 export * from './global-cleanup.service';
+export * from './scroll-to-top.service';
