@@ -80,7 +80,11 @@ export class LoginComponent {
         next: (success) => {
           console.log('Login successful:', success);
           this.isAuthenticating.set(false);
-          this.router.navigate(['/home']);
+          
+          // Dar tiempo para que el AuthService actualice el estado antes de redirigir
+          setTimeout(() => {
+            this.router.navigate(['/home']);
+          }, 150);
         },
         error: (err) => {
           console.error('Login failed:', err);

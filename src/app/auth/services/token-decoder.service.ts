@@ -12,20 +12,24 @@ import { JwtPayload, TokenUserInfo, TokenDecodeResult } from '../../core/types/j
 })
 export class TokenDecoderService {
   private readonly tokenService = inject(TokenService);
-  private readonly logger = inject(LoggerService);
-
-  /**
+  private readonly logger = inject(LoggerService);  /**
    * Decodifica el token JWT actual de forma segura
    */
   decodeCurrentToken(): TokenDecodeResult {
     const token = this.tokenService.getToken();
     if (!token) {
-      this.logger.warn('No hay token disponible para decodificar', {}, 'TokenDecoderService');
+      // No logear cuando no hay token - es normal después del logout o para usuarios no autenticados
       return { success: false, error: 'No token available' };
     }
 
     try {
-      const [, payloadB64] = token.split('.');
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        this.logger.error('Token tiene formato inválido', {}, 'TokenDecoderService');
+        return { success: false, error: 'Invalid token format' };
+      }
+
+      const [, payloadB64] = parts;
       const json = atob(payloadB64);
       const payload = JSON.parse(json) as JwtPayload;
       
@@ -39,19 +43,22 @@ export class TokenDecoderService {
       this.logger.error('Error al decodificar token', { error }, 'TokenDecoderService');
       return { success: false, error: 'Invalid token format' };
     }
-  }
-  /**
+  }  /**
    * Obtiene el rol del usuario desde el token
    */
   getUserRoleFromToken(): userRole | null {
     const result = this.decodeCurrentToken();
     
     if (!result.success || !result.payload?.rol) {
-      this.logger.warn('No se encontró rol en el token', {}, 'TokenDecoderService');
+      // Solo logear si hay token pero no se puede decodificar (error real)
+      if (this.tokenService.getToken()) {
+        this.logger.warn('No se encontró rol en el token válido', {}, 'TokenDecoderService');
+      }
       return null;
-    }
-
-    return result.payload.rol;
+    }    // Retornar el rol tal como viene del token
+    const roleString = result.payload.rol;
+    console.log('TokenDecoderService: Role from token:', { roleString, type: typeof roleString });
+    return roleString as userRole;
   }
 
   /**

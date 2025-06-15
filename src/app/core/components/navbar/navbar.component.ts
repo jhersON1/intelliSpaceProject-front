@@ -1,8 +1,7 @@
-import { ChangeDetectionStrategy, Component, effect, HostListener, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, inject, computed, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../auth/services/auth.service';
-import { AuthStatus } from 'src/app/auth/interfaces';
 
 @Component({
   selector: 'app-navbar',
@@ -12,40 +11,61 @@ import { AuthStatus } from 'src/app/auth/interfaces';
   styleUrls: ['./navbar.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class NavbarComponent {
-  private authService = inject(AuthService);
+export class NavbarComponent {  private authService = inject(AuthService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
-  // Signals para el estado de autenticación
-  public readonly isAuthenticated = computed(() => this.authService.isAuthenticated());
-  public readonly isVendor = computed(() => this.authService.isVendor());
-  public readonly currentUser = computed(() => this.authService.currentUser());
+  // Signals para el estado de autenticación con protección contra evaluaciones innecesarias
+  public readonly isAuthenticated = computed(() => {
+    try {
+      return this.authService.isAuthenticated();
+    } catch (error) {
+      console.warn('Error evaluating isAuthenticated:', error);
+      return false;
+    }
+  });
+    public readonly isVendor = computed(() => {
+    try {
+      const authenticated = this.authService.isAuthenticated();
+      const vendor = this.authService.isVendor();
+      const result = authenticated && vendor;
+      
+      // Debug logging temporal
+      console.log('Navbar isVendor computed:', { authenticated, vendor, result });
+      
+      return result;
+    } catch (error) {
+      console.warn('Error evaluating isVendor:', error);
+      return false;
+    }
+  });
+  
+  public readonly currentUser = computed(() => {
+    try {
+      return this.authService.isAuthenticated() ? this.authService.currentUser() : null;
+    } catch (error) {
+      console.warn('Error evaluating currentUser:', error);
+      return null;
+    }
+  });
 
   isNavbarHidden = false;
   private lastScrollTop = 0;
 
   isMobileMenuOpen = false;
-  isMobileSearchOpen = false;  constructor() {
-    // Verificar el estado de autenticación al inicializar
-    this.authService.checkAuthStatus().subscribe({
-      next: (isAuth) => {
-        console.log('Estado de autenticación verificado:', isAuth);
-        console.log('Usuario actual:', this.currentUser());
-        console.log('Es vendor:', this.isVendor());
-        console.log('Está autenticado:', this.isAuthenticated());
-      },
-      error: (err) => {
-        console.error('Error verificando estado de autenticación:', err);
-      }
-    });
+  isMobileSearchOpen = false;constructor() {
+    // El AuthService ya verifica el estado de autenticación en su constructor
+    // No es necesario verificarlo aquí también
     
-    // Efecto para debug - escuchar cambios en las signals
+    // Effect para forzar detección de cambios cuando el estado de auth cambie
     effect(() => {
-      console.log('Navbar - Estado de auth cambió:', {
-        isAuthenticated: this.isAuthenticated(),
-        isVendor: this.isVendor(),
-        currentUser: this.currentUser()
-      });
+      const isAuth = this.isAuthenticated();
+      const isVend = this.isVendor();
+      const user = this.currentUser();
+      
+      // Forzar detección de cambios cuando cambien los valores
+      console.log('Navbar effect triggered:', { isAuth, isVend, user });
+      this.cdr.markForCheck();
     });
   }
 
@@ -77,10 +97,13 @@ export class NavbarComponent {
       this.isMobileMenuOpen = false;
     }
   }
-
   logout(): void {
     this.authService.logout();
-    this.router.navigate(['/home']);
     this.isMobileMenuOpen = false;
+    
+    // Navegar a home después de limpiar el estado
+    setTimeout(() => {
+      this.router.navigate(['/home']);
+    }, 100);
   }
 }

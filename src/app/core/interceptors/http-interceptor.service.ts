@@ -26,14 +26,18 @@ export class HttpInterceptorService implements HttpInterceptor {
   private readonly loadingState = inject(LoadingStateService);
   private readonly notificationState = inject(NotificationStateService);
   private readonly logger = inject(LoggerService);
-
   // Endpoints que NO requieren autenticación
   private readonly publicEndpoints = [
     '/auth/login',
     '/auth/register',
     '/auth/refresh',
     '/public',
-    '/assets'
+    '/assets',
+    '/products/consumer-products',
+    '/products/',  // Para detalles de productos individuales (GET /products/{id})
+    '/visual-representation/principal-image',
+    '/visual-representation/images',
+    '/categories'  // Las categorías también son públicas
   ];
 
   // Endpoints que NO deben mostrar loading global
@@ -159,12 +163,41 @@ export class HttpInterceptorService implements HttpInterceptor {
 
     return config;
   }
-
   /**
    * Verifica si un endpoint es público (no requiere autenticación)
    */
   private isPublicEndpoint(url: string): boolean {
-    return this.publicEndpoints.some(endpoint => url.includes(endpoint));
+    // Endpoints de autenticación
+    if (url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/refresh')) {
+      return true;
+    }
+    
+    // Recursos públicos
+    if (url.includes('/public') || url.includes('/assets')) {
+      return true;
+    }
+    
+    // Productos para consumidores (públicos)
+    if (url.includes('/products/consumer-products')) {
+      return true;
+    }
+    
+    // Detalles de productos individuales (GET /products/{id} - público para lectura)
+    if (url.match(/\/products\/[^\/]+$/) && !url.includes('vendor-products') && !url.includes('create') && !url.includes('update') && !url.includes('delete')) {
+      return true;
+    }
+    
+    // Imágenes de productos (públicas para visualización)
+    if (url.includes('/visual-representation/principal-image') || url.includes('/visual-representation/images')) {
+      return true;
+    }
+    
+    // Categorías (públicas)
+    if (url.includes('/categories') && url.match(/\/categories(\?.*)?$/)) {
+      return true;
+    }
+    
+    return false;
   }
 
   /**

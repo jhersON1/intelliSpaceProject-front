@@ -1,8 +1,9 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable, tap, map, finalize, of } from 'rxjs';
+import { Observable, tap, map, finalize, of, EMPTY } from 'rxjs';
 import { Product, CreateProduct, UpdateProduct } from '../interfaces/product.interface';
 import { TokenService } from '../../../auth/services/token.service';
+import { AuthService } from '../../../auth/services/auth.service';
 import { environment } from '@environments/environments';
 import { API_ROUTES } from '../../../core/constants';
 import { LoggerService } from '../../../core/services';
@@ -25,6 +26,7 @@ export interface PaginatedResponse<T> {
 export class ProductsService {
   private http = inject(HttpClient);
   private readonly tokenService = inject(TokenService);
+  private readonly authService = inject(AuthService);
   private readonly logger = inject(LoggerService);
   private readonly loadingState = inject(LoadingStateService);
   private readonly notificationState = inject(NotificationStateService);
@@ -72,8 +74,17 @@ export class ProductsService {
         return response;
       })
     );
-  }
-  public findVendorProducts(limit = 10, offset = 0): Observable<PaginatedResponse<Product>> {
+  }  public findVendorProducts(limit = 10, offset = 0): Observable<PaginatedResponse<Product>> {
+    if (!this.authService.isAuthenticated()) {
+      return of({
+        data: [],
+        total: 0,
+        limit,
+        offset,
+        hasMore: false
+      } as PaginatedResponse<Product>);
+    }
+
     const token = this.tokenService.getToken();
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -84,7 +95,7 @@ export class ProductsService {
 
     const params = new HttpParams()
       .set('limit', limit.toString())
-      .set('offset', offset.toString());    return this.http.get<Product[]>(url, { params, headers }).pipe(
+      .set('offset', offset.toString());return this.http.get<Product[]>(url, { params, headers }).pipe(
       tap(products => {
         this.logger.debug('Productos del vendor recibidos del backend', { 
           count: products.length 

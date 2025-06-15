@@ -1,15 +1,16 @@
-import { ChangeDetectionStrategy, Component, CUSTOM_ELEMENTS_SCHEMA, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, CUSTOM_ELEMENTS_SCHEMA, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Product } from '../../interfaces/product.interface';
 import { ProductsService } from '../../services/products.service';
 import { CommonModule } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import { forkJoin, takeUntil, Subject } from 'rxjs';
 import { VisualRepresentation } from '../../interfaces/visual-representation.interface';
 import { VisualRepresentationService } from '../../services/visual-representation.service';
 import { Model3DService } from '../../services/model-3d.service';
 import { ExperienceARResponse, Model3DResponse } from '../../interfaces/model-3d.interface';
 import { ModelViewerComponent } from '../../components/model-viewer/model-viewer.component';
 import { QrCodeComponent } from '../../components/qr-code/qr-code.component';
+import { GlobalCleanupService } from '../../../../core/services/global-cleanup.service';
 
 
 @Component({
@@ -19,12 +20,16 @@ import { QrCodeComponent } from '../../components/qr-code/qr-code.component';
   templateUrl: './product-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductDetailComponent {
+export class ProductDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private productsService = inject(ProductsService);
   private visualRepresentationService = inject(VisualRepresentationService);
   private model3DService = inject(Model3DService);
+  private globalCleanupService = inject(GlobalCleanupService);
+
+  // Subject para manejar la destrucción del componente
+  private readonly destroy$ = new Subject<void>();
 
   product = signal<Product | null>(null);
   loading = signal(true);
@@ -38,22 +43,51 @@ export class ProductDetailComponent {
   experienceARResponse = signal<ExperienceARResponse[]>([]);
   loading3D = signal(false);
   loadingAR = signal(false);
-
   ngOnInit(): void {
     this.isMobileDevice.set(
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     );
 
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('id');
-      if (id) {
-        this.loadProduct(id);
-      } else {
-        this.router.navigate(['/products']);
-      }
-    });
+    // Suscribirse a cambios de ruta con limpieza automática
+    this.route.paramMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const id = params.get('id');
+        if (id) {
+          this.loadProduct(id);
+        } else {
+          this.router.navigate(['/products']);
+        }
+      });
+
+    // Suscribirse a la señal de limpieza global
+    this.globalCleanupService.cleanup$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.resetComponentState();
+      });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Resetea el estado del componente durante la limpieza
+   */
+  private resetComponentState(): void {
+    this.product.set(null);
+    this.loading.set(true);
+    this.images.set([]);
+    this.visualRepresentations.set([]);
+    this.currentImageIndex.set(0);
+    this.currentImage.set(null);
+    this.model3DResponse.set([]);
+    this.experienceARResponse.set([]);
+    this.loading3D.set(false);
+    this.loadingAR.set(false);
+  }
   loadProduct(id: string): void {
     this.loading.set(true);
 
@@ -62,7 +96,11 @@ export class ProductDetailComponent {
       product: this.productsService.getProductDetail(id),
       images: this.visualRepresentationService.findAllImages(id),
       model3D: this.model3DService.getModel3D(id),
-      experienceAR: this.model3DService.getExperienceAR(id)    }).subscribe({      next: ({ product, images, model3D, experienceAR }) => {
+      experienceAR: this.model3DService.getExperienceAR(id)
+    })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: ({ product, images, model3D, experienceAR }) => {
         this.product.set(product);
         this.visualRepresentations.set(images);
         // Convertir a arrays y manejar casos null/undefined
@@ -82,20 +120,21 @@ export class ProductDetailComponent {
       }
     });
   }
-
   private loadProductOnly(id: string): void {
-    this.productsService.getProductDetail(id).subscribe({
-      next: (product) => {
-        this.product.set(product);
-        this.setupFallbackImages();
-        this.loading.set(false);
-      },
-      error: (error) => {
-        console.error('Error al cargar el producto:', error);
-        this.loading.set(false);
-        this.router.navigate(['/products']);
-      }
-    });
+    this.productsService.getProductDetail(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (product) => {
+          this.product.set(product);
+          this.setupFallbackImages();
+          this.loading.set(false);
+        },
+        error: (error) => {
+          console.error('Error al cargar el producto:', error);
+          this.loading.set(false);
+          this.router.navigate(['/products']);
+        }
+      });
   }
 
   setupImages(visualRepresentations: VisualRepresentation[]): void {

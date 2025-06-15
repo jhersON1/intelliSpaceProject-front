@@ -24,34 +24,52 @@ export class AuthStateService {
   public readonly isAuthenticated = computed(() => this._authStatus() === AuthStatus.authenticated);
   public readonly isChecking = computed(() => this._authStatus() === AuthStatus.checking);  public readonly isVendor = computed(() => {
     const user = this._currentUser();
-    const role = this.getCurrentUserRole();
-    this.logger.debug('Computed isVendor:', { 
-      hasUser: !!user, 
-      role, 
-      isVendor: role === userRole.VENDOR 
-    }, 'AuthStateService');
-    return role === userRole.VENDOR;
+    const result = user && user.role === 'VENDOR'; // Comparar con string directamente
+    
+    // Debug logging temporal - información más detallada
+    console.log('AuthStateService isVendor computed:', { 
+      user: user ? { 
+        id: user.id, 
+        role: user.role, 
+        roleType: typeof user.role,
+        roleValue: JSON.stringify(user.role)
+      } : null,
+      targetRole: 'VENDOR',
+      comparison: user ? `'${user.role}' === 'VENDOR'` : 'no user',
+      result 
+    });
+    
+    return !!result;
   });
-  public readonly isConsumer = computed(() => {
+    public readonly isConsumer = computed(() => {
     const user = this._currentUser();
-    const role = this.getCurrentUserRole();
-    this.logger.debug('Computed isConsumer:', { 
-      hasUser: !!user, 
-      role, 
-      isConsumer: role === userRole.CONSUMER 
-    }, 'AuthStateService');
-    return role === userRole.CONSUMER;
+    if (!user || !user.role) {
+      return false;
+    }
+    return user.role === 'CONSUMER'; // Comparar con string directamente
   });
-
   /**
    * Establece el usuario autenticado y cambia el estado a autenticado
    */
   setAuthenticatedUser(user: User): void {
+    console.log('AuthStateService: Setting authenticated user:', { 
+      userId: user.id, 
+      email: user.email, 
+      role: user.role 
+    });
+    
     this.logger.debug('Estableciendo usuario autenticado', { userId: user.id }, 'AuthStateService');
     this._currentUser.set(user);
     this._authStatus.set(AuthStatus.authenticated);
+    
+    // Verificar inmediatamente después de setear
+    console.log('AuthStateService: State after setting user:', {
+      currentUser: this._currentUser(),
+      authStatus: this._authStatus(),
+      isAuthenticated: this.isAuthenticated(),
+      isVendor: this.isVendor()
+    });
   }
-
   /**
    * Limpia el estado de autenticación
    */
@@ -60,17 +78,28 @@ export class AuthStateService {
     this._currentUser.set(null);
     this._authStatus.set(AuthStatus.notAuthenticated);
   }
+  
   /**
    * Establece el estado como "verificando"
    */
   setCheckingStatus(): void {
     this._authStatus.set(AuthStatus.checking);
   }
-  
-  /**
-   * Obtiene el rol del usuario actual
+    /**
+   * Obtiene el rol del usuario actual de forma segura
+   * Evita llamadas innecesarias al TokenDecoderService
    */
   getCurrentUserRole(): userRole | null {
-    return this.tokenDecoder.getUserRoleFromToken();
+    const user = this._currentUser();
+    if (user && user.role) {
+      return user.role as userRole;
+    }
+    
+    // Solo consultar el token si hay un usuario y no se conoce el rol
+    if (this._authStatus() === AuthStatus.authenticated) {
+      return this.tokenDecoder.getUserRoleFromToken();
+    }
+    
+    return null;
   }
 }
