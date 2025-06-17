@@ -156,9 +156,7 @@ export class ProductsService {
       }),
       finalize(() => this.loadingState.stopLoading(loadingKey))
     );
-  }
-
-  public updateProduct(productId: string, body: UpdateProduct): Observable<Product> {
+  }  public updateProduct(productId: string, body: UpdateProduct): Observable<Product> {
     const token = this.tokenService.getToken();
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -168,7 +166,7 @@ export class ProductsService {
     const url = `${this.baseUrl}${API_ROUTES.UPDATE_VENDOR_PRODUCT}/${productId}`;
 
     return this.http.patch<Product>(url, body, { headers });
-  }  public deleteProduct(productId: string): Observable<void> {
+  }public deleteProduct(productId: string): Observable<void> {
     const loadingKey = `deleteProduct_${productId}`;
     this.loadingState.startLoading(loadingKey, 'Eliminando producto...');
     this.logger.info('Iniciando eliminación de producto', { productId }, 'ProductsService.deleteProduct');

@@ -8,6 +8,13 @@ export interface ProductWithImage {
   description?: string;
   imageUrl?: string | string[];
   imageAlt?: string;
+  // Analytics data
+  analytics?: {
+    totalClicks: number;
+    congestionStatus: 'ESTABLE' | 'ADVERTENCIA' | 'CRITICO';
+    utilizationFactor: number;
+    arrivalRate: number;
+  };
 }
 
 export interface PaginationData {
@@ -25,10 +32,41 @@ export interface PaginationData {
   selector: 'app-product-grid',
   standalone: true,
   imports: [CommonModule],  template: `
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      @for (product of products; track product.id) {
-        <div class="product-card flex flex-col cursor-pointer" (click)="onProductClick(product)">
-          <div class="w-full min-w-[280px] h-[450px] overflow-hidden">            @if (product.imageUrl) {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">      @for (product of products; track product.id) {
+        <div class="product-card flex flex-col cursor-pointer relative" (click)="onProductClick(product)">
+          <!-- Analytics Badges -->
+          @if (product.analytics) {
+            <div class="absolute top-2 left-2 z-10 flex flex-col gap-1">
+              <!-- Congestion Status Badge -->
+              @if (product.analytics.congestionStatus !== 'ESTABLE') {
+                <span [class]="getCongestionStatusClass(product.analytics.congestionStatus)" 
+                      class="px-2 py-1 text-xs font-medium rounded-full">
+                  @if (product.analytics.congestionStatus === 'CRITICO') {
+                    🚨 Crítico
+                  } @else {
+                    ⚠️ Advertencia
+                  }
+                </span>
+              }
+              
+              <!-- Popularity Badge -->
+              @if (product.analytics.totalClicks > 100) {
+                <span class="bg-blue-100 text-blue-800 px-2 py-1 text-xs font-medium rounded-full">
+                  🔥 {{ formatClicks(product.analytics.totalClicks) }}
+                </span>
+              }
+            </div>
+            
+            <!-- Analytics Info Bottom -->
+            <div class="absolute bottom-2 right-2 z-10">
+              <div class="bg-black/70 text-white px-2 py-1 rounded-full text-xs">
+                ρ: {{ formatUtilization(product.analytics.utilizationFactor) }}
+              </div>
+            </div>
+          }
+
+          <div class="w-full min-w-[280px] h-[450px] overflow-hidden">
+            @if (product.imageUrl) {
               <img 
                 [src]="getImageUrl(product.imageUrl)" 
                 [alt]="product.imageAlt || product.title"
@@ -45,8 +83,30 @@ export interface PaginationData {
             }
           </div>
           
-          <h3 class="text-lg md:text-xl font-normal mt-4">{{ product.title }}</h3>
-          <p class="text-sm text-neutral-400">{{ getProductDescription(product) }}</p>
+          <div class="flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="text-lg md:text-xl font-normal mt-4">{{ product.title }}</h3>
+              <p class="text-sm text-neutral-400">{{ getProductDescription(product) }}</p>
+            </div>
+            
+            <!-- Analytics Summary Bar -->
+            @if (product.analytics) {
+              <div class="mt-3 pt-3 border-t border-gray-100">
+                <div class="flex items-center justify-between text-xs text-gray-500">
+                  <span>{{ product.analytics.totalClicks }} views</span>
+                  <span>λ: {{ formatRate(product.analytics.arrivalRate) }}/día</span>
+                </div>
+                <!-- Utilization Progress Bar -->
+                <div class="mt-1 w-full bg-gray-200 rounded-full h-1">
+                  <div 
+                    [class]="getUtilizationBarClass(product.analytics.utilizationFactor)"
+                    [style.width]="(product.analytics.utilizationFactor * 100) + '%'"
+                    class="h-1 rounded-full transition-all duration-300">
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
         </div>
       } @empty {
         <div class="col-span-full text-center py-12">
@@ -172,6 +232,43 @@ export class ProductGridComponent {
         `;
         container.appendChild(placeholder);
       }
+    }
+  }
+
+  // Analytics helper methods
+  getCongestionStatusClass(status: 'ESTABLE' | 'ADVERTENCIA' | 'CRITICO'): string {
+    switch (status) {
+      case 'CRITICO':
+        return 'bg-red-100 text-red-800 border border-red-200';
+      case 'ADVERTENCIA':
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+      default:
+        return 'bg-green-100 text-green-800 border border-green-200';
+    }
+  }
+
+  formatClicks(clicks: number): string {
+    if (clicks >= 1000) {
+      return (clicks / 1000).toFixed(1) + 'k';
+    }
+    return clicks.toString();
+  }
+
+  formatUtilization(utilization: number): string {
+    return (utilization * 100).toFixed(1) + '%';
+  }
+
+  formatRate(rate: number): string {
+    return rate.toFixed(1);
+  }
+
+  getUtilizationBarClass(utilization: number): string {
+    if (utilization >= 0.9) {
+      return 'bg-red-500';
+    } else if (utilization >= 0.7) {
+      return 'bg-yellow-500';
+    } else {
+      return 'bg-green-500';
     }
   }
 }

@@ -3,12 +3,11 @@ export const API_ROUTES = {
   REGISTER: '/auth/register',
   CHECK_TOKEN: '/auth/check-status',
   CHECK_EMAIL: '/auth/check-email',
-
   CONSUMER_PRODUCTS: '/products/consumer-products',
   CREATE_VENDOR_PRODUCTS: '/products/create', 
   FIND_VENDOR_PRODUCTS: '/products/vendor-products',
   GET_VENDOR_PRODUCT: '/products',
-  UPDATE_VENDOR_PRODUCT: '/products/update-product',
+  UPDATE_VENDOR_PRODUCT: '/products', // ✅ CORREGIDO - Debe ser solo /products para PATCH /:id
   DELETE_VENDOR_PRODUCT: '/products/delete-product',
   GET_PRODUCT_DETAIL: '/products',
 
@@ -19,7 +18,17 @@ export const API_ROUTES = {
   GET_PRINCIPAL_IMAGE: '/visual-representation/principal-image',
   GET_ALL_IMAGES: '/visual-representation/images',
   DELETE_VISUAL_REPRESENTATION: '/visual-representation',
-
   GET_MODEL_3D: '/visual-representation/model3D',
   GET_EXPERIENCE_AR: '/visual-representation/experienceAR',
+  // Analytics endpoints
+  ANALYTICS_TRACK_CLICK: '/analytics/track-click',
+  ANALYTICS_TRACK_STOCK: '/analytics/track-stock',
+  ANALYTICS_PRODUCT_STATS: '/analytics/product',
+  ANALYTICS_QUEUE_METRICS: '/analytics/product',
+  ANALYTICS_STOCK_HISTORY: '/analytics/product',
+  ANALYTICS_CLICK_HISTORY: '/analytics/product',
+  ANALYTICS_PRIORITY_PRODUCTS: '/analytics/priority-products',
+  ANALYTICS_CRITICAL_PRODUCTS: '/analytics/critical-products',
+  ANALYTICS_VENDOR_DASHBOARD: '/analytics/vendor-dashboard',  ANALYTICS_RECALCULATE_METRICS: '/analytics/recalculate-metrics',
+  ANALYTICS_INITIALIZE_PRODUCTS: '/analytics/initialize-products',
 } as const;

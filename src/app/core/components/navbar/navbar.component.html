@@ -29,8 +29,7 @@
             class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
             Productos
           </a>
-          
-          <!-- Mostrar opciones de vendor solo si está autenticado Y es vendor -->
+            <!-- Mostrar opciones de vendor solo si está autenticado Y es vendor -->
           @if (isAuthenticated() && isVendor()) {
             <a href="#/home/products-create"
               class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
@@ -39,6 +38,13 @@
             <a href="#/home/my-products"
               class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
               Mis Productos
+            </a>            <a href="#/home/vendor/analytics"
+              class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
+              Analytics
+            </a>
+            <a href="#/home/vendor/analytics/export"
+              class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
+              Reportes
             </a>
           }
           
@@ -89,19 +95,9 @@
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </button>
-        }
-
-        <!-- Notifications (solo si está autenticado) -->
+        }        <!-- Notifications (solo si está autenticado) -->
         @if (isAuthenticated()) {
-          <button type="button" class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 relative"
-                  [attr.aria-label]="'Notificaciones'">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 17h5l-5 5v-5zM7.5 17H2l5 5v-5zM12 3v14.5M12 3l4 4M12 3L8 7" />
-            </svg>
-            <!-- Badge para nuevas notificaciones -->
-            <span class="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-          </button>
+          <app-notification-panel></app-notification-panel>
         }
 
         <!-- Mobile Menu Button -->
@@ -161,9 +157,7 @@
             class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
             📦 Productos
           </a>
-          
-          <!-- Opciones de vendor solo si está autenticado Y es vendor -->
-          @if (isAuthenticated() && isVendor()) {
+            <!-- Opciones de vendor solo si está autenticado Y es vendor -->          @if (isAuthenticated() && isVendor()) {
             <a href="#/home/products-create"
               class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
               ➕ Crear Producto
@@ -171,6 +165,14 @@
             <a href="#/home/my-products"
               class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
               📋 Mis Productos
+            </a>
+            <a href="#/home/vendor/analytics"
+              class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
+              📊 Analytics
+            </a>
+            <a href="#/home/vendor/analytics/export"
+              class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
+              📋 Reportes
             </a>
           }
           

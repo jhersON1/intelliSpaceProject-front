@@ -10,6 +10,10 @@ import { VisualRepresentationService } from '../../services/visual-representatio
 import { LoadingStateService } from '../../../../core/services/loading-state.service';
 import { NotificationStateService } from '../../../../core/services/notification-state.service';
 import { LoggerService } from '../../../../core/services';
+// Import analytics service and types
+import { AnalyticsService } from '../../../../core/services/analytics.service';
+import { AuthService } from '../../../../auth/services/auth.service';
+import { ProductAnalytics } from '../../../../core/types/analytics.interface';
 
 import { ProductGridComponent, ProductWithImage, PaginationData } from '../../components/product-grid/product-grid.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
@@ -20,8 +24,7 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
 @Component({
   selector: 'app-product-list',
   imports: [CommonModule, FormsModule, ProductGridComponent, LoadingStateComponent],  template: `
-    <div class="container mx-auto px-4 py-8">
-      <div class="mb-8 flex justify-between items-center">
+    <div class="container mx-auto px-4 py-8">      <div class="mb-8 flex justify-between items-center">
         <div>
           <h1 class="text-3xl font-bold text-gray-900 mb-2">Productos Disponibles</h1>
           <p class="text-gray-600">Descubre nuestra colección de productos</p>
@@ -44,7 +47,59 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
           }
           Actualizar
         </button>
-      </div>      <!-- Estados de carga y error usando @if -->
+      </div>
+
+      <!-- Analytics Controls -->
+      <div class="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <!-- Sort Options -->
+            <div class="flex items-center space-x-2">
+              <label class="text-sm font-medium text-gray-700">Ordenar por:</label>              <select 
+                [value]="sortBy()"
+                (change)="onSortChange($event)"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="default">Predeterminado</option>
+                <option value="popularity">Popularidad</option>
+                <option value="congestion">Nivel de Congestión</option>
+                <option value="alphabetic">Alfabético</option>
+              </select>
+            </div>
+
+            <!-- Filter Options -->
+            <div class="flex items-center space-x-2">
+              <label class="text-sm font-medium text-gray-700">Filtrar por:</label>
+              <select 
+                [value]="filterBy()"
+                (change)="onFilterChange($event)"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">Todos</option>
+                <option value="critical">Críticos</option>
+                <option value="warning">En Advertencia</option>
+                <option value="stable">Estables</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Analytics Summary -->
+          @if (analyticsEnabled()) {
+            <div class="flex items-center space-x-4 text-sm text-gray-600">
+              <div class="flex items-center space-x-1">
+                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span>{{ criticalProductsCount() }} Críticos</span>
+              </div>
+              <div class="flex items-center space-x-1">
+                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <span>{{ warningProductsCount() }} En Advertencia</span>
+              </div>
+              <div class="flex items-center space-x-1">
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span>{{ stableProductsCount() }} Estables</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div><!-- Estados de carga y error usando @if -->
       @if (isLoading() || hasError()) {
         <app-loading-state
           [isLoading]="isLoading()"
@@ -68,12 +123,13 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductListComponent implements OnInit, OnDestroy {
-  private readonly productService = inject(ProductsService);
+export class ProductListComponent implements OnInit, OnDestroy {  private readonly productService = inject(ProductsService);
   private readonly visualService = inject(VisualRepresentationService);
   private readonly router = inject(Router);  private readonly loadingState = inject(LoadingStateService);
   private readonly notificationState = inject(NotificationStateService);
   private readonly logger = inject(LoggerService);
+  private readonly analyticsService = inject(AnalyticsService);
+  private readonly authService = inject(AuthService);
 
   // Subject para manejo de suscripciones
   private readonly destroy$ = new Subject<void>();
@@ -82,16 +138,37 @@ export class ProductListComponent implements OnInit, OnDestroy {
   // Signals para el estado del componente
   private readonly _products = signal<Product[]>([]);
   private readonly _productsWithImages = signal<ProductWithImage[]>([]);
+  private readonly _productAnalytics = signal<Map<string, ProductAnalytics>>(new Map());
   private readonly _currentPage = signal(1);
   private readonly _totalItems = signal(0);
   private readonly _totalPages = signal(0);
   private readonly _hasMore = signal(false);
   private readonly _hasError = signal(false);
+  private readonly _sortBy = signal<'default' | 'popularity' | 'congestion' | 'alphabetic'>('default');
+  private readonly _filterBy = signal<'all' | 'critical' | 'stable' | 'warning'>('all');
 
   // Signals computadas públicas
   public readonly productsWithImages = computed(() => this._productsWithImages());
   public readonly isLoading = computed(() => this.loadingState.isLoadingOperation('loadProducts'));
   public readonly hasError = computed(() => this._hasError());
+  public readonly sortBy = computed(() => this._sortBy());
+  public readonly filterBy = computed(() => this._filterBy());
+  
+  // Analytics computed signals
+  public readonly analyticsEnabled = computed(() => this._productAnalytics().size > 0);
+  public readonly criticalProductsCount = computed(() => {
+    return Array.from(this._productAnalytics().values())
+      .filter(analytics => analytics.congestionStatus === 'CRITICO').length;
+  });
+  public readonly warningProductsCount = computed(() => {
+    return Array.from(this._productAnalytics().values())
+      .filter(analytics => analytics.congestionStatus === 'ADVERTENCIA').length;
+  });
+  public readonly stableProductsCount = computed(() => {
+    return Array.from(this._productAnalytics().values())
+      .filter(analytics => analytics.congestionStatus === 'ESTABLE').length;
+  });
+  
   public readonly paginationData = computed((): PaginationData | null => {
     const totalPages = this._totalPages();
     if (totalPages <= 1) return null;
@@ -141,7 +218,6 @@ export class ProductListComponent implements OnInit, OnDestroy {
         }
       });
   }
-
   /**
    * Refresca los productos limpiando el caché
    */
@@ -153,9 +229,9 @@ export class ProductListComponent implements OnInit, OnDestroy {
     
     this._currentPage.set(1);
     this.loadProducts();
+    this.loadProductAnalytics(); // Agregar carga de analytics
     this.notificationState.success('Productos actualizados desde el servidor');
-  }
-  /**
+  }  /**
    * Carga los productos (versión síncrona para uso interno)
    */
   private loadProducts(): void {
@@ -163,6 +239,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))      .subscribe({
         next: () => {
           this.logger.info('Productos cargados exitosamente desde loadProducts');
+          // Cargar analytics después de cargar productos
+          this.loadProductAnalytics();
         },
         error: (error: any) => {
           this.logger.error('Error en loadProducts', error);
@@ -313,5 +391,160 @@ export class ProductListComponent implements OnInit, OnDestroy {
     
     // Usar el Subject con debounce para evitar múltiples llamadas rápidas
     this.pageChange$.next(page);
+  }
+
+  /**
+   * Maneja el cambio de ordenamiento
+   */
+  onSortChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const sortBy = select.value as 'default' | 'popularity' | 'congestion' | 'alphabetic';
+    this._sortBy.set(sortBy);
+    this.applySortingAndFiltering();
+  }
+
+  /**
+   * Maneja el cambio de filtros
+   */
+  onFilterChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const filterBy = select.value as 'all' | 'critical' | 'stable' | 'warning';
+    this._filterBy.set(filterBy);
+    this.applySortingAndFiltering();
+  }
+  /**
+   * Actualiza el listado con filtros aplicados - agregando carga de analytics
+   */
+  private refreshProductsWithAnalytics(): void {
+    this._currentPage.set(1);
+    this.loadProducts();
+    this.loadProductAnalytics();
+  }
+
+  /**
+   * Aplica ordenamiento y filtrado a los productos
+   */
+  private applySortingAndFiltering(): void {
+    const products = this._productsWithImages();
+    const analytics = this._productAnalytics();
+    let sortedProducts = [...products];
+
+    // Aplicar filtros
+    if (this._filterBy() !== 'all') {
+      sortedProducts = sortedProducts.filter(product => {
+        const productAnalytics = analytics.get(product.id);
+        if (!productAnalytics) return this._filterBy() === 'all';
+        
+        switch (this._filterBy()) {
+          case 'critical':
+            return productAnalytics.congestionStatus === 'CRITICO';
+          case 'warning':
+            return productAnalytics.congestionStatus === 'ADVERTENCIA';
+          case 'stable':
+            return productAnalytics.congestionStatus === 'ESTABLE';
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Aplicar ordenamiento
+    switch (this._sortBy()) {
+      case 'popularity':
+        sortedProducts.sort((a, b) => {
+          const aAnalytics = analytics.get(a.id);
+          const bAnalytics = analytics.get(b.id);
+          const aClicks = aAnalytics?.totalClicks || 0;
+          const bClicks = bAnalytics?.totalClicks || 0;
+          return bClicks - aClicks;
+        });
+        break;
+      case 'congestion':
+        sortedProducts.sort((a, b) => {
+          const aAnalytics = analytics.get(a.id);
+          const bAnalytics = analytics.get(b.id);
+          const aUtil = aAnalytics?.utilizationFactor || 0;
+          const bUtil = bAnalytics?.utilizationFactor || 0;
+          return bUtil - aUtil;
+        });
+        break;
+      case 'alphabetic':
+        sortedProducts.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      default:
+        // Mantener orden original
+        break;
+    }
+
+    // Enriquecer productos con analytics antes de establecer
+    const enrichedSortedProducts: ProductWithImage[] = sortedProducts.map(product => ({
+      ...product,
+      analytics: analytics.get(product.id) ? {
+        totalClicks: analytics.get(product.id)!.totalClicks,
+        congestionStatus: analytics.get(product.id)!.congestionStatus,
+        utilizationFactor: analytics.get(product.id)!.utilizationFactor,
+        arrivalRate: analytics.get(product.id)!.arrivalRate
+      } : undefined
+    }));
+
+    this._productsWithImages.set(enrichedSortedProducts);
+  }  /**
+   * Carga analytics para los productos actuales (solo si está autenticado)
+   */
+  private loadProductAnalytics(): void {
+    // ✅ Solo cargar analytics si el usuario está autenticado
+    if (!this.authService.isAuthenticated()) {
+      this.logger.debug('Skipping analytics load - user not authenticated', {}, 'ProductListComponent.loadProductAnalytics');
+      return;
+    }
+
+    const products = this._products();
+    if (products.length === 0) return;
+
+    const productIds = products.map(p => p.id);
+    
+    // Cargar analytics de todos los productos en paralelo
+    const analyticsRequests = productIds.map(id => 
+      this.analyticsService.getProductStats(id).pipe(
+        map(stats => stats.analytics), // Extraer solo el ProductAnalytics
+        catchError(error => {
+          this.logger.warn('Error loading analytics for product', { productId: id, error });
+          return of(null);
+        })
+      )
+    );
+
+    forkJoin(analyticsRequests).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(analyticsArray => {
+      const analyticsMap = new Map<string, ProductAnalytics>();
+      
+      analyticsArray.forEach((analytics, index) => {
+        if (analytics) {
+          analyticsMap.set(productIds[index], analytics);
+        }
+      });this._productAnalytics.set(analyticsMap);
+      this.enrichProductsWithAnalytics();
+      this.applySortingAndFiltering();
+    });
+  }
+  /**
+   * Enriquece los productos con datos de analytics
+   */
+  private enrichProductsWithAnalytics(): void {
+    const products = this._productsWithImages();
+    const analytics = this._productAnalytics();
+    
+    const enrichedProducts: ProductWithImage[] = products.map(product => ({
+      ...product,
+      analytics: analytics.get(product.id) ? {
+        totalClicks: analytics.get(product.id)!.totalClicks,
+        congestionStatus: analytics.get(product.id)!.congestionStatus,
+        utilizationFactor: analytics.get(product.id)!.utilizationFactor,
+        arrivalRate: analytics.get(product.id)!.arrivalRate
+      } : undefined
+    }));
+
+    this._productsWithImages.set(enrichedProducts);
   }
 }

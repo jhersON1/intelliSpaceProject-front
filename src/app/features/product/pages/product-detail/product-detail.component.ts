@@ -11,6 +11,8 @@ import { ExperienceARResponse, Model3DResponse } from '../../interfaces/model-3d
 import { ModelViewerComponent } from '../../components/model-viewer/model-viewer.component';
 import { QrCodeComponent } from '../../components/qr-code/qr-code.component';
 import { GlobalCleanupService } from '../../../../core/services/global-cleanup.service';
+import { AnalyticsService } from '../../../../core/services/analytics.service';
+import { AuthService } from '../../../../auth/services/auth.service';
 
 
 @Component({
@@ -20,13 +22,13 @@ import { GlobalCleanupService } from '../../../../core/services/global-cleanup.s
   templateUrl: './product-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductDetailComponent implements OnInit, OnDestroy {
-  private route = inject(ActivatedRoute);
+export class ProductDetailComponent implements OnInit, OnDestroy {  private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private productsService = inject(ProductsService);
-  private visualRepresentationService = inject(VisualRepresentationService);
+  private productsService = inject(ProductsService);  private visualRepresentationService = inject(VisualRepresentationService);
   private model3DService = inject(Model3DService);
   private globalCleanupService = inject(GlobalCleanupService);
+  private analyticsService = inject(AnalyticsService);
+  private authService = inject(AuthService);
 
   // Subject para manejar la destrucción del componente
   private readonly destroy$ = new Subject<void>();
@@ -42,8 +44,9 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   model3DResponse = signal<Model3DResponse[]>([]);
   experienceARResponse = signal<ExperienceARResponse[]>([]);
   loading3D = signal(false);
-  loadingAR = signal(false);
-  ngOnInit(): void {
+  loadingAR = signal(false);  ngOnInit(): void {
+    console.log('🏁 ProductDetailComponent initialized');
+    
     this.isMobileDevice.set(
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     );
@@ -53,6 +56,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
         const id = params.get('id');
+        console.log('📍 Route param changed:', { id });
         if (id) {
           this.loadProduct(id);
         } else {
@@ -87,57 +91,78 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     this.experienceARResponse.set([]);
     this.loading3D.set(false);
     this.loadingAR.set(false);
-  }
-  loadProduct(id: string): void {
+  }  loadProduct(id: string): void {
+    console.log('🔄 loadProduct called with ID:', id);
     this.loading.set(true);
 
-    // Cargar producto, imágenes, modelo 3D y experiencia AR en paralelo
-    forkJoin({
-      product: this.productsService.getProductDetail(id),
-      images: this.visualRepresentationService.findAllImages(id),
-      model3D: this.model3DService.getModel3D(id),
-      experienceAR: this.model3DService.getExperienceAR(id)
-    })
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: ({ product, images, model3D, experienceAR }) => {
-        this.product.set(product);
-        this.visualRepresentations.set(images);
-        // Convertir a arrays y manejar casos null/undefined
-        this.model3DResponse.set(Array.isArray(model3D) ? model3D : (model3D ? [model3D] : []));
-        this.experienceARResponse.set(Array.isArray(experienceAR) ? experienceAR : (experienceAR ? [experienceAR] : []));
-        this.setupImages(images);
-        this.loading.set(false);
-
-        console.log('Producto cargado:', product);
-        console.log('Modelo 3D cargado:', model3D);
-        console.log('Experiencia AR cargada:', experienceAR);
-      },
-      error: (error) => {
-        console.error('Error al cargar el producto:', error);
-        this.loading.set(false);
-        this.loadProductOnly(id);
-      }
-    });
-  }
-  private loadProductOnly(id: string): void {
+    // ✅ NUEVA ESTRATEGIA: Solo el producto es crítico, el resto es opcional
+    // Primero cargar el producto (crítico)
     this.productsService.getProductDetail(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (product) => {
+          console.log('✅ PRODUCT LOADED SUCCESSFULLY (critical):', { productId: product.id, productTitle: product.title });
           this.product.set(product);
-          this.setupFallbackImages();
           this.loading.set(false);
+
+          // Luego cargar recursos adicionales de forma opcional (no crítica)
+          this.loadOptionalResources(id);
         },
         error: (error) => {
-          console.error('Error al cargar el producto:', error);
+          console.error('❌ CRITICAL ERROR - Failed to load product:', error);
           this.loading.set(false);
           this.router.navigate(['/products']);
         }
       });
-  }
+  }  /**
+   * Carga recursos opcionales (imágenes, 3D, AR) sin afectar la carga del producto
+   */
+  private loadOptionalResources(id: string): void {
+    console.log('🔄 Loading optional resources for product:', id);
+    
+    // Cargar imágenes
+    this.visualRepresentationService.findAllImages(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (images) => {
+          console.log('✅ Images loaded:', images.length);
+          this.visualRepresentations.set(images);
+          this.setupImages(images);
+        },
+        error: (error) => {
+          console.warn('⚠️ Failed to load images (non-critical):', error);
+          this.setupFallbackImages();
+        }
+      });
 
-  setupImages(visualRepresentations: VisualRepresentation[]): void {
+    // Cargar modelo 3D (ahora público)
+    this.model3DService.getModel3D(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (model3D) => {
+          console.log('✅ Model 3D loaded:', model3D);
+          this.model3DResponse.set(Array.isArray(model3D) ? model3D : (model3D ? [model3D] : []));
+        },
+        error: (error) => {
+          console.warn('⚠️ Failed to load 3D model (non-critical):', error);
+          this.model3DResponse.set([]);
+        }
+      });
+
+    // Cargar experiencia AR (ahora público)
+    this.model3DService.getExperienceAR(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (experienceAR) => {
+          console.log('✅ Experience AR loaded:', experienceAR);
+          this.experienceARResponse.set(Array.isArray(experienceAR) ? experienceAR : (experienceAR ? [experienceAR] : []));
+        },
+        error: (error) => {
+          console.warn('⚠️ Failed to load AR experience (non-critical):', error);
+          this.experienceARResponse.set([]);
+        }
+      });
+  }setupImages(visualRepresentations: VisualRepresentation[]): void {
     if (visualRepresentations && visualRepresentations.length > 0) {
       const imageUrls = visualRepresentations.map(vr => vr.url).filter(url => url);
       this.images.set(imageUrls);
@@ -268,4 +293,89 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     const response = this.experienceARResponse();
     return (response && response.length > 0) ? (response[0]?.devicerequirements || []) : [];
   }
+  // Analytics tracking methods
+  onImageClick(imageIndex: number): void {
+    this.selectImage(imageIndex);
+    this.trackInteraction('CLICK', `Image ${imageIndex + 1} clicked`);
+  }
+
+  on3DModelClick(): void {
+    this.setDisplayMode('3d');
+    this.trackInteraction('CLICK', '3D model viewed');
+  }
+
+  onARExperienceClick(): void {
+    this.setDisplayMode('ar');
+    this.trackInteraction('CLICK', 'AR experience accessed');
+  }
+
+  onQRCodeGenerated(): void {
+    this.trackInteraction('CLICK', 'QR code generated for AR');
+  }
+  onImageNavigation(direction: 'next' | 'prev'): void {
+    if (direction === 'next') {
+      this.nextImage();
+    } else {
+      this.previousImage();
+    }
+    this.trackInteraction('CLICK', `Image navigation: ${direction}`);
+  }  private trackInteraction(type: 'CLICK' | 'VIEW', description?: string): void {
+    const product = this.product();
+    if (!product?.id) {
+      console.warn('Analytics: Cannot track interaction - no product ID', { type, description });
+      return;
+    }
+
+    // ⚡ NUEVA VERIFICACIÓN: Evitar clicks duplicados muy rápidos (spam)
+    const now = Date.now();
+    const cacheKey = `${product.id}_${type}_${description || 'general'}`;
+    
+    // Cache estático para evitar spam de clicks
+    if (!ProductDetailComponent.clickCache) {
+      ProductDetailComponent.clickCache = new Map();
+    }
+    
+    const lastClick = ProductDetailComponent.clickCache.get(cacheKey);
+    if (lastClick && (now - lastClick) < 1000) { // 1 segundo de cooldown para clicks
+      console.warn('Analytics: Click spam prevented', { type, description, productId: product.id });
+      return;
+    }
+    
+    ProductDetailComponent.clickCache.set(cacheKey, now);
+
+    const trackingData = {
+      productId: product.id,
+      interactionType: type,
+      duration: 1, // Duración base, se puede ajustar
+      userAgent: navigator.userAgent,
+      referrer: document.referrer || undefined
+    };
+
+    console.log('Analytics: Attempting to track interaction', {
+      type,
+      description,
+      productId: product.id,
+      trackingData
+    });
+    
+    this.analyticsService.trackProductInteraction(trackingData).subscribe({
+      next: (result) => {
+        console.log(`✅ Analytics: ${type} tracked successfully for product ${product.id}`, {
+          description,
+          result
+        });
+      },
+      error: (error) => {
+        console.error('❌ Analytics tracking failed:', {
+          error: error.message,
+          type,
+          productId: product.id,
+          description
+        });
+      }
+    });
+  }
+  
+  // Cache estático para prevenir spam de clicks
+  private static clickCache: Map<string, number>;
 }

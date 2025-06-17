@@ -25,8 +25,7 @@ export class HttpInterceptorService implements HttpInterceptor {
   private readonly tokenService = inject(TokenService);
   private readonly loadingState = inject(LoadingStateService);
   private readonly notificationState = inject(NotificationStateService);
-  private readonly logger = inject(LoggerService);
-  // Endpoints que NO requieren autenticación
+  private readonly logger = inject(LoggerService);  // Endpoints que NO requieren autenticación
   private readonly publicEndpoints = [
     '/auth/login',
     '/auth/register',
@@ -37,7 +36,14 @@ export class HttpInterceptorService implements HttpInterceptor {
     '/products/',  // Para detalles de productos individuales (GET /products/{id})
     '/visual-representation/principal-image',
     '/visual-representation/images',
-    '/categories'  // Las categorías también son públicas
+    '/visual-representation/model3D',    // ✅ Modelo 3D es público
+    '/visual-representation/experienceAR', // ✅ Experiencia AR es pública  
+    '/categories',  // Las categorías también son públicas
+    '/analytics/track-click',  // Tracking de clicks es público
+    '/analytics/priority-products',  // Lista de productos prioritarios es pública
+    '/analytics/critical-products',  // Lista de productos críticos es pública
+    '/analytics/product/',  // Métricas de productos individuales son públicas
+    '/analytics/queue-theory-demo/'  // Demo educativa es pública
   ];
 
   // Endpoints que NO deben mostrar loading global
@@ -45,7 +51,8 @@ export class HttpInterceptorService implements HttpInterceptor {
     '/auth/check-token',
     '/auth/refresh',
     '/health',
-    '/ping'
+    '/ping',
+    '/analytics/track-click'  // Tracking silencioso sin loading
   ];
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Para debugging, vamos a ser menos agresivos con las transformaciones
@@ -108,7 +115,6 @@ export class HttpInterceptorService implements HttpInterceptor {
       })
     );
   }
-
   /**
    * Agrega headers necesarios basándose en la configuración y el endpoint
    */
@@ -122,7 +128,12 @@ export class HttpInterceptorService implements HttpInterceptor {
         headers = headers.set('Authorization', `Bearer ${token}`);
         this.logger.debug('Header de autorización agregado', { url: req.url });
       } else {
-        this.logger.warn('Token no disponible para endpoint que requiere autenticación', { url: req.url });
+        // ✅ Solo mostrar warning si NO es un endpoint público
+        if (!this.isPublicEndpoint(req.url)) {
+          this.logger.warn('Token no disponible para endpoint que requiere autenticación', { url: req.url });
+        } else {
+          this.logger.debug('Endpoint público accedido sin token (normal)', { url: req.url });
+        }
       }
     }
 
@@ -162,42 +173,15 @@ export class HttpInterceptorService implements HttpInterceptor {
     ];
 
     return config;
-  }
-  /**
+  }  /**
    * Verifica si un endpoint es público (no requiere autenticación)
    */
   private isPublicEndpoint(url: string): boolean {
-    // Endpoints de autenticación
-    if (url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/refresh')) {
-      return true;
-    }
-    
-    // Recursos públicos
-    if (url.includes('/public') || url.includes('/assets')) {
-      return true;
-    }
-    
-    // Productos para consumidores (públicos)
-    if (url.includes('/products/consumer-products')) {
-      return true;
-    }
-    
-    // Detalles de productos individuales (GET /products/{id} - público para lectura)
-    if (url.match(/\/products\/[^\/]+$/) && !url.includes('vendor-products') && !url.includes('create') && !url.includes('update') && !url.includes('delete')) {
-      return true;
-    }
-    
-    // Imágenes de productos (públicas para visualización)
-    if (url.includes('/visual-representation/principal-image') || url.includes('/visual-representation/images')) {
-      return true;
-    }
-    
-    // Categorías (públicas)
-    if (url.includes('/categories') && url.match(/\/categories(\?.*)?$/)) {
-      return true;
-    }
-    
-    return false;
+    // ✅ Usar la lista centralizada de endpoints públicos
+    return this.publicEndpoints.some(endpoint => {
+      // Verificar coincidencia exacta o si la URL comienza con el endpoint
+      return url.includes(endpoint);
+    });
   }
 
   /**

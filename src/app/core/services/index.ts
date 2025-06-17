@@ -6,3 +6,4 @@ export * from './form-error-handling.service';
 export * from './http-cache.service';
 export * from './global-cleanup.service';
 export * from './scroll-to-top.service';
+export * from './analytics.service';

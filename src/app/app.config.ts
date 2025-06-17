@@ -4,7 +4,7 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@a
 
 import { routes } from './app.routes';
 import { LoggerService, ConsoleLoggerService } from './core/services';
-import { HttpInterceptorService } from './core/interceptors';
+import { HttpInterceptorService, AnalyticsTrackingInterceptor } from './core/interceptors';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,6 +20,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: HttpInterceptorService,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AnalyticsTrackingInterceptor,
       multi: true
     },
     { provide: LoggerService, useClass: ConsoleLoggerService }
