@@ -373,14 +373,18 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
   }
 
   // Event handlers para el ProductGridComponent
-
   /**
    * Maneja el clic en un producto
    */
   onProductClick(product: ProductWithImage): void {
     this.logger.info('Navegando a detalles del producto', { productId: product.id, title: product.title });
+    
+    // ✅ TRACKING AUTOMÁTICO: Registrar click en producto desde la lista
+    // Esto cuenta como demanda/interés del usuario según la fundamentación teórica (λ = clicks/día)
+    this.trackProductClick(product.id);
+    
     this.router.navigate(['/home/products', product.id, 'detail']);
-  }  /**
+  }/**
    * Maneja el cambio de página
    */
   onPageChange(page: number): void {
@@ -546,5 +550,36 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
     }));
 
     this._productsWithImages.set(enrichedProducts);
+  }
+
+  /**
+   * ✅ MÉTODO DE TRACKING: Registra clicks en productos desde la lista
+   * Implementa la fundamentación teórica: λ = clicks/día
+   */
+  private trackProductClick(productId: string): void {
+    const trackingData = {
+      productId,
+      interactionType: 'CLICK' as const,
+      duration: 1,
+      userAgent: navigator.userAgent,
+      referrer: document.referrer || undefined
+    };
+
+    console.log('🎯 Analytics: Tracking click from product list', {
+      productId,
+      trackingData
+    });
+    
+    this.analyticsService.trackProductInteraction(trackingData).subscribe({
+      next: (result) => {
+        console.log(`✅ Analytics: Click tracked successfully for product ${productId}`, result);
+      },
+      error: (error) => {
+        console.error('❌ Analytics tracking failed from product list:', {
+          error: error.message,
+          productId
+        });
+      }
+    });
   }
 }

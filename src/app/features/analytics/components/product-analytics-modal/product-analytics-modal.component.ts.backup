@@ -1,0 +1,325 @@
+import { Component, input, output, inject, signal, OnInit, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { PriorityProduct } from '../../../../core/types/analytics.interface';
+import { AnalyticsService } from '../../../../core/services/analytics.service';
+
+// Interface temporal para los datos reales del backend
+interface ProductAnalyticsData {
+  productId: string;
+  totalClicks: number;
+  totalViews: number;
+  totalSearches: number;
+  arrivalRate: number;
+  serviceRate: number;
+  utilizationFactor: number;
+  congestionStatus: 'ESTABLE' | 'ADVERTENCIA' | 'CRITICO';
+  lastCalculation: Date;
+  queueMetrics: any;
+}
+
+@Component({
+  selector: 'app-product-analytics-modal',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <!-- Modal Overlay -->
+    @if (isOpen()) {
+      <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+           (click)="closeModal()">
+        
+        <!-- Modal Container -->
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white"
+             (click)="$event.stopPropagation()">
+          
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-bold text-gray-900">
+                Detalles de Analytics - {{ product()?.name }}
+              </h3>
+              <p class="text-sm text-gray-500">
+                Métricas del modelo M/M/1 y datos de teoría de colas
+              </p>
+            </div>
+            <button (click)="closeModal()" 
+                    class="text-gray-400 hover:text-gray-600 text-2xl font-bold">
+              ×
+            </button>
+          </div>
+
+          <!-- Loading State -->
+          @if (loading()) {
+            <div class="flex justify-center items-center py-8">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              <span class="ml-2 text-gray-600">Cargando métricas...</span>
+            </div>
+          }
+
+          <!-- Content -->
+          @if (!loading() && stats()) {
+            <div class="space-y-6">
+              
+              <!-- Estado General -->
+              <div class="bg-gray-50 rounded-lg p-4">
+                <h4 class="font-semibold text-gray-800 mb-3">📊 Estado General</h4>
+                <div class="grid grid-cols-2 gap-4">                  <div>
+                    <span class="text-sm text-gray-600">Estado de Congestión:</span>
+                    <div class="mt-1">
+                      <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full"
+                            [class]="getStatusClasses(stats()!.analytics.congestionStatus || 'ESTABLE')">
+                        {{ getStatusText(stats()!.analytics.congestionStatus || 'ESTABLE') }}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <span class="text-sm text-gray-600">Factor de Utilización (ρ):</span>
+                    <div class="text-lg font-mono font-bold mt-1"
+                         [class]="getFactorTextColor(stats()!.analytics.utilizationFactor || 0)">
+                      {{ (stats()!.analytics.utilizationFactor || 0).toFixed(3) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Métricas M/M/1 -->
+              <div class="bg-blue-50 rounded-lg p-4">
+                <h4 class="font-semibold text-gray-800 mb-3">🧮 Métricas del Modelo M/M/1</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Lambda (λ) -->
+                  <div class="bg-white rounded-md p-3 border">
+                    <div class="text-sm text-gray-600">Tasa de Llegadas (λ)</div>
+                    <div class="text-xl font-mono font-bold text-blue-600 mt-1">
+                      {{ (stats()!.analytics.arrivalRate || 0).toFixed(4) }}
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">clicks/día</div>
+                    <div class="text-xs text-gray-400 mt-1">
+                      Demanda del producto
+                    </div>
+                  </div>
+
+                  <!-- Mu (μ) -->
+                  <div class="bg-white rounded-md p-3 border">
+                    <div class="text-sm text-gray-600">Tasa de Servicio (μ)</div>
+                    <div class="text-xl font-mono font-bold text-green-600 mt-1">
+                      {{ (stats()!.analytics.serviceRate || 0).toFixed(4) }}
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">repos./día</div>
+                    <div class="text-xs text-gray-400 mt-1">
+                      Capacidad de reposición
+                    </div>
+                  </div>
+
+                  <!-- Rho (ρ) -->
+                  <div class="bg-white rounded-md p-3 border">
+                    <div class="text-sm text-gray-600">Factor de Utilización (ρ)</div>
+                    <div class="text-xl font-mono font-bold mt-1"
+                         [class]="getFactorTextColor(stats()!.analytics.utilizationFactor || 0)">
+                      {{ (stats()!.analytics.utilizationFactor || 0).toFixed(3) }}
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">λ / μ</div>
+                    <div class="text-xs text-gray-400 mt-1">
+                      Nivel de congestión
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Datos de Interacción -->
+              <div class="bg-green-50 rounded-lg p-4">
+                <h4 class="font-semibold text-gray-800 mb-3">👆 Interacciones de Usuario</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white rounded-md p-3 border">
+                    <div class="text-sm text-gray-600">Total Clicks</div>
+                    <div class="text-2xl font-bold text-indigo-600 mt-1">
+                      {{ stats()!.analytics.totalClicks || 0 }}
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">Clicks directos</div>
+                  </div>
+
+                  <div class="bg-white rounded-md p-3 border">
+                    <div class="text-sm text-gray-600">Total Vistas</div>
+                    <div class="text-2xl font-bold text-purple-600 mt-1">
+                      {{ stats()!.analytics.totalViews || 0 }}
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">Visualizaciones</div>
+                  </div>
+
+                  <div class="bg-white rounded-md p-3 border">
+                    <div class="text-sm text-gray-600">Total Búsquedas</div>
+                    <div class="text-2xl font-bold text-orange-600 mt-1">
+                      {{ stats()!.analytics.totalSearches || 0 }}
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">En búsquedas</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Interpretación -->
+              <div class="bg-yellow-50 rounded-lg p-4">
+                <h4 class="font-semibold text-gray-800 mb-3">💡 Interpretación</h4>
+                <div class="text-sm text-gray-700 space-y-2">
+                  {{ getInterpretation() }}
+                </div>
+              </div>
+
+              <!-- Recomendaciones -->
+              @if (getRecommendations().length > 0) {
+                <div class="bg-orange-50 rounded-lg p-4">
+                  <h4 class="font-semibold text-gray-800 mb-3">🚀 Recomendaciones</h4>
+                  <ul class="text-sm text-gray-700 space-y-1">
+                    @for (recommendation of getRecommendations(); track $index) {
+                      <li class="flex items-start">
+                        <span class="text-orange-600 mr-2">•</span>
+                        {{ recommendation }}
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+
+            </div>
+          }
+
+          <!-- Error State -->
+          @if (!loading() && !stats()) {
+            <div class="text-center py-8">
+              <div class="text-red-500 mb-2">⚠️</div>
+              <p class="text-gray-600">Error al cargar las métricas del producto</p>
+            </div>
+          }
+
+          <!-- Modal Footer -->
+          <div class="mt-6 flex justify-end">
+            <button (click)="closeModal()"
+                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors">
+              Cerrar
+            </button>
+          </div>
+
+        </div>
+      </div>
+    }
+  `
+})
+export class ProductAnalyticsModalComponent implements OnInit {
+  // Inputs
+  isOpen = input<boolean>(false);
+  product = input<PriorityProduct | null>(null);
+  
+  // Outputs
+  close = output<void>();
+  
+  // Services
+  private analyticsService = inject(AnalyticsService);  // State
+  loading = signal<boolean>(false);
+  stats = signal<ProductAnalyticsData | null>(null);
+
+  constructor() {
+    // Watch for changes in isOpen and product using effect
+    effect(() => {
+      this.loadProductStats();
+    });
+  }
+
+  ngOnInit() {
+    // Initial load
+    this.loadProductStats();
+  }
+
+  private loadProductStats() {
+    const currentProduct = this.product();
+    const isModalOpen = this.isOpen();
+    
+    if (isModalOpen && currentProduct?.id) {
+      this.loading.set(true);
+      this.stats.set(null);
+        this.analyticsService.getProductStats(currentProduct.id).subscribe({
+        next: (productStats) => {
+          console.log('📊 Raw backend response:', productStats);
+          this.stats.set(productStats as unknown as ProductAnalyticsData);
+          this.loading.set(false);
+          console.log('📊 Product stats loaded for modal:', productStats);
+        },
+        error: (error) => {
+          console.error('❌ Error loading product stats for modal:', error);
+          this.loading.set(false);
+        }
+      });
+    }
+  }
+
+  closeModal() {
+    this.close.emit();
+  }
+
+  getStatusText(status: string): string {
+    switch (status) {
+      case 'CRITICO': return 'Crítico';
+      case 'ADVERTENCIA': return 'Advertencia';
+      case 'ESTABLE': return 'Estable';
+      default: return 'Desconocido';
+    }
+  }
+
+  getStatusClasses(status: string): string {
+    switch (status) {
+      case 'CRITICO': return 'bg-red-100 text-red-800';
+      case 'ADVERTENCIA': return 'bg-yellow-100 text-yellow-800';
+      case 'ESTABLE': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  }
+
+  getFactorTextColor(factor: number): string {
+    if (factor >= 0.8) return 'text-red-600';
+    if (factor >= 0.5) return 'text-yellow-600';
+    return 'text-green-600';
+  }
+  getInterpretation(): string {
+    const currentStats = this.stats();
+    if (!currentStats) return 'No hay datos disponibles para interpretar.';
+
+    const rho = currentStats.analytics.utilizationFactor || 0;
+    const lambda = currentStats.analytics.arrivalRate || 0;
+    const mu = currentStats.analytics.serviceRate || 0;
+
+    if (rho >= 0.8) {
+      return `Este producto está en estado CRÍTICO (ρ = ${rho.toFixed(3)}). La demanda (${lambda.toFixed(2)} clicks/día) supera significativamente la capacidad de reposición (${mu.toFixed(4)} repos./día). Necesita atención inmediata.`;
+    } else if (rho >= 0.5) {
+      return `Este producto está en ADVERTENCIA (ρ = ${rho.toFixed(3)}). La demanda (${lambda.toFixed(2)} clicks/día) es moderada comparada con la capacidad de reposición (${mu.toFixed(4)} repos./día). Monitorear tendencias.`;
+    } else {
+      return `Este producto está ESTABLE (ρ = ${rho.toFixed(3)}). La demanda (${lambda.toFixed(2)} clicks/día) está bien controlada por la capacidad de reposición (${mu.toFixed(4)} repos./día).`;
+    }
+  }
+
+  getRecommendations(): string[] {
+    const currentStats = this.stats();
+    if (!currentStats) return [];
+
+    const rho = currentStats.analytics.utilizationFactor || 0;
+    const lambda = currentStats.analytics.arrivalRate || 0;
+    const mu = currentStats.analytics.serviceRate || 0;
+    const recommendations: string[] = [];
+
+    if (rho >= 0.8) {
+      recommendations.push('Reponer stock más frecuentemente para aumentar μ (tasa de servicio)');
+      recommendations.push('Considerar aumentar el stock de seguridad');
+      if (lambda > 10) {
+        recommendations.push('La demanda es muy alta, considerar ajustar el precio');
+      }
+      if (mu < 0.5) {
+        recommendations.push('Mejorar la logística de reposición (μ muy bajo)');
+      }
+    } else if (rho >= 0.5) {
+      recommendations.push('Monitorear las tendencias de demanda');
+      recommendations.push('Preparar plan de contingencia para picos de demanda');
+    } else {
+      if (lambda < 1) {
+        recommendations.push('Considerar promocionar más este producto (demanda baja)');
+      }
+      recommendations.push('Producto estable, mantener estrategia actual');
+    }
+
+    return recommendations;
+  }
+}

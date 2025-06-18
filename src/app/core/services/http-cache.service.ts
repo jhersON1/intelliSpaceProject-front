@@ -167,7 +167,6 @@ export class HttpCacheService {
     keysToDelete.forEach(key => this.delete(key));
     return keysToDelete.length;
   }
-
   /**
    * Obtiene estadísticas del caché
    */

@@ -1,11 +1,12 @@
-import { Component, Output, EventEmitter, input } from '@angular/core';
+import { Component, Output, EventEmitter, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PriorityProduct } from '../../../../core/types/analytics.interface';
+import { ProductAnalyticsModalComponent } from '../product-analytics-modal/product-analytics-modal.component';
 
 @Component({
   selector: 'app-priority-products-table',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ProductAnalyticsModalComponent],
   template: `
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <!-- Header -->
@@ -100,12 +101,10 @@ import { PriorityProduct } from '../../../../core/types/analytics.interface';
                   <!-- Last Reposition -->
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {{ formatDate(product.lastReposition) }}
-                  </td>
-
-                  <!-- Actions -->
+                  </td>                  <!-- Actions -->
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      (click)="onProductClick(product)"
+                      (click)="openAnalyticsModal(product)"
                       class="text-indigo-600 hover:text-indigo-900 transition-colors">
                       Ver detalles
                     </button>
@@ -130,10 +129,16 @@ import { PriorityProduct } from '../../../../core/types/analytics.interface';
                 class="text-sm text-indigo-600 hover:text-indigo-900 font-medium">
                 Ver más productos
               </button>
-            }
-          </div>
+            }          </div>
         </div>
       }
+
+      <!-- Analytics Modal -->
+      <app-product-analytics-modal
+        [isOpen]="isModalOpen()"
+        [product]="selectedProduct()"
+        (close)="closeModal()">
+      </app-product-analytics-modal>
     </div>
   `
 })
@@ -148,6 +153,10 @@ export class PriorityProductsTableComponent {
   @Output() productClick = new EventEmitter<PriorityProduct>();
   @Output() loadMore = new EventEmitter<void>();
 
+  // Modal state
+  isModalOpen = signal<boolean>(false);
+  selectedProduct = signal<PriorityProduct | null>(null);
+
   // Expose Math for template
   Math = Math;
 
@@ -157,6 +166,18 @@ export class PriorityProductsTableComponent {
 
   onLoadMore(): void {
     this.loadMore.emit();
+  }
+
+  openAnalyticsModal(product: PriorityProduct): void {
+    this.selectedProduct.set(product);
+    this.isModalOpen.set(true);
+    console.log('🔍 Opening analytics modal for product:', product.name);
+  }
+
+  closeModal(): void {
+    this.isModalOpen.set(false);
+    this.selectedProduct.set(null);
+    console.log('❌ Closing analytics modal');
   }
 
   getStatusText(status: string): string {

@@ -57,6 +57,7 @@ export class ProductVendorEditComponent implements OnInit, OnDestroy {
 
   constructor() {
     this.setupImageSyncEffect();
+    this.setupStateStockLogic();
   }
   ngOnInit(): void {
     // Suscribirse a la señal de limpieza global
@@ -144,6 +145,29 @@ export class ProductVendorEditComponent implements OnInit, OnDestroy {
         this.syncImagesWithFormArray(currentImages);
       }
     });
+  }
+  private setupStateStockLogic(): void {
+    // Suscribirse a cambios de estado para manejar stock automáticamente
+    const stateControl = this.form.get('state');
+    const stockControl = this.form.get('stock');
+    
+    if (stateControl && stockControl) {
+      // Cuando el estado cambia a "Agotado", poner stock = 0
+      stateControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(state => {
+        if (state === ProductStatus.SOLD_OUT) {
+          stockControl.setValue(0);
+          console.log('🔄 Estado "Agotado" detectado - Stock establecido a 0');
+        }
+      });
+
+      // Cuando stock = 0, cambiar estado a "Agotado"
+      stockControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(stock => {
+        if (stock === 0 && stateControl.value === ProductStatus.AVAILABLE) {
+          stateControl.setValue(ProductStatus.SOLD_OUT);
+          console.log('🔄 Stock=0 detectado - Estado cambiado a "Agotado"');
+        }
+      });
+    }
   }
 
   private createEditForm(): FormGroup {

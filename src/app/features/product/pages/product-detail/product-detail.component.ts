@@ -99,11 +99,14 @@ export class ProductDetailComponent implements OnInit, OnDestroy {  private rout
     // Primero cargar el producto (crítico)
     this.productsService.getProductDetail(id)
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (product) => {
+      .subscribe({        next: (product) => {
           console.log('✅ PRODUCT LOADED SUCCESSFULLY (critical):', { productId: product.id, productTitle: product.title });
           this.product.set(product);
           this.loading.set(false);
+
+          // ✅ TRACKING AUTOMÁTICO: Registrar la vista del producto (según la fundamentación teórica)
+          // Esto cuenta como demanda/interés del usuario (λ = clicks/día)
+          this.trackInteraction('CLICK', 'Product viewed (automatic)');
 
           // Luego cargar recursos adicionales de forma opcional (no crítica)
           this.loadOptionalResources(id);

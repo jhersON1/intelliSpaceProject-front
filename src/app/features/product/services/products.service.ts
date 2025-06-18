@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable, tap, map, finalize, of, EMPTY } from 'rxjs';
+import { Observable, tap, map, finalize, of, EMPTY, switchMap } from 'rxjs';
 import { Product, CreateProduct, UpdateProduct } from '../interfaces/product.interface';
 import { TokenService } from '../../../auth/services/token.service';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -10,6 +10,7 @@ import { LoggerService } from '../../../core/services';
 import { LoadingStateService } from '../../../core/services/loading-state.service';
 import { NotificationStateService } from '../../../core/services/notification-state.service';
 import { HttpCacheService } from '../../../core/services/http-cache.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -31,6 +32,7 @@ export class ProductsService {
   private readonly loadingState = inject(LoadingStateService);
   private readonly notificationState = inject(NotificationStateService);
   private readonly cacheService = inject(HttpCacheService);
+  private readonly analyticsService = inject(AnalyticsService);
   private readonly baseUrl: string = environment.baseUrl;
   public findAllProducts(limit = 10, offset = 0): Observable<PaginatedResponse<Product>> {
     const cacheKey = `products_${limit}_${offset}`;
@@ -165,7 +167,61 @@ export class ProductsService {
 
     const url = `${this.baseUrl}${API_ROUTES.UPDATE_VENDOR_PRODUCT}/${productId}`;
 
-    return this.http.patch<Product>(url, body, { headers });
+    // ✅ TRACKING AUTOMÁTICO: Registrar actividad cuando se actualiza un producto
+    // Esto cuenta como demanda/actividad del vendedor según la fundamentación teórica
+    return this.http.patch<Product>(url, body, { headers }).pipe(
+      tap((updatedProduct) => {
+        // Si se actualizó el stock, registrar como actividad
+        if (body.stock !== undefined) {
+          this.trackProductManagement(productId, 'Stock updated');
+        }
+        
+        // Invalidar caché relacionado
+        this.invalidateProductCache(productId);
+      })
+    );
+  }
+
+  /**
+   * ✅ MÉTODO DE TRACKING: Registra actividad de gestión de productos
+   * Esto genera actividad que puede ser interpretada como demanda
+   */
+  private trackProductManagement(productId: string, action: string): void {
+    const trackingData = {
+      productId,
+      interactionType: 'CLICK' as const,
+      duration: 1,
+      userAgent: navigator.userAgent,
+      referrer: document.referrer || undefined
+    };
+
+    console.log('🎯 Analytics: Tracking product management activity', {
+      productId,
+      action,
+      trackingData
+    });
+    
+    this.analyticsService.trackProductInteraction(trackingData).subscribe({
+      next: (result) => {
+        console.log(`✅ Analytics: Management activity tracked for product ${productId}`, { action, result });
+      },
+      error: (error) => {
+        console.error('❌ Analytics tracking failed for management activity:', {
+          error: error.message,
+          productId,
+          action
+        });
+      }
+    });
+  }
+
+  /**
+   * Invalida caché relacionado con un producto
+   */
+  private invalidateProductCache(productId: string): void {
+    this.cacheService.invalidatePattern(`product_${productId}`);
+    this.cacheService.invalidatePattern('products_');
+    this.cacheService.invalidatePattern('vendor_products_');
   }public deleteProduct(productId: string): Observable<void> {
     const loadingKey = `deleteProduct_${productId}`;
     this.loadingState.startLoading(loadingKey, 'Eliminando producto...');

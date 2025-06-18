@@ -58,9 +58,7 @@
                   placeholder="0.00" 
                 />
               </div>
-            </div>
-
-            <!-- Stock Field -->
+            </div>            <!-- Stock Field -->
             <div class="group">
               <label class="block text-sm font-medium mb-1 text-gray-700">Stock</label>
               <input 
@@ -69,6 +67,19 @@
                 class="w-full p-2 border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-200 bg-white"
                 placeholder="0" 
               />
+              @if (form.get('stock')?.errors && form.get('stock')?.touched) {
+                <div class="mt-1 text-sm text-red-600">
+                  @if (form.get('stock')?.errors?.['required']) {
+                    <span>El stock es requerido</span>
+                  }
+                  @if (form.get('stock')?.errors?.['min']) {
+                    <span>El stock no puede ser negativo</span>
+                  }
+                  @if (form.get('stock')?.errors?.['stockZeroNotAllowed']) {
+                    <span>El stock no puede ser 0 cuando el estado es "Disponible"</span>
+                  }
+                </div>
+              }
             </div>
 
             <!-- Weight Field -->
