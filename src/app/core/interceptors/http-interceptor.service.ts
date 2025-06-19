@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Observable, throwError, timer } from 'rxjs';
-import { catchError, retry, retryWhen, mergeMap, finalize, tap } from 'rxjs/operators';
+import { catchError, mergeMap, finalize, tap } from 'rxjs/operators';
 
 import { TokenService } from '../../auth/services/token.service';
 import { LoadingStateService } from '../services/loading-state.service';
