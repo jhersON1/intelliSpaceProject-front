@@ -257,15 +257,11 @@ export class ProductAnalyticsModalComponent implements OnInit {
       this.loading.set(true);
       this.stats.set(null);
       
-      this.analyticsService.getProductStats(currentProduct.id).subscribe({
-        next: (productStats) => {
-          console.log('📊 Raw backend response:', productStats);
+      this.analyticsService.getProductStats(currentProduct.id).subscribe({        next: (productStats) => {
           this.stats.set(productStats as unknown as ProductAnalyticsData);
           this.loading.set(false);
-          console.log('📊 Product stats loaded for modal:', productStats);
         },
         error: (error) => {
-          console.error('❌ Error loading product stats for modal:', error);
           this.loading.set(false);
         }
       });

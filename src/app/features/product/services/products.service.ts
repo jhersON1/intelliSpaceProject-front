@@ -193,24 +193,12 @@ export class ProductsService {
       duration: 1,
       userAgent: navigator.userAgent,
       referrer: document.referrer || undefined
-    };
-
-    console.log('🎯 Analytics: Tracking product management activity', {
-      productId,
-      action,
-      trackingData
-    });
-    
-    this.analyticsService.trackProductInteraction(trackingData).subscribe({
+    };    this.analyticsService.trackProductInteraction(trackingData).subscribe({
       next: (result) => {
-        console.log(`✅ Analytics: Management activity tracked for product ${productId}`, { action, result });
+        // Analytics successfully tracked
       },
       error: (error) => {
-        console.error('❌ Analytics tracking failed for management activity:', {
-          error: error.message,
-          productId,
-          action
-        });
+        // Silent fail for analytics tracking
       }
     });
   }

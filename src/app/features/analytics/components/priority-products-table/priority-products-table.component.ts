@@ -167,17 +167,14 @@ export class PriorityProductsTableComponent {
   onLoadMore(): void {
     this.loadMore.emit();
   }
-
   openAnalyticsModal(product: PriorityProduct): void {
     this.selectedProduct.set(product);
     this.isModalOpen.set(true);
-    console.log('🔍 Opening analytics modal for product:', product.name);
   }
 
   closeModal(): void {
     this.isModalOpen.set(false);
     this.selectedProduct.set(null);
-    console.log('❌ Closing analytics modal');
   }
 
   getStatusText(status: string): string {

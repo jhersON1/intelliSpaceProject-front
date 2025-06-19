@@ -119,10 +119,9 @@ export class VendorAlertsComponent {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   });
-
   onAlertClick(alert: ProductAlert): void {
     // Emit or navigate to product detail
-    console.log('Alert clicked:', alert);
+    // TODO: Implementar navegación específica basada en el tipo de alerta
   }
 
   getSeverityText(severity: string): string {

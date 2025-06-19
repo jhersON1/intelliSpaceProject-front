@@ -56,13 +56,11 @@ export class ProductFormBase {
 
     return null;
   }
-
   /**
    * Carga todas las categorías y construye la jerarquía
    */
   loadCategories() {
     return this.categoryService.getAllCategories().pipe(
-      tap(categories => console.log('Categorías cargadas:', categories)),
       map(categories => this.buildCategoryHierarchy(categories)),
       tap(hierarchicalCategories => {
         this.hierarchicalCategories.set(hierarchicalCategories);
