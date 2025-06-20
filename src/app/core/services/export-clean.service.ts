@@ -77,52 +77,15 @@ export class ExportService {
     this.logger.info('Exporting product data', { productId, format: options.format }, 'ExportService');
 
     return from(this.generateProductReport(productId, options));
-  }  /**
+  }
+
+  /**
    * Export performance metrics
    */
   exportPerformanceMetrics(options: ExportOptions): Observable<Blob> {
     this.logger.info('Exporting performance metrics', { format: options.format }, 'ExportService');
 
     return from(this.generatePerformanceReport(options));
-  }
-
-  /**
-   * Export vendor analytics data (alias for compatibility)
-   */
-  exportVendorDashboard(vendorId: string, options: ExportOptions): Observable<Blob> {
-    return this.exportVendorData(vendorId, options);
-  }
-
-  /**
-   * Export product analytics data (alias for compatibility)
-   */
-  exportProductAnalytics(productId: string, options: ExportOptions): Observable<Blob> {
-    return this.exportProductData(productId, options);
-  }
-
-  /**
-   * Download file utility
-   */
-  downloadFile(blob: Blob, filename: string): void {
-    try {
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      link.style.display = 'none';
-      
-      document.body.appendChild(link);
-      link.click();
-      
-      // Cleanup
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      this.logger.info('File downloaded successfully', { filename }, 'ExportService');
-    } catch (error) {
-      this.logger.error('Error downloading file', { error, filename }, 'ExportService');
-      throw error;
-    }
   }
 
   /**
