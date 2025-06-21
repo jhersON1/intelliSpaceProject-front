@@ -13,7 +13,6 @@ export class ScrollToTopService {
   }
 
   private initScrollToTop(): void {
-    // Escuchar a los eventos de navegación
     this.router.events
       .pipe(
         filter(event => event instanceof NavigationEnd)
@@ -35,7 +34,7 @@ export class ScrollToTopService {
       window.scrollTo({
         top: 0,
         left: 0,
-        behavior: 'instant' // Cambiado a 'instant' para que sea inmediato
+        behavior: 'instant'
       });
     } catch (error) {
       // Fallback para navegadores que no soporten el objeto options

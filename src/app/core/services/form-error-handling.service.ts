@@ -24,15 +24,11 @@ export class FormErrorHandlingService {
     lastSubmissionTime: null
   });
 
-  // Señales públicas
   public readonly validationState = computed(() => this._validationState());
   public readonly submissionState = computed(() => this._submissionState());
   public readonly hasErrors = computed(() => this._validationState().errors.length > 0);
   public readonly isFormValid = computed(() => this._validationState().isValid);
 
-  /**
-   * Mensajes de error predefinidos
-   */
   private readonly errorMessages: Record<string, string> = {
     required: 'Este campo es requerido',
     email: 'Ingresa un email válido',

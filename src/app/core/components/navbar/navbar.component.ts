@@ -16,7 +16,6 @@ export class NavbarComponent {  private authService = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
-  // Signals para el estado de autenticación con protección contra evaluaciones innecesarias
   public readonly isAuthenticated = computed(() => {
     try {
       return this.authService.isAuthenticated();
@@ -55,10 +54,7 @@ export class NavbarComponent {  private authService = inject(AuthService);
 
   isMobileMenuOpen = false;
   isMobileSearchOpen = false;constructor() {
-    // El AuthService ya verifica el estado de autenticación en su constructor
-    // No es necesario verificarlo aquí también
-    
-    // Effect para forzar detección de cambios cuando el estado de auth cambie
+
     effect(() => {
       const isAuth = this.isAuthenticated();
       const isVend = this.isVendor();
@@ -102,7 +98,6 @@ export class NavbarComponent {  private authService = inject(AuthService);
     this.authService.logout();
     this.isMobileMenuOpen = false;
     
-    // Navegar a home después de limpiar el estado
     setTimeout(() => {
       this.router.navigate(['/home']);
     }, 100);

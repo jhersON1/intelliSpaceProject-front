@@ -10,14 +10,11 @@ export interface CacheEntry<T = any> {
 }
 
 export interface CacheConfig {
-  ttl?: number; // Time to live en milisegundos
-  maxSize?: number; // Máximo número de entradas
-  strategy?: 'lru' | 'fifo'; // Estrategia de eviction
+  ttl?: number;
+  maxSize?: number;
+  strategy?: 'lru' | 'fifo';
 }
 
-/**
- * Servicio de caché HTTP con soporte para TTL, ETags y estrategias de eviction
- */
 @Injectable({
   providedIn: 'root'
 })
@@ -42,7 +39,7 @@ export class HttpCacheService {
     let total = 0;
     cache.forEach(entry => {
       total++;
-      if (entry.timestamp > Date.now() - 60000) hits++; // Hits en el último minuto
+      if (entry.timestamp > Date.now() - 60000) hits++;
     });
     
     return total > 0 ? (hits / total) * 100 : 0;

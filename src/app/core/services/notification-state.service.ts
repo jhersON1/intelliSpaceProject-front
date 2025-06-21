@@ -8,16 +8,12 @@ export interface NotificationState {
   timestamp: number;
 }
 
-/**
- * Servicio global para manejar notificaciones con Angular Signals
- */
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationStateService {
   private readonly _notifications = signal<NotificationState[]>([]);
   
-  // Señales públicas de solo lectura
   public readonly notifications = computed(() => this._notifications());
   public readonly hasNotifications = computed(() => this._notifications().length > 0);
   public readonly latestNotification = computed(() => {

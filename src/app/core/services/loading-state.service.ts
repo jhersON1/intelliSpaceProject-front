@@ -6,9 +6,6 @@ export interface LoadingOperation {
   timestamp: number;
 }
 
-/**
- * Servicio global para manejar estados de carga con Angular Signals
- */
 @Injectable({
   providedIn: 'root'
 })

@@ -23,9 +23,9 @@ export interface NotificationSettings {
   enablePush: boolean;
   enableSound: boolean;
   enableDesktop: boolean;
-  criticalProductThreshold: number; // Factor ρ >= este valor
-  warningProductThreshold: number; // Factor ρ >= este valor
-  checkInterval: number; // Segundos entre checks
+  criticalProductThreshold: number;
+  warningProductThreshold: number;
+  checkInterval: number;
 }
 
 @Injectable({
@@ -60,12 +60,10 @@ export class NotificationService {
       .slice(0, 10)
   );
 
-  // Private subjects
   private notificationSubject = new Subject<Notification>();
   private pollingSubscription: any;
 
-  // Audio para notificaciones
-  private notificationSound = new Audio('data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAAAM='); // Placeholder
+  private notificationSound = new Audio('data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAAAM=');
   constructor() {
     this.loadSettings();
     this.setupNotificationPermissions();
@@ -139,10 +137,10 @@ export class NotificationService {
           const existingNotification = this.notifications().find(n => 
             n.productId === product.id && 
             n.type === 'critical' &&
-            (Date.now() - n.timestamp.getTime()) < 3600000 // Última hora
+            (Date.now() - n.timestamp.getTime()) < 3600000
           );
 
-          if (existingNotification) return; // No duplicar notificaciones
+          if (existingNotification) return;
 
           if (rho >= settings.criticalProductThreshold) {
             this.addNotification({
@@ -181,7 +179,6 @@ export class NotificationService {
     const currentNotifications = this.notifications();
     const updatedNotifications = [notification, ...currentNotifications];
     
-    // Mantener solo las últimas 50 notificaciones
     if (updatedNotifications.length > 50) {
       updatedNotifications.splice(50);
     }
@@ -189,10 +186,8 @@ export class NotificationService {
     this.notifications.set(updatedNotifications);
     this.notificationSubject.next(notification);
 
-    // Mostrar notificación del navegador
     this.showBrowserNotification(notification);
     
-    // Reproducir sonido
     this.playNotificationSound(notification);
 
     this.logger.info('Notification added', { 
@@ -254,7 +249,6 @@ export class NotificationService {
     const updatedSettings = { ...currentSettings, ...newSettings };
     this.settings.set(updatedSettings);
     
-    // Guardar en localStorage
     localStorage.setItem('notification-settings', JSON.stringify(updatedSettings));
     
     // Reiniciar polling si cambió el intervalo
@@ -292,7 +286,6 @@ export class NotificationService {
     browserNotification.onclick = () => {
       window.focus();
       if (notification.actionUrl) {
-        // Navegar a la URL de acción
         window.location.href = notification.actionUrl;
       }
       browserNotification.close();
@@ -313,7 +306,6 @@ export class NotificationService {
     if (!settings.enableSound) return;
 
     try {
-      // Crear diferentes tonos según la prioridad
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();

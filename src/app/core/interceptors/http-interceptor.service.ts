@@ -57,10 +57,10 @@ export class HttpInterceptorService implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Para debugging, vamos a ser menos agresivos con las transformaciones
     const config = this.extractConfig(req);
-    
+
     // Solo agregar headers si realmente es necesario
     let modifiedReq = req;
-    
+
     // Solo para endpoints que requieren autenticación
     if (!this.isPublicEndpoint(req.url)) {
       modifiedReq = this.addHeaders(req, config);
@@ -89,7 +89,7 @@ export class HttpInterceptorService implements HttpInterceptor {
             hasBody: !!event.body
           });
         }
-      }),      
+      }),
       // Manejo de errores simplificado para debugging
       catchError((error: HttpErrorResponse) => {
         this.logger.error('HTTP Error intercepted', {
@@ -98,15 +98,15 @@ export class HttpInterceptorService implements HttpInterceptor {
           message: error.message,
           error: error.error
         });
-        
+
         // Solo mostrar notificación si no es login (para evitar conflictos)
         if (!req.url.includes('/auth/login') && !config.skipErrorNotification) {
           this.handleErrorNotification(error);
         }
-        
+
         return throwError(() => error);
       }),
-      
+
       // Finalizar loading
       finalize(() => {
         if (!config.excludeFromLoading && !this.isSilentEndpoint(req.url)) {
@@ -167,7 +167,7 @@ export class HttpInterceptorService implements HttpInterceptor {
     // Limpiar headers de configuración para no enviarlos al servidor
     const headersToRemove = [
       'X-Skip-Loading',
-      'X-Retry-Count', 
+      'X-Retry-Count',
       'X-Retry-Delay',
       'X-Skip-Error-Notification'
     ];
