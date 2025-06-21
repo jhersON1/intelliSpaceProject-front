@@ -76,22 +76,21 @@ export class LoginComponent {
     if (this.loginForm.valid) {
       this.isAuthenticating.set(true);
 
-      const { email, password } = this.loginForm.value;
-
-      this.authService.login(email as string, password as string).subscribe({
-        next: () => {
-          console.log('Login successful');
-          this.router.navigate(['/home']);
+      const { email, password } = this.loginForm.value;      this.authService.login(email as string, password as string).subscribe({
+        next: (success) => {
+          console.log('Login successful:', success);
+          this.isAuthenticating.set(false);
+          
+          // Dar tiempo para que el AuthService actualice el estado antes de redirigir
+          setTimeout(() => {
+            this.router.navigate(['/home']);
+          }, 150);
         },
         error: (err) => {
           console.error('Login failed:', err);
-          this.isAuthenticating.set(false);
-        },
-        complete: () => {
-          console.log('Login process completed');
+          this.authError.set(err.message || 'Error en el login. Verifica tus credenciales.');
           this.isAuthenticating.set(false);
         }
-
       });
     }
   }

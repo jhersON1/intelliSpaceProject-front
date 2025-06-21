@@ -55,21 +55,19 @@ export class QrCodeComponent implements OnInit {
   qrCodeImage = signal<string>('');
   arUrl = signal<string>('');
   loading = signal<boolean>(false);
-
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     if (this.currentProductId()) {
-      await this.generateQR();
+      this.generateQR();
     }
   }
-
-  private async generateQR(): Promise<void> {
+  private generateQR(): void {
     try {
       this.loading.set(true);
       
       const arUrl = this.qrService.generateARUrl(this.currentProductId());
       this.arUrl.set(arUrl);
       
-      const qrImage = await this.qrService.generateQRCode(arUrl);
+      const qrImage = this.qrService.generateQRCode(arUrl);
       this.qrCodeImage.set(qrImage);
       
     } catch (error) {

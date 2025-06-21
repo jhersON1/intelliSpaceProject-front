@@ -1,33 +1,70 @@
-import { ChangeDetectionStrategy, Component, effect, HostListener, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, inject, computed, effect } from '@angular/core';
+import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../auth/services/auth.service';
-import { AuthStatus } from 'src/app/auth/interfaces';
+import { NotificationPanelComponent } from '../notification-panel/notification-panel.component';
 
 @Component({
   selector: 'app-navbar',
+  standalone: true,
+  imports: [CommonModule, NotificationPanelComponent],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class NavbarComponent {
-  private authService = inject(AuthService);
-  public isVendor = signal(false);
+export class NavbarComponent {  private authService = inject(AuthService);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
+  public readonly isAuthenticated = computed(() => {
+    try {
+      return this.authService.isAuthenticated();
+    } catch (error) {
+      console.warn('Error evaluating isAuthenticated:', error);
+      return false;
+    }
+  });
+    public readonly isVendor = computed(() => {
+    try {
+      const authenticated = this.authService.isAuthenticated();
+      const vendor = this.authService.isVendor();
+      const result = authenticated && vendor;
+      
+      // Debug logging temporal
+      console.log('Navbar isVendor computed:', { authenticated, vendor, result });
+      
+      return result;
+    } catch (error) {
+      console.warn('Error evaluating isVendor:', error);
+      return false;
+    }
+  });
+  
+  public readonly currentUser = computed(() => {
+    try {
+      return this.authService.isAuthenticated() ? this.authService.currentUser() : null;
+    } catch (error) {
+      console.warn('Error evaluating currentUser:', error);
+      return null;
+    }
+  });
 
   isNavbarHidden = false;
   private lastScrollTop = 0;
 
   isMobileMenuOpen = false;
-  isMobileSearchOpen = false;
+  isMobileSearchOpen = false;constructor() {
 
-  constructor() {
     effect(() => {
-      const status = this.authService.authStatus();
-      this.isVendor.set(
-        status === AuthStatus.authenticated && this.authService.isVendor()
-      );
+      const isAuth = this.isAuthenticated();
+      const isVend = this.isVendor();
+      const user = this.currentUser();
+      
+      // Forzar detección de cambios cuando cambien los valores
+      console.log('Navbar effect triggered:', { isAuth, isVend, user });
+      this.cdr.markForCheck();
     });
   }
-
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
@@ -57,5 +94,12 @@ export class NavbarComponent {
       this.isMobileMenuOpen = false;
     }
   }
-
+  logout(): void {
+    this.authService.logout();
+    this.isMobileMenuOpen = false;
+    
+    setTimeout(() => {
+      this.router.navigate(['/home']);
+    }, 100);
+  }
 }

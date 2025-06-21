@@ -1,6 +1,8 @@
 import { User } from './user.interface';
 
 export interface LoginResponse {
-  user: User;
+  id: string;
+  email: string;
+  role: string; // Viene como string desde el backend
   token: string;
 }

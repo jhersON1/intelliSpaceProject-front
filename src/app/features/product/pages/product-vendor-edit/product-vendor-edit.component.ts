@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductStatus, Product } from '../../interfaces/product.interface';
@@ -6,12 +6,13 @@ import { CommonModule } from '@angular/common';
 import { ProductsService } from '../../services/products.service';
 import { CategorySelectorComponent } from '../../components/category-selector/category-selector.component';
 import { ProductFormBase } from '../../services/productFormBase.service';
-import { forkJoin, firstValueFrom } from 'rxjs';
+import { forkJoin, firstValueFrom, takeUntil, Subject } from 'rxjs';
 import { VisualRepresentation } from '../../interfaces/visual-representation.interface';
 import { VisualRepresentationService } from '../../services/visual-representation.service';
 import { ImageUploadService } from '../../services/image-upload.service';
 import { ImageStateService } from './services/image-state.service';
 import { ProductOperationsService } from './services/product-operation.service';
+import { GlobalCleanupService } from '../../../../core/services/global-cleanup.service';
 
 @Component({
   selector: 'app-product-vendor-edit',
@@ -19,7 +20,7 @@ import { ProductOperationsService } from './services/product-operation.service';
   templateUrl: './product-vendor-edit.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductVendorEditComponent implements OnInit {
+export class ProductVendorEditComponent implements OnInit, OnDestroy {
    // Dependency injection
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
@@ -29,6 +30,10 @@ export class ProductVendorEditComponent implements OnInit {
   private readonly formBaseService = inject(ProductFormBase);
   private readonly imageStateService = inject(ImageStateService);
   private readonly productOperationsService = inject(ProductOperationsService);
+  private readonly globalCleanupService = inject(GlobalCleanupService);
+
+  // Subject para manejar la destrucción del componente
+  private readonly destroy$ = new Subject<void>();
 
   // Constants
   readonly ProductStatus = ProductStatus;
@@ -52,9 +57,16 @@ export class ProductVendorEditComponent implements OnInit {
 
   constructor() {
     this.setupImageSyncEffect();
+    this.setupStateStockLogic();
   }
-
   ngOnInit(): void {
+    // Suscribirse a la señal de limpieza global
+    this.globalCleanupService.cleanup$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.resetComponentState();
+      });
+
     const productId = this.route.snapshot.paramMap.get('id');
     
     if (!productId) {
@@ -63,6 +75,20 @@ export class ProductVendorEditComponent implements OnInit {
     }
 
     this.initializeComponent(productId);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Resetea el estado del componente durante la limpieza
+   */
+  private resetComponentState(): void {
+    this.isLoading.set(false);
+    this.imageStateService.reset();
+    this.form.reset();
   }
 
   // Public methods for template
@@ -120,6 +146,29 @@ export class ProductVendorEditComponent implements OnInit {
       }
     });
   }
+  private setupStateStockLogic(): void {
+    // Suscribirse a cambios de estado para manejar stock automáticamente
+    const stateControl = this.form.get('state');
+    const stockControl = this.form.get('stock');
+    
+    if (stateControl && stockControl) {
+      // Cuando el estado cambia a "Agotado", poner stock = 0
+      stateControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(state => {
+        if (state === ProductStatus.SOLD_OUT) {
+          stockControl.setValue(0);
+          console.log('🔄 Estado "Agotado" detectado - Stock establecido a 0');
+        }
+      });
+
+      // Cuando stock = 0, cambiar estado a "Agotado"
+      stockControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(stock => {
+        if (stock === 0 && stateControl.value === ProductStatus.AVAILABLE) {
+          stateControl.setValue(ProductStatus.SOLD_OUT);
+          console.log('🔄 Stock=0 detectado - Estado cambiado a "Agotado"');
+        }
+      });
+    }
+  }
 
   private createEditForm(): FormGroup {
     const baseForm = this.formBaseService.createBaseProductForm();
@@ -147,12 +196,13 @@ export class ProductVendorEditComponent implements OnInit {
     this.loadCategories();
     this.loadProductWithImages(productId);
   }
-
   private loadCategories(): void {
-    this.formBaseService.loadCategories().subscribe({
-      next: () => console.log('Categorías cargadas exitosamente'),
-      error: (error) => console.error('Error cargando categorías:', error)
-    });
+    this.formBaseService.loadCategories()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => console.log('Categorías cargadas exitosamente'),
+        error: (error) => console.error('Error cargando categorías:', error)
+      });
   }
 
   private loadProductWithImages(productId: string): void {
@@ -161,7 +211,9 @@ export class ProductVendorEditComponent implements OnInit {
     forkJoin({
       product: this.productService.getVendorProduct(productId),
       images: this.visualRepresentationService.findAllImages(productId)
-    }).subscribe({
+    })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
       next: ({ product, images }) => {
         this.populateFormWithProduct(product);
         this.imageStateService.initializeImages(images);

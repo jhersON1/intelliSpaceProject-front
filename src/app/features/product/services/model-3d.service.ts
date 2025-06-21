@@ -53,18 +53,8 @@ export class Model3DService {
   /**
    * Obtiene el modelo 3D único para un producto específico
    * Retorna null si no existe modelo para ese producto
-   */
-  getProductModel(productId: string): Observable<Model3D | null> {
-    console.log('Buscando modelo 3D para producto ID:', productId);
-    
+   */  getProductModel(productId: string): Observable<Model3D | null> {
     const model = this.staticModels[productId] || null;
-    
-    if (model) {
-      console.log('Modelo 3D encontrado:', model);
-    } else {
-      console.log('No se encontró modelo 3D para el producto:', productId);
-    }
-    
     return of(model);
   }
 
@@ -93,16 +83,13 @@ export class Model3DService {
   private http = inject(HttpClient);
   private readonly baseUrl: string = environment.baseUrl;
 
-    /**
+  /**
    * Obtiene el modelo 3D para un producto específico
    */
   getModel3D(productId: string): Observable<Model3DResponse | null> {
-    console.log('Obteniendo modelo 3D para producto ID:', productId);
-
     return this.http.get<Model3DResponse>(`${this.baseUrl}${API_ROUTES.GET_MODEL_3D}/${productId}`)
       .pipe(
         catchError(error => {
-          console.error('Error al obtener modelo 3D:', error);
           return of(null);
         })
       );
@@ -112,12 +99,9 @@ export class Model3DService {
    * Obtiene la experiencia AR para un producto específico
    */
   getExperienceAR(productId: string): Observable<ExperienceARResponse | null> {
-    console.log('Obteniendo experiencia AR para producto ID:', productId);
-
     return this.http.get<ExperienceARResponse>(`${this.baseUrl}${API_ROUTES.GET_EXPERIENCE_AR}/${productId}`)
       .pipe(
         catchError(error => {
-          console.error('Error al obtener experiencia AR:', error);
           return of(null);
         })
       );

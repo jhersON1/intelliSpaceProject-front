@@ -9,7 +9,7 @@ export const routes: Routes = [
     {
         path: 'auth',
         loadChildren: () => import('./auth/auth.routes').then(m => m.authRoutes),
-        canActivate: [isAuthenticatedGuard]
+        // No usar guard aquí - las rutas individuales de auth manejan sus propios guards
     },
     {
         path: '',

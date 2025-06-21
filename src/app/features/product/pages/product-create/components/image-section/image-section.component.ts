@@ -32,4 +32,8 @@ export class ImageSectionComponent {
   removeImage(index: number) {
     this.imageManager.removeImage(index);
   }
+
+  deselectImage() {
+    this.imageManager.selectImage(-1);
+  }
 }
