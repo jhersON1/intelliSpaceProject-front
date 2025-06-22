@@ -10,6 +10,7 @@ import { Model3DService } from '../../services/model-3d.service';
 import { ExperienceARResponse, Model3DResponse } from '../../interfaces/model-3d.interface';
 import { ModelViewerComponent } from '../../components/model-viewer/model-viewer.component';
 import { QrCodeComponent } from '../../components/qr-code/qr-code.component';
+import { MessagingComponent } from '../../components/messaging/messaging.component';
 import { GlobalCleanupService } from '../../../../core/services/global-cleanup.service';
 import { AnalyticsService } from '../../../../core/services/analytics.service';
 import { AuthService } from '../../../../auth/services/auth.service';
@@ -17,7 +18,7 @@ import { AuthService } from '../../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-product-detail',
-  imports: [CommonModule, ModelViewerComponent, QrCodeComponent],
+  imports: [CommonModule, ModelViewerComponent, QrCodeComponent, MessagingComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './product-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush

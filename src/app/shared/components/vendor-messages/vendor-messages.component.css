@@ -1,0 +1,145 @@
+.vendor-messages-container {
+  min-height: 100vh;
+}
+
+/* Animaciones suaves */
+.transition-colors {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Estilos para el spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Hover effects */
+.hover\:bg-gray-50:hover {
+  background-color: #f9fafb;
+}
+
+.hover\:text-gray-800:hover {
+  color: #1f2937;
+}
+
+.hover\:text-gray-600:hover {
+  color: #4b5563;
+}
+
+.hover\:text-blue-700:hover {
+  color: #1d4ed8;
+}
+
+.hover\:text-red-700:hover {
+  color: #b91c1c;
+}
+
+/* Custom scrollbar for message list */
+.message-list {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.message-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.message-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.message-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.message-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Badge for unread messages */
+.unread-badge {
+  position: relative;
+}
+
+.unread-badge::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+/* Message bubble styling */
+.message-content {
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .grid-cols-1.lg\:grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+  
+  .lg\:col-span-1,
+  .lg\:col-span-2 {
+    grid-column: span 1;
+  }
+}
+
+/* Focus states */
+button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Card shadows */
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Border utilities */
+.border-l-4 {
+  border-left-width: 4px;
+}
+
+.border-l-blue-500 {
+  border-left-color: #3b82f6;
+}
+
+/* Prose styling for message content */
+.prose {
+  color: #374151;
+  max-width: none;
+}
+
+.prose h4 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.prose p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+/* Whitespace preservation */
+.whitespace-pre-wrap {
+  white-space: pre-wrap;
+}

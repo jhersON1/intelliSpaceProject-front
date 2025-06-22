@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, inject, computed, effect } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, inject, computed, effect, signal, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../auth/services/auth.service';
+import { MessagingService } from '../../services/messaging.service';
 import { NotificationPanelComponent } from '../notification-panel/notification-panel.component';
 import { AiSearchComponent } from '../ai-search/ai-search.component';
+import { Subject, takeUntil, interval } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
@@ -13,9 +15,14 @@ import { AiSearchComponent } from '../ai-search/ai-search.component';
   styleUrls: ['./navbar.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class NavbarComponent {  private authService = inject(AuthService);
+export class NavbarComponent implements OnInit, OnDestroy {
+  private authService = inject(AuthService);
+  private messagingService = inject(MessagingService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
+
+  unreadMessagesCount = signal(0);
 
   public readonly isAuthenticated = computed(() => {
     try {
@@ -54,8 +61,7 @@ export class NavbarComponent {  private authService = inject(AuthService);
   private lastScrollTop = 0;
 
   isMobileMenuOpen = false;
-  isMobileSearchOpen = false;constructor() {
-
+  isMobileSearchOpen = false;  constructor() {
     effect(() => {
       const isAuth = this.isAuthenticated();
       const isVend = this.isVendor();
@@ -64,7 +70,48 @@ export class NavbarComponent {  private authService = inject(AuthService);
       // Forzar detección de cambios cuando cambien los valores
       console.log('Navbar effect triggered:', { isAuth, isVend, user });
       this.cdr.markForCheck();
+
+      // Cargar conteo de mensajes si es vendor
+      if (isAuth && isVend) {
+        this.loadUnreadMessagesCount();
+      } else {
+        this.unreadMessagesCount.set(0);
+      }
     });
+  }
+
+  ngOnInit() {
+    // Cargar conteo inicial si es vendor
+    if (this.isAuthenticated() && this.isVendor()) {
+      this.loadUnreadMessagesCount();
+      
+      // Actualizar cada 30 segundos
+      interval(30000)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          if (this.isAuthenticated() && this.isVendor()) {
+            this.loadUnreadMessagesCount();
+          }
+        });
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadUnreadMessagesCount() {
+    this.messagingService.getUnreadCount()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.unreadMessagesCount.set(response.count);
+        },
+        error: (error) => {
+          console.error('Error loading unread messages count:', error);
+        }
+      });
   }
 
   @HostListener('window:scroll', [])
@@ -113,12 +160,19 @@ export class NavbarComponent {  private authService = inject(AuthService);
     this.isMobileSearchOpen = false;
     this.isMobileMenuOpen = false;
   }
-
   /**
    * Maneja cuando se limpia la búsqueda desde el navbar
    */
   onSearchCleared(): void {
     // Opcional: podrías navegar de vuelta a la página inicial o mantener los productos normales
     console.log('🧹 Búsqueda limpiada desde navbar');
+  }
+
+  /**
+   * Navegar a la página de mensajes del vendor
+   */
+  navigateToMessages(): void {
+    this.router.navigate(['/home/vendor/messages']);
+    this.isMobileMenuOpen = false;
   }
 }

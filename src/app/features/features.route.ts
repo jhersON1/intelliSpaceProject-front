@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { isAuthenticatedGuard, isVendorGuard } from '../auth/guards';
+import { isAuthenticatedGuard, isVendorGuard, isConsumerGuard } from '../auth/guards';
 
 export const featureRoutes = [
     {
@@ -37,10 +37,17 @@ export const featureRoutes = [
         path: 'vendor/analytics/advanced/:id',
         loadComponent: () => import('./analytics/pages/advanced-analytics-dashboard/advanced-analytics-dashboard.component').then(m => m.AdvancedAnalyticsDashboardComponent),
         canActivate: [isAuthenticatedGuard, isVendorGuard], // Ruta protegida - analytics avanzado para vendedores
-    },
-    {
+    },    {
         path: 'vendor/analytics/export',
         loadComponent: () => import('./analytics/pages/export-dashboard/export-dashboard.component').then(m => m.ExportDashboardComponent),
         canActivate: [isAuthenticatedGuard, isVendorGuard], // Ruta protegida - exportación de reportes para vendedores
+    },    {
+        path: 'vendor/messages',
+        loadComponent: () => import('../shared/components/vendor-messages/vendor-messages.component').then(m => m.VendorMessagesComponent),
+        canActivate: [isAuthenticatedGuard, isVendorGuard], // Ruta protegida - mensajes para vendedores
+    },    {
+        path: 'my-messages',
+        loadComponent: () => import('../shared/components/consumer-messages/consumer-messages.component').then(m => m.ConsumerMessagesComponent),
+        canActivate: [isAuthenticatedGuard, isConsumerGuard], // Ruta protegida - mensajes para consumers
     }
 ]
