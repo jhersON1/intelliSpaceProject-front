@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { catchError, forkJoin, of, Subject, takeUntil, switchMap, debounceTime, Observable, map } from 'rxjs';
 
 import { Product } from '../../interfaces/product.interface';
@@ -14,6 +14,8 @@ import { LoggerService } from '../../../../core/services';
 import { AnalyticsService } from '../../../../core/services/analytics.service';
 import { AuthService } from '../../../../auth/services/auth.service';
 import { ProductAnalytics } from '../../../../core/types/analytics.interface';
+// 🆕 Import semantic search service
+import { SemanticSearchService } from '../../../../core/services/semantic-search.service';
 
 import { ProductGridComponent, ProductWithImage, PaginationData } from '../../components/product-grid/product-grid.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
@@ -26,28 +28,77 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
   imports: [CommonModule, FormsModule, ProductGridComponent, LoadingStateComponent],  template: `
     <div class="container mx-auto px-4 py-8">      <div class="mb-8 flex justify-between items-center">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">Productos Disponibles</h1>
-          <p class="text-gray-600">Descubre nuestra colección de productos</p>
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            @if (isSemanticSearchActive()) {
+              <span class="text-indigo-600">🤖 Resultados de IA</span>
+            } @else {
+              Productos Disponibles
+            }
+          </h1>
+          <p class="text-gray-600">
+            @if (isSemanticSearchActive()) {
+              Productos encontrados para: "<span class="font-medium text-indigo-700">{{ semanticSearchQuery() }}</span>"
+            } @else {
+              Descubre nuestra colección de productos
+            }
+          </p>
         </div>
-        
-        <!-- Botón de actualizar para demostrar el caché -->
+          <!-- Botón de actualizar para demostrar el caché -->
         <button 
           (click)="refreshProducts()"
-          [disabled]="isLoading()"
+          [disabled]="isLoading() || isSemanticSearching()"
           class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-          @if (isLoading()) {
+          @if (isLoading() || isSemanticSearching()) {
             <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
               <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" class="opacity-75"></path>
             </svg>
           } @else {
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+            @if (isSemanticSearchActive()) {
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            } @else {
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            }
           }
-          Actualizar
-        </button>
-      </div>
+          @if (isSemanticSearchActive()) {
+            Volver a Todos
+          } @else {
+            Actualizar
+          }
+        </button>      </div>
+
+      <!-- 🆕 Banner de búsqueda semántica activa -->
+      @if (isSemanticSearchActive()) {
+        <div class="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                </svg>
+                <span class="text-sm font-medium text-indigo-800">Búsqueda Inteligente Activa</span>
+              </div>
+              <div class="hidden sm:block text-sm text-indigo-700">
+                Mostrando productos relacionados con: <span class="font-semibold">"{{ semanticSearchQuery() }}"</span>
+              </div>
+            </div>
+            <button 
+              (click)="refreshProducts()"
+              class="px-3 py-1.5 bg-white/70 hover:bg-white text-indigo-700 text-sm font-medium rounded-md transition-colors duration-200 border border-indigo-200">
+              Ver todos los productos
+            </button>
+          </div>
+          <!-- Mobile query display -->
+          <div class="sm:hidden mt-2 text-sm text-indigo-700">
+            Mostrando resultados para: <span class="font-semibold">"{{ semanticSearchQuery() }}"</span>
+          </div>
+        </div>
+      }
 
       <!-- Analytics Controls -->
       <div class="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
@@ -125,11 +176,15 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
 })
 export class ProductListComponent implements OnInit, OnDestroy {  private readonly productService = inject(ProductsService);
   private readonly visualService = inject(VisualRepresentationService);
-  private readonly router = inject(Router);  private readonly loadingState = inject(LoadingStateService);
+  private readonly router = inject(Router);  
+  private readonly route = inject(ActivatedRoute);
+  private readonly loadingState = inject(LoadingStateService);
   private readonly notificationState = inject(NotificationStateService);
   private readonly logger = inject(LoggerService);
   private readonly analyticsService = inject(AnalyticsService);
   private readonly authService = inject(AuthService);
+  // 🆕 Inject semantic search service
+  private readonly semanticSearchService = inject(SemanticSearchService);
 
   // Subject para manejo de suscripciones
   private readonly destroy$ = new Subject<void>();
@@ -146,13 +201,17 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
   private readonly _hasError = signal(false);
   private readonly _sortBy = signal<'default' | 'popularity' | 'congestion' | 'alphabetic'>('default');
   private readonly _filterBy = signal<'all' | 'critical' | 'stable' | 'warning'>('all');
-
   // Signals computadas públicas
   public readonly productsWithImages = computed(() => this._productsWithImages());
   public readonly isLoading = computed(() => this.loadingState.isLoadingOperation('loadProducts'));
   public readonly hasError = computed(() => this._hasError());
   public readonly sortBy = computed(() => this._sortBy());
   public readonly filterBy = computed(() => this._filterBy());
+  
+  // 🆕 Semantic search computed signals
+  public readonly isSemanticSearchActive = computed(() => this.semanticSearchService.hasActiveSearch());
+  public readonly semanticSearchQuery = computed(() => this.semanticSearchService.lastSearchQuery());
+  public readonly isSemanticSearching = computed(() => this.semanticSearchService.isSearching());
   
   // Analytics computed signals
   public readonly analyticsEnabled = computed(() => this._productAnalytics().size > 0);
@@ -182,10 +241,31 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
   });
 
   // Configuración
-  private readonly pageSize = 10;
-  ngOnInit(): void {
+  private readonly pageSize = 10;  ngOnInit(): void {
     this.setupPageChangeHandler();
-    this.loadProducts();
+    this.setupRouteListener();
+    
+    // Carga inicial
+    if (this.semanticSearchService.hasActiveSearch()) {
+      this.logger.info('🤖 Búsqueda semántica activa detectada en init, cargando resultados');
+      this.loadSemanticSearchResults();
+    } else {
+      this.loadProducts();
+    }
+  }
+
+  /**
+   * Configura el listener para cambios en los query params de la ruta
+   */
+  private setupRouteListener(): void {
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        if (params['refresh']) {
+          this.logger.info('🔄 Refresco solicitado desde ruta');
+          this.refreshForSemanticSearch();
+        }
+      });
   }
 
   ngOnDestroy(): void {
@@ -217,11 +297,17 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
           this.notificationState.error('Error al cambiar de página. Por favor, inténtalo de nuevo.');
         }
       });
-  }
-  /**
+  }  /**
    * Refresca los productos limpiando el caché
    */
   refreshProducts(): void {
+    // 🆕 Si hay una búsqueda semántica activa, limpiarla y volver a productos normales
+    if (this.semanticSearchService.hasActiveSearch()) {
+      this.logger.info('🧹 Limpiando búsqueda semántica y volviendo a productos normales');
+      this.semanticSearchService.clearSearch();
+      this.notificationState.info('🔄 Volviendo a mostrar todos los productos disponibles');
+    }
+    
     // Invalidar caché de productos para forzar nueva carga
     const pattern = /^products_/;
     const invalidatedCount = this.productService['cacheService'].invalidatePattern(pattern);
@@ -231,7 +317,7 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
     this.loadProducts();
     this.loadProductAnalytics(); // Agregar carga de analytics
     this.notificationState.success('Productos actualizados desde el servidor');
-  }  /**
+  }/**
    * Carga los productos (versión síncrona para uso interno)
    */
   private loadProducts(): void {
@@ -553,6 +639,47 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
   }
 
   /**
+   * 🆕 Carga y procesa los resultados de búsqueda semántica
+   */
+  private loadSemanticSearchResults(): void {
+    const semanticResults = this.semanticSearchService.lastSearchResults();
+    
+    if (semanticResults.length === 0) {
+      this.logger.warn('⚠️ No hay resultados de búsqueda semántica para cargar');
+      this.resetProductState();
+      return;
+    }
+
+    this.logger.info('🤖 Procesando resultados de búsqueda semántica', { 
+      count: semanticResults.length 
+    });
+
+    // Extraer productos de los resultados semánticos
+    const products = semanticResults.map(result => result.product);
+    
+    // Actualizar signals básicos
+    this._products.set(products);
+    this._totalItems.set(products.length);
+    this._hasMore.set(false); // Los resultados semánticos no tienen paginación
+    this._currentPage.set(1);
+    this.calculateTotalPages();
+    
+    // Cargar imágenes para los productos encontrados
+    this.loadProductsWithImagesObservable(products)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.logger.info('✅ Resultados de búsqueda semántica cargados con imágenes');
+          // Cargar analytics si está autenticado
+          this.loadProductAnalytics();
+        },
+        error: (error) => {
+          this.logger.error('❌ Error al cargar imágenes para resultados semánticos', error);
+        }
+      });
+  }
+
+  /**
    * ✅ MÉTODO DE TRACKING: Registra clicks en productos desde la lista
    * Implementa la fundamentación teórica: λ = clicks/día
    */
@@ -581,5 +708,18 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
         });
       }
     });
+  }
+
+  /**
+   * 🆕 Método público para refrescar la vista cuando cambia la búsqueda semántica
+   */
+  public refreshForSemanticSearch(): void {
+    if (this.semanticSearchService.hasActiveSearch()) {
+      this.logger.info('🔄 Refrescando vista para nueva búsqueda semántica');
+      this.loadSemanticSearchResults();
+    } else {
+      this.logger.info('🔄 Refrescando vista a productos normales');
+      this.loadProducts();
+    }
   }
 }
