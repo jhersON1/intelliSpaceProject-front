@@ -12,6 +12,10 @@ export const routes: Routes = [
         // No usar guard aquí - las rutas individuales de auth manejan sus propios guards
     },
     {
+        path: 'admin',
+        loadChildren: () => import('./admin/admin.routes').then(m => m.adminRoutes),
+    },
+    {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full'

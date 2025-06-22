@@ -31,4 +31,9 @@ export const API_ROUTES = {
   ANALYTICS_CRITICAL_PRODUCTS: '/analytics/critical-products',
   ANALYTICS_VENDOR_DASHBOARD: '/analytics/vendor-dashboard',  ANALYTICS_RECALCULATE_METRICS: '/analytics/recalculate-metrics',
   ANALYTICS_INITIALIZE_PRODUCTS: '/analytics/initialize-products',
+
+  // Admin/Logs endpoints
+  ADMIN_LOGS: '/admin/logs',
+  ADMIN_LOGS_STATS: '/admin/logs/stats',
+  ADMIN_LOGS_RESOLVE: '/admin/logs',
 } as const;

@@ -32,7 +32,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       return false;
     }
   });
-    public readonly isVendor = computed(() => {
+  public readonly isVendor = computed(() => {
     try {
       const authenticated = this.authService.isAuthenticated();
       const vendor = this.authService.isVendor();
@@ -44,6 +44,19 @@ export class NavbarComponent implements OnInit, OnDestroy {
       return result;
     } catch (error) {
       console.warn('Error evaluating isVendor:', error);
+      return false;
+    }
+  });
+
+  public readonly isAdmin = computed(() => {
+    try {
+      const authenticated = this.authService.isAuthenticated();
+      const admin = this.authService.isAdmin();
+      const result = authenticated && admin;
+      
+      return result;
+    } catch (error) {
+      console.warn('Error evaluating isAdmin:', error);
       return false;
     }
   });

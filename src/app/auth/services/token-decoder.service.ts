@@ -22,6 +22,17 @@ export class TokenDecoderService {
       return { success: false, error: 'No token available' };
     }
 
+    return this.decodeToken(token);
+  }
+
+  /**
+   * Decodifica un token JWT específico
+   */
+  decodeToken(token: string): TokenDecodeResult {
+    if (!token) {
+      return { success: false, error: 'No token provided' };
+    }
+
     try {
       const parts = token.split('.');
       if (parts.length !== 3) {
@@ -55,10 +66,19 @@ export class TokenDecoderService {
         this.logger.warn('No se encontró rol en el token válido', {}, 'TokenDecoderService');
       }
       return null;
-    }    // Retornar el rol tal como viene del token
+    }
+
+    // Retornar el rol tal como viene del token (como string)
     const roleString = result.payload.rol;
     console.log('TokenDecoderService: Role from token:', { roleString, type: typeof roleString });
-    return roleString as userRole;
+    
+    // Validar que sea un rol válido
+    if (roleString === 'ADMIN' || roleString === 'VENDOR' || roleString === 'CONSUMER') {
+      return roleString as userRole;
+    }
+    
+    console.warn('TokenDecoderService: Invalid role from token:', roleString);
+    return null;
   }
 
   /**

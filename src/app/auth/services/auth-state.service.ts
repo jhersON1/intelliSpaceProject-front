@@ -40,13 +40,20 @@ export class AuthStateService {
     });
     
     return !!result;
-  });
-    public readonly isConsumer = computed(() => {
+  });    public readonly isConsumer = computed(() => {
     const user = this._currentUser();
     if (!user || !user.role) {
       return false;
     }
     return user.role === 'CONSUMER'; // Comparar con string directamente
+  });
+
+  public readonly isAdmin = computed(() => {
+    const user = this._currentUser();
+    if (!user || !user.role) {
+      return false;
+    }
+    return user.role === 'ADMIN'; // Comparar con string directamente
   });
   /**
    * Establece el usuario autenticado y cambia el estado a autenticado

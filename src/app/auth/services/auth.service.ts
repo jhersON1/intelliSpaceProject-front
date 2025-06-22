@@ -23,13 +23,13 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
   private readonly tokenDecoder = inject(TokenDecoderService);
   private readonly globalCleanup = inject(GlobalCleanupService);
   private readonly logger = inject(LoggerService);
-  private readonly destroyRef = inject(DestroyRef);
-  // Exponer propiedades del estado como computed signals
+  private readonly destroyRef = inject(DestroyRef);  // Exponer propiedades del estado como computed signals
   public readonly currentUser = this.authState.currentUser;
   public readonly authStatus = this.authState.authStatus;
   public readonly isAuthenticated = this.authState.isAuthenticated;
   public readonly isVendor = this.authState.isVendor;
-  public readonly isConsumer = this.authState.isConsumer;  constructor() {
+  public readonly isConsumer = this.authState.isConsumer;
+  public readonly isAdmin = this.authState.isAdmin;constructor() {
     // Inicialización inmediata pero segura
     this.initializeAuthState();
   }
@@ -100,34 +100,51 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
           token: response?.token ? 'present' : 'missing' 
         }, 'AuthService.login');
       }),
-      map((response) => {
+      map((response) => {        // Validación básica - solo requerimos id, email y token
         if (!response?.id || !response?.email || !response?.token) {
           this.logger.error('Respuesta de login inválida', { 
             hasId: !!response?.id, 
             hasEmail: !!response?.email,
             hasRole: !!response?.role,
-            hasToken: !!response?.token 
+            hasToken: !!response?.token,
+            roleValue: response?.role,
+            fullResponse: response
           }, 'AuthService.login');
-          throw new Error('Respuesta de login inválida');
+          throw new Error('Respuesta de login inválida - falta información requerida');
         }        console.log('AuthService: Raw login response:', {
           response: response,
           hasRole: 'role' in response,
           roleValue: response.role,
           roleType: typeof response.role,
           allKeys: Object.keys(response || {})
+        });        // Extraer el rol del token JWT ya que el backend no lo envía en la respuesta
+        const tokenPayload = this.tokenDecoder.decodeToken(response.token);
+        const roleFromToken = tokenPayload?.success ? tokenPayload.payload?.rol : null;
+
+        console.log('AuthService: Role from token:', {
+          tokenDecoded: !!tokenPayload?.success,
+          roleFromToken: roleFromToken,
+          tokenPayload: tokenPayload?.success ? tokenPayload.payload : 'Failed to decode'
         });
 
-        // Crear objeto User desde la respuesta (manteniendo el tipo string)
-        // Usar 'VENDOR' como default si no viene rol (para testing)
+        // Validar que el rol sea válido
+        const validRole = (roleFromToken === 'ADMIN' || roleFromToken === 'VENDOR' || roleFromToken === 'CONSUMER') 
+          ? roleFromToken 
+          : 'CONSUMER';
+
+        // Crear objeto User desde la respuesta + token
         const user: User = {
           id: response.id,
           email: response.email,
-          role: response.role || 'VENDOR' // Default a VENDOR para testing
+          role: validRole // Usar rol validado del token
         };
         
         console.log('AuthService: Created user object:', {
           user: user,
-          isVendorCheck: user.role === 'VENDOR'
+          actualRole: user.role,
+          isVendorCheck: user.role === 'VENDOR',
+          isConsumerCheck: user.role === 'CONSUMER',
+          isAdminCheck: user.role === 'ADMIN'
         });
         
         return this.setAuthentication(user, response.token);
