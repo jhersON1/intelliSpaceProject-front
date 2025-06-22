@@ -59,21 +59,13 @@
       </div>
 
       <!-- Right side actions -->
-      <div class="flex items-center space-x-2 sm:space-x-3">
-
-        <!-- Desktop Search -->
+      <div class="flex items-center space-x-2 sm:space-x-3">        <!-- Desktop AI Search -->
         <div class="hidden md:block relative">
-          <div class="bg-orange-50/40 rounded-[50px] shadow-sm outline outline-black/50 flex items-center px-3">
-            <input type="text" placeholder="Buscar..."
-              class="py-1.5 bg-transparent text-black/60 text-sm lg:text-base font-normal font-['Montserrat'] leading-snug tracking-tight focus:outline-none w-full max-w-32 lg:max-w-48" />
-            <button type="button" class="ml-1 p-1 hover:bg-gray-100 rounded-full transition-colors duration-200">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
-          </div>
+          <app-ai-search 
+            placeholder="🤖Ej. Quiero un sofá cómodo"
+            (searchPerformed)="onSearchPerformed()"
+            (searchCleared)="onSearchCleared()">
+          </app-ai-search>
         </div>
 
         <!-- Mobile Search Button -->
@@ -117,22 +109,15 @@
           }
         </button>
       </div>
-    </div>
-
-    <!-- Mobile Search Bar -->
+    </div>    <!-- Mobile AI Search Bar -->
     @if(isMobileSearchOpen){
       <div class="md:hidden mt-3 px-1 transition-all duration-300 ease-in-out">
-        <div class="bg-orange-50/40 rounded-[50px] shadow-sm outline-1 outline-black/50 flex items-center px-4">
-          <input type="text" placeholder="Buscar productos..."
-            class="py-2.5 bg-transparent text-black/60 text-base font-normal font-['Montserrat'] focus:outline-none w-full" />
-          <button type="button" class="ml-2 p-1 hover:bg-gray-100 rounded-full transition-colors duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-        </div>
+        <app-ai-search 
+          placeholder="🤖 Buscar con IA + Enter..."
+          [isMobile]="true"
+          (searchPerformed)="onSearchPerformed()"
+          (searchCleared)="onSearchCleared()">
+        </app-ai-search>
       </div>
     }
 

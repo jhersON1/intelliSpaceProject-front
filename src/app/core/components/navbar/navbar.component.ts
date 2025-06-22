@@ -3,11 +3,12 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../auth/services/auth.service';
 import { NotificationPanelComponent } from '../notification-panel/notification-panel.component';
+import { AiSearchComponent } from '../ai-search/ai-search.component';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, NotificationPanelComponent],
+  imports: [CommonModule, NotificationPanelComponent, AiSearchComponent],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -93,13 +94,31 @@ export class NavbarComponent {  private authService = inject(AuthService);
     if (this.isMobileSearchOpen) {
       this.isMobileMenuOpen = false;
     }
-  }
-  logout(): void {
+  }  logout(): void {
     this.authService.logout();
     this.isMobileMenuOpen = false;
     
     setTimeout(() => {
       this.router.navigate(['/home']);
     }, 100);
+  }
+  /**
+   * Maneja cuando se realiza una búsqueda desde el navbar
+   */
+  onSearchPerformed(): void {
+    // Navegar a la página de productos con un parámetro que indique refrescar
+    this.router.navigate(['/home/products'], { 
+      queryParams: { refresh: Date.now() } // Usar timestamp para forzar refresco
+    });
+    this.isMobileSearchOpen = false;
+    this.isMobileMenuOpen = false;
+  }
+
+  /**
+   * Maneja cuando se limpia la búsqueda desde el navbar
+   */
+  onSearchCleared(): void {
+    // Opcional: podrías navegar de vuelta a la página inicial o mantener los productos normales
+    console.log('🧹 Búsqueda limpiada desde navbar');
   }
 }
