@@ -69,9 +69,7 @@ export class RegisterComponent {
             }
           });
       }
-    });
-
-    this.registrationForm.get('role')?.valueChanges
+    });    this.registrationForm.get('rol')?.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(newRole => {
         if (newRole) {
@@ -176,7 +174,6 @@ export class RegisterComponent {
       return;
     }
   }
-
   onSubmit(): void {
     this.formSubmitted.set(true);
     this.markAllAsTouched();
@@ -184,10 +181,19 @@ export class RegisterComponent {
 
     if (this.registrationForm.valid && !this.passwordsDontMatch()) {
       const { confirmPassword, ...body } = this.registrationForm.value;
-      console.log(body);
+      
+      // Debug: log para verificar qué se está enviando
+      console.log('🔍 DEBUG - Datos del formulario antes de enviar:', {
+        formValue: this.registrationForm.value,
+        bodyToSend: body,
+        currentRole: this.currentRole(),
+        isConsumer: this.isConsumer(),
+        isVendor: this.isVendor()
+      });
 
       this.authService.register(body as CreateUser).subscribe({
         next: () => {
+          console.log('✅ Registro exitoso');
           this.formSubmitted.set(false);
           this.registrationForm.reset();
           this.fieldErrors.set({});
@@ -195,10 +201,16 @@ export class RegisterComponent {
           this.router.navigate(['/home']);
         },
         error: (err) => {
-          console.error(err);
+          console.error('❌ Error en registro:', err);
           this.fieldErrors.set({ general: true });
         }
       })
+    } else {
+      console.log('🚫 Formulario inválido:', {
+        formErrors: this.registrationForm.errors,
+        passwordMatch: !this.passwordsDontMatch(),
+        formValid: this.registrationForm.valid
+      });
     }
   }
 

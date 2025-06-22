@@ -1,0 +1,70 @@
+.messaging-section {
+  transition: all 0.3s ease-in-out;
+}
+
+.messaging-section:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* Animación suave para el botón de envío */
+button[type="submit"]:disabled {
+  transform: none;
+}
+
+button[type="submit"]:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+/* Estilos para el textarea */
+textarea {
+  font-family: inherit;
+}
+
+/* Animación del spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Estados de focus mejorados */
+input:focus,
+textarea:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Estilos para los mensajes de estado */
+.bg-green-50 {
+  background-color: #f0fdf4;
+}
+
+.bg-red-50 {
+  background-color: #fef2f2;
+}
+
+/* Transiciones suaves */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+.transition-colors {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}

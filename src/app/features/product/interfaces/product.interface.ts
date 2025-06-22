@@ -17,6 +17,13 @@ export interface Product {
   state: ProductStatus;
   keywords?: string[];
   idCategory: string[];
+  vendor?: {
+    id: string;
+    name: string;
+    lastname: string;
+    nameBusiness: string;
+    email: string;
+  };
 }
 
 export interface CreateProduct {
