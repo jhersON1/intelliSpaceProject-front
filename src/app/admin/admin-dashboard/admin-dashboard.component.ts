@@ -290,13 +290,24 @@ import { SystemLog, LogStats, LogFilters } from '../../shared/interfaces/logs.in
                           </button>
                         }
                       </td>
-                    </tr>
-                    @if (showDetails[log.id] && log.details) {
+                    </tr>                    @if (showDetails[log.id] && log.details) {
                       <tr>
                         <td colspan="6" class="px-6 py-4 bg-gray-50">
                           <div class="text-sm">
                             <h4 class="font-medium text-gray-900 mb-2">Detalles técnicos:</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              @if (log.traceId) {
+                                <div>
+                                  <span class="font-medium text-gray-700">Trace ID:</span>
+                                  <span class="ml-2 text-gray-600 font-mono text-xs">{{ log.traceId }}</span>
+                                </div>
+                              }
+                              @if (log.businessContext) {
+                                <div>
+                                  <span class="font-medium text-gray-700">Contexto:</span>
+                                  <span class="ml-2 text-gray-600">{{ log.businessContext }}</span>
+                                </div>
+                              }
                               @if (log.endpoint) {
                                 <div>
                                   <span class="font-medium text-gray-700">Endpoint:</span>
@@ -315,6 +326,24 @@ import { SystemLog, LogStats, LogFilters } from '../../shared/interfaces/logs.in
                                   <span class="ml-2 text-gray-600">{{ log.userId }}</span>
                                 </div>
                               }
+                              @if (log.userRole) {
+                                <div>
+                                  <span class="font-medium text-gray-700">Rol:</span>
+                                  <span class="ml-2 text-gray-600 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">{{ log.userRole }}</span>
+                                </div>
+                              }
+                              @if (log.entityIds && Object.keys(log.entityIds).length > 0) {
+                                <div class="md:col-span-2">
+                                  <span class="font-medium text-gray-700">Entidades involucradas:</span>
+                                  <div class="ml-2 mt-1">
+                                    @for (entity of Object.entries(log.entityIds); track entity[0]) {
+                                      <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded mr-2 mb-1">
+                                        {{ entity[0] }}: {{ entity[1] }}
+                                      </span>
+                                    }
+                                  </div>
+                                </div>
+                              }
                               @if (log.userAgent) {
                                 <div class="md:col-span-2">
                                   <span class="font-medium text-gray-700">User Agent:</span>
@@ -322,6 +351,18 @@ import { SystemLog, LogStats, LogFilters } from '../../shared/interfaces/logs.in
                                 </div>
                               }
                             </div>
+                            @if (log.stackTrace) {
+                              <div class="mt-4">
+                                <span class="font-medium text-gray-700">Stack Trace:</span>
+                                <pre class="mt-2 bg-red-50 p-3 rounded text-xs overflow-x-auto text-red-800 border border-red-200">{{ log.stackTrace }}</pre>
+                              </div>
+                            }
+                            @if (log.errorContext && typeof log.errorContext === 'object') {
+                              <div class="mt-4">
+                                <span class="font-medium text-gray-700">Contexto del error:</span>
+                                <pre class="mt-2 bg-orange-50 p-3 rounded text-xs overflow-x-auto text-orange-800 border border-orange-200">{{ formatDetails(log.errorContext) }}</pre>
+                              </div>
+                            }
                             @if (log.details && typeof log.details === 'object') {
                               <div class="mt-4">
                                 <span class="font-medium text-gray-700">Detalles adicionales:</span>
@@ -593,7 +634,6 @@ export class AdminDashboardComponent implements OnInit {
       second: '2-digit'
     });
   }
-
   formatDetails(details: any): string {
     try {
       return JSON.stringify(details, null, 2);
@@ -601,4 +641,7 @@ export class AdminDashboardComponent implements OnInit {
       return String(details);
     }
   }
+
+  // Método para usar Object.entries en el template
+  Object = Object;
 }

@@ -1,5 +1,6 @@
 export interface SystemLog {
   id: string;
+  traceId: string;
   level: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
   message: string;
   context?: string;
@@ -9,6 +10,11 @@ export interface SystemLog {
   endpoint?: string;
   method?: string;
   userId?: string;
+  userRole?: string;
+  businessContext?: string;
+  entityIds?: Record<string, any>;
+  stackTrace?: string;
+  errorContext?: Record<string, any>;
   timestamp: Date;
   resolved: boolean;
   resolvedAt?: Date;
