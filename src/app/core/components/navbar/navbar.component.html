@@ -41,10 +41,17 @@
             </a>            <a href="#/home/vendor/analytics"
               class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
               Analytics
-            </a>
-            <a href="#/home/vendor/analytics/export"
+            </a>            <a href="#/home/vendor/analytics/export"
               class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
               Reportes
+            </a>
+          }
+
+          <!-- Mostrar opciones de admin solo si está autenticado Y es admin -->
+          @if (isAuthenticated() && isAdmin()) {
+            <a href="#/admin/dashboard"
+              class="text-purple-600 text-sm lg:text-base font-medium font-['Poppins'] leading-normal hover:border-b hover:border-purple-600/50 transition-all duration-200">
+              🔧 Admin Dashboard
             </a>
           }
           
@@ -180,8 +187,15 @@
               @if (unreadMessagesCount() > 0) {
                 <span class="ml-2 bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full">
                   {{ unreadMessagesCount() }}
-                </span>
-              }            </button>
+                </span>              }            </button>
+          }
+
+          <!-- Opciones de admin solo si está autenticado Y es admin -->
+          @if (isAuthenticated() && isAdmin()) {
+            <a href="#/admin/dashboard"
+              class="block py-3 px-4 text-purple-600 text-base font-medium font-['Poppins'] leading-normal hover:bg-purple-50 rounded-lg transition-colors duration-200">
+              🔧 Admin Dashboard
+            </a>
           }
           
           <!-- Opciones para consumers autenticados -->

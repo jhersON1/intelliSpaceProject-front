@@ -1,6 +1,7 @@
 export enum userRole{
     CONSUMER = 'CONSUMER',
     VENDOR = 'VENDOR',
+    ADMIN = 'ADMIN',
 }
 
 export enum sellerType{

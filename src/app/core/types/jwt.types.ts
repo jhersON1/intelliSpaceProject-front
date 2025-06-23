@@ -6,7 +6,7 @@ import { userRole } from '../../auth/interfaces';
 export interface JwtPayload {
   id: string;
   email: string;
-  rol: userRole;
+  rol: string; // El backend envía como string
   exp: number;
   iat?: number;
 }
@@ -17,7 +17,7 @@ export interface JwtPayload {
 export interface TokenUserInfo {
   id: string;
   email: string;
-  rol: userRole;
+  rol: string; // El backend envía como string
 }
 
 /**
