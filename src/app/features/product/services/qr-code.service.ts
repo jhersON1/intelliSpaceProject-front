@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
+import { environment } from '@environments/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class QRCodeService {
+  private readonly baseUrl: string = environment.baseUrl;
 
   generateQRCode(url: string): string {
     try {
@@ -21,13 +23,13 @@ export class QRCodeService {
     const size = 200;
     const modules = 25; // 25x25 grid for QR
     const moduleSize = size / modules;
-    
+
     // Simple deterministic pattern based on text hash
     const hash = this.simpleHash(text);
-    
+
     let svgContent = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">`;
     svgContent += `<rect width="${size}" height="${size}" fill="white"/>`;
-    
+
     // Generate pattern based on hash
     for (let y = 0; y < modules; y++) {
       for (let x = 0; x < modules; x++) {
@@ -39,12 +41,12 @@ export class QRCodeService {
         }
       }
     }
-    
+
     // Add corner squares (QR positioning markers)
     this.addPositionMarkers(svgContent, moduleSize, modules);
-    
+
     svgContent += '</svg>';
-    
+
     return `data:image/svg+xml;base64,${btoa(svgContent)}`;
   }
 
@@ -62,28 +64,28 @@ export class QRCodeService {
     // Create a pattern based on position and hash
     const position = y * modules + x;
     const pattern = (hash + position) % 7;
-    
+
     // Corner positioning markers
     if (this.isPositionMarker(x, y, modules)) {
       return this.getPositionMarkerPattern(x, y, modules);
     }
-    
+
     // Data pattern
     return pattern < 3;
   }
 
   private isPositionMarker(x: number, y: number, modules: number): boolean {
     const cornerSize = 7;
-    
+
     // Top-left corner
     if (x < cornerSize && y < cornerSize) return true;
-    
+
     // Top-right corner
     if (x >= modules - cornerSize && y < cornerSize) return true;
-    
+
     // Bottom-left corner
     if (x < cornerSize && y >= modules - cornerSize) return true;
-    
+
     return false;
   }
 
@@ -91,32 +93,32 @@ export class QRCodeService {
     const cornerSize = 7;
     let localX = x;
     let localY = y;
-    
+
     // Adjust coordinates for top-right corner
     if (x >= modules - cornerSize) {
       localX = x - (modules - cornerSize);
     }
-    
+
     // Adjust coordinates for bottom-left corner
     if (y >= modules - cornerSize) {
       localY = y - (modules - cornerSize);
     }
-    
+
     // QR position marker pattern (7x7)
     const pattern = [
-      [1,1,1,1,1,1,1],
-      [1,0,0,0,0,0,1],
-      [1,0,1,1,1,0,1],
-      [1,0,1,1,1,0,1],
-      [1,0,1,1,1,0,1],
-      [1,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1]
+      [1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 0, 0, 0, 1],
+      [1, 0, 1, 1, 1, 0, 1],
+      [1, 0, 1, 1, 1, 0, 1],
+      [1, 0, 1, 1, 1, 0, 1],
+      [1, 0, 0, 0, 0, 0, 1],
+      [1, 1, 1, 1, 1, 1, 1]
     ];
-    
+
     if (localY < pattern.length && localX < pattern[localY].length) {
       return pattern[localY][localX] === 1;
     }
-    
+
     return false;
   }
 
@@ -129,7 +131,7 @@ export class QRCodeService {
     // Canvas-based fallback
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    
+
     if (!ctx) {
       // Ultra-simple fallback - just return a data URL with text
       return `data:image/svg+xml;base64,${btoa(`
@@ -140,19 +142,19 @@ export class QRCodeService {
         </svg>
       `)}`;
     }
-    
+
     canvas.width = 200;
     canvas.height = 200;
-    
+
     // Create a simple pattern
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, 200, 200);
-    
+
     ctx.fillStyle = '#000000';
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 2;
     ctx.strokeRect(10, 10, 180, 180);
-    
+
     // Add some pattern
     for (let i = 0; i < 10; i++) {
       for (let j = 0; j < 10; j++) {
@@ -161,13 +163,12 @@ export class QRCodeService {
         }
       }
     }
-    
+
     return canvas.toDataURL();
   }
 
   generateARUrl(productId: string): string {
-    // URL que apuntará a tu aplicación con parámetros para AR
-    const baseUrl = window.location.origin;
-    return `${baseUrl}/#/home/products/${productId}/detail?mode=ar&mobile=true`;
+
+    return `${this.baseUrl}/#/home/products/${productId}/detail?mode=ar&mobile=true`;
   }
 }
