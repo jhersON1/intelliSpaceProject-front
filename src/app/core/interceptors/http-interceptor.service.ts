@@ -42,6 +42,7 @@ export class HttpInterceptorService implements HttpInterceptor {
     '/analytics/track-click',  // Tracking de clicks es público
     '/analytics/priority-products',  // Lista de productos prioritarios es pública
     '/analytics/critical-products',  // Lista de productos críticos es pública
+    '/analytics/trending-products',  // 🔥 NUEVO: Lista de productos trending es pública
     '/analytics/product/',  // Métricas de productos individuales son públicas
     '/analytics/queue-theory-demo/'  // Demo educativa es pública
   ];
@@ -178,10 +179,21 @@ export class HttpInterceptorService implements HttpInterceptor {
    */
   private isPublicEndpoint(url: string): boolean {
     // ✅ Usar la lista centralizada de endpoints públicos
-    return this.publicEndpoints.some(endpoint => {
+    const isPublic = this.publicEndpoints.some(endpoint => {
       // Verificar coincidencia exacta o si la URL comienza con el endpoint
       return url.includes(endpoint);
     });
+    
+    // 🔍 Debug específico para trending-products
+    if (url.includes('trending-products')) {
+      console.log('🔍 DEBUGGING trending-products endpoint:', {
+        url,
+        isPublic,
+        matchingEndpoints: this.publicEndpoints.filter(endpoint => url.includes(endpoint))
+      });
+    }
+    
+    return isPublic;
   }
 
   /**

@@ -13,7 +13,22 @@
         <p class="text-xl font-light text-black">Find the perfect product</p>
     </div>    <!-- Our Products Section -->
     <div class="container mx-auto px-4 py-12 max-w-8xl">
-        <h2 class="text-3xl md:text-4xl font-normal mb-8">Our products</h2>
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-3xl md:text-4xl font-normal">
+                @if (useTrendingProducts) {
+                    <span class="mr-2">🔥</span>Trending Products
+                } @else {
+                    Our products
+                }
+            </h2>
+            
+            <!-- 🔥 Badge de trending products -->
+            @if (useTrendingProducts) {
+                <div class="bg-gradient-to-r from-orange-100 to-red-100 text-orange-800 px-4 py-2 rounded-full text-sm font-medium border border-orange-200">
+                    ⚡ Powered by Holt-Winters AI
+                </div>
+            }
+        </div>
 
         @if (loading) {
             <div class="flex justify-center items-center py-12">
@@ -23,9 +38,33 @@
             <div class="text-center py-12">
                 <p class="text-gray-500">No hay productos disponibles en este momento.</p>
             </div>
-        } @else {            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        } @else {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @for (product of products; track product.id) {
-                <div class="product-card flex flex-col cursor-pointer" (click)="navigateToProductDetail(product.id)">
+                <div class="product-card flex flex-col cursor-pointer relative" (click)="navigateToProductDetail(product.id)">
+                    <!-- 🔥 Badge de tendencia -->
+                    @if (product.trendLabel && useTrendingProducts) {
+                        <div class="absolute top-4 left-4 z-10">
+                            @if (product.trendLabel.includes('HOT')) {
+                                <span class="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
+                                    🔥 HOT
+                                </span>
+                            } @else if (product.trendLabel.includes('EN TENDENCIA')) {
+                                <span class="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                                    📈 TRENDING
+                                </span>
+                            } @else if (product.trendLabel.includes('ESTABLE')) {
+                                <span class="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
+                                    ➡️ STABLE
+                                </span>
+                            } @else {
+                                <span class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
+                                    📉 DECLINE
+                                </span>
+                            }
+                        </div>
+                    }
+                    
                     <div class="w-full min-w-[280px] h-[450px] overflow-hidden">
                         @if (product.imageUrl) {
                             <img [src]="product.imageUrl" [alt]="product.imageAlt || product.title" class="w-full h-full object-cover object-center opacity-90 transition-transform duration-300 hover:scale-105" />
@@ -36,8 +75,20 @@
                                 </svg>
                             </div>
                         }
-                    </div>                    <h3 class="text-lg md:text-xl font-normal mt-4">{{product.title}}</h3>
-                    <p class="text-sm text-neutral-400">{{product.description || 'Descripción no especificada'}}</p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h3 class="text-lg md:text-xl font-normal">{{product.title}}</h3>
+                        <p class="text-sm text-neutral-400">{{product.description || 'Descripción no especificada'}}</p>
+                        
+                        <!-- 🔥 Información de trending -->
+                        @if (product.trendRanking && useTrendingProducts) {
+                            <div class="mt-2 flex items-center space-x-2">
+                                <span class="text-xs text-gray-500">Trend Score:</span>
+                                <span class="text-xs font-medium text-indigo-600">{{product.trendRanking | number:'1.0-1'}}</span>
+                            </div>
+                        }
+                    </div>
                 </div>
                 }
             </div>

@@ -147,6 +147,40 @@ export interface AlgorithmExplanation {
   estadoActual: string;
 }
 
+// 🔮 NUEVAS INTERFACES PARA HOLT-WINTERS TRENDING PRODUCTS
+export interface HoltWintersComponents {
+  level: number;        // L_t - Nivel ajustado
+  trend: number;        // T_t - Tendencia ajustada  
+  seasonal: number;     // S_t - Estacionalidad ajustada
+  forecast: number;     // Pronóstico para el siguiente período
+  trendRanking: number; // Ranking basado en tendencia
+}
+
+export interface ProductTrendAnalysis {
+  productId: string;
+  productTitle: string;
+  currentComponents: HoltWintersComponents;
+  trendLabel: string; // "🔥 TENDENCIA HOT", "📈 EN TENDENCIA", etc.
+  trendIcon: string;
+  periodsAnalyzed: number;
+  lastUpdate: Date;
+  forecastNextPeriod: number;
+  parameters: {
+    alpha: number;
+    beta: number; 
+    gamma: number;
+    seasonalPeriods: number;
+    trendWeight: number;
+  };
+}
+
+export interface TrendingProductsResponse {
+  total: number;
+  products: ProductTrendAnalysis[];
+  generatedAt: Date;
+  algorithm: string;
+}
+
 // Tipos de utilidad para Analytics
 export type CongestionStatus = 'ESTABLE' | 'ADVERTENCIA' | 'CRITICO';
 export type InteractionType = 'CLICK' | 'VIEW' | 'SEARCH';
