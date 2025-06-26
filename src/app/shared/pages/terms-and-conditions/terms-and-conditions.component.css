@@ -1,0 +1,38 @@
+/* Estilos para términos y condiciones */
+.terms-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+.section-title {
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.subsection-title {
+  color: #4b5563;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.terms-content {
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.highlight {
+  font-weight: 600;
+  color: #374151;
+}
+
+.back-button {
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  transform: translateX(-2px);
+}

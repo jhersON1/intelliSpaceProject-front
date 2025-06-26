@@ -1,3 +1,3 @@
 export const environment = {
-    baseUrl: 'https://intellispaceproject-back-final.onrender.com',
+    baseUrl: 'http://localhost:3500',
 }

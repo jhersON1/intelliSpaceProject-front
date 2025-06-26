@@ -35,15 +35,6 @@
                 }
             </div>
 
-            <div class="mb-6 sm:mb-8">
-                <label class="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" class="form-checkbox rounded-sm h-5 w-5" formControlName="rememberMe" />
-                    <span class="ml-2 text-sm text-gray-600">
-                        Recordarme en este dispositivo
-                    </span>
-                </label>
-            </div>
-
             @if (authError()) {
             <div class="mb-6 p-3 bg-red-50 text-red-600 text-sm rounded-sm border border-red-100">
                 {{ authError() }}
@@ -53,7 +44,8 @@
             <div class="mb-6">
                 <button type="submit"
                     class="w-full bg-gray-800 hover:bg-black active:bg-black text-white font-light py-3 px-4 rounded-sm focus:outline-none touch-manipulation relative"
-                    [disabled]="isAuthenticating()" [ngClass]="{'opacity-50': isAuthenticating()}">
+                    [disabled]="isAuthenticating() || loginForm.invalid" 
+                    [ngClass]="{'opacity-50': isAuthenticating() || loginForm.invalid, 'cursor-not-allowed': loginForm.invalid}">
                     @if (isAuthenticating()) {
                     <span class="flex justify-center items-center">
                         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg"

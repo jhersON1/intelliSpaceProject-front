@@ -9,12 +9,12 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CreateUser, userRole } from '../../interfaces';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 
 @Component({
   selector: 'app-register',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: './register.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -37,7 +37,8 @@ export class RegisterComponent {
     address: [''],
     nameBusiness: [''],
     description: [''],
-    typeVendor: ['']
+    typeVendor: [''],
+    acceptTerms: [false, [Validators.requiredTrue]]
   });
 
   isConsumer = computed(() => this.currentRole() === userRole.CONSUMER);
@@ -180,7 +181,7 @@ export class RegisterComponent {
     this.validateAllFields();
 
     if (this.registrationForm.valid && !this.passwordsDontMatch()) {
-      const { confirmPassword, ...body } = this.registrationForm.value;
+      const { confirmPassword, acceptTerms, ...body } = this.registrationForm.value;
       
       // Debug: log para verificar qué se está enviando
       console.log('🔍 DEBUG - Datos del formulario antes de enviar:', {
@@ -188,7 +189,8 @@ export class RegisterComponent {
         bodyToSend: body,
         currentRole: this.currentRole(),
         isConsumer: this.isConsumer(),
-        isVendor: this.isVendor()
+        isVendor: this.isVendor(),
+        acceptedTerms: acceptTerms
       });
 
       this.authService.register(body as CreateUser).subscribe({
@@ -209,7 +211,8 @@ export class RegisterComponent {
       console.log('🚫 Formulario inválido:', {
         formErrors: this.registrationForm.errors,
         passwordMatch: !this.passwordsDontMatch(),
-        formValid: this.registrationForm.valid
+        formValid: this.registrationForm.valid,
+        acceptTermsValid: this.registrationForm.get('acceptTerms')?.valid
       });
     }
   }

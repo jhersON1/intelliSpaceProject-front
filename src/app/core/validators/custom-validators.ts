@@ -17,9 +17,7 @@ export class CustomValidators {
         ? null 
         : { productCode: { value: control.value, pattern: 'XX-0000 o XXX-000000' } };
     };
-  }
-
-  /**
+  }  /**
    * Validador para precios (debe ser positivo)
    */
   static positivePrice(): ValidatorFn {
@@ -27,18 +25,17 @@ export class CustomValidators {
       if (!control.value) return null;
       
       const value = parseFloat(control.value);
-      return value > 0 
+      return !isNaN(value) && value > 0 
         ? null 
         : { positivePrice: { value: control.value } };
     };
   }
-
   /**
    * Validador para URLs (formato básico)
    */
   static url(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      if (!control.value) return null;
+      if (!control.value || control.value.trim() === '') return null;
       
       try {
         new URL(control.value);
@@ -48,15 +45,16 @@ export class CustomValidators {
       }
     };
   }
-
   /**
    * Validador para longitud mínima de palabras
    */
   static minWords(minWords: number): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      if (!control.value) return null;
+      if (!control.value || control.value.trim() === '') return null;
       
-      const wordCount = control.value.trim().split(/\s+/).length;
+      const words = control.value.trim().split(/\s+/);
+      const wordCount = words.length;
+      
       return wordCount >= minWords 
         ? null 
         : { minWords: { actualWords: wordCount, requiredWords: minWords } };

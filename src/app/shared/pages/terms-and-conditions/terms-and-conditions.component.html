@@ -1,0 +1,177 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="terms-container bg-white rounded-lg shadow-sm border border-gray-100 p-8">
+    
+    <!-- Header con botón de regreso -->
+    <div class="flex items-center mb-8">
+      <button 
+        (click)="goBack()"
+        class="back-button flex items-center text-gray-600 hover:text-gray-800 font-medium">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Volver al registro
+      </button>
+    </div>
+
+    <!-- Términos y Condiciones -->
+    <section class="mb-12">
+      <h1 class="section-title text-3xl font-light">1. Términos y Condiciones de Uso</h1>
+      <p class="terms-content text-sm text-gray-600 mb-6">
+        <span class="highlight">Última actualización:</span> 26 de junio de 2025
+      </p>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">1. Aceptación de los Términos</h2>
+        <p class="terms-content">
+          Al acceder o usar esta plataforma web (<span class="highlight">"Marketplace"</span>), el usuario acepta quedar vinculado por estos Términos y Condiciones. Si no está de acuerdo con alguno de ellos, no utilice el servicio.
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">2. Definiciones</h2>
+        <ul class="terms-content list-disc list-inside space-y-2">
+          <li><span class="highlight">Marketplace:</span> la aplicación web que permite a los usuarios publicar y descubrir productos.</li>
+          <li><span class="highlight">Usuario:</span> toda persona física o jurídica que se registre y/o navegue en el Marketplace.</li>
+          <li><span class="highlight">Vendedor:</span> usuario que publica productos para su venta.</li>
+          <li><span class="highlight">Comprador:</span> usuario que adquiere productos a través del Marketplace.</li>
+        </ul>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">3. Registro y Cuenta</h2>
+        <div class="terms-content space-y-2">
+          <p><span class="highlight">3.1.</span> Para registrarse deberá proporcionar nombre, apellido y correo electrónico válidos.</p>
+          <p><span class="highlight">3.2.</span> Cada cuenta es personal e intransferible; el usuario es responsable de mantener la confidencialidad de sus datos de acceso.</p>
+          <p><span class="highlight">3.3.</span> El usuario se compromete a notificar inmediatamente cualquier uso no autorizado de su cuenta.</p>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">4. Uso del Servicio</h2>
+        <div class="terms-content space-y-2">
+          <p><span class="highlight">4.1.</span> El Marketplace solo está disponible para personas mayores de 18 años en Bolivia.</p>
+          <p><span class="highlight">4.2.</span> El Vendedor garantiza que los productos publicados cumplen la legislación boliviana y no infringen derechos de terceros.</p>
+          <p><span class="highlight">4.3.</span> Está prohibido publicar contenido ilegal, ofensivo o engañoso.</p>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">5. Propiedad Intelectual y Contenido Generado por el Usuario</h2>
+        <div class="terms-content space-y-2">
+          <p><span class="highlight">5.1.</span> Cada Vendedor conserva la titularidad de los derechos de propiedad intelectual sobre sus descripciones, fotos y demás materiales.</p>
+          <p><span class="highlight">5.2.</span> Al publicar, el Vendedor otorga al Marketplace una licencia no exclusiva, mundial y libre de regalías para usar, reproducir y mostrar dicho contenido.</p>
+          <p><span class="highlight">5.3.</span> El Marketplace no reclama derechos sobre los productos ni sus marcas; solo actúa como intermediario.</p>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">6. Responsabilidades y Exoneración de Garantías</h2>
+        <div class="terms-content space-y-2">
+          <p><span class="highlight">6.1.</span> El Marketplace se ofrece "tal cual" y "según disponibilidad", sin garantías de ningún tipo.</p>
+          <p><span class="highlight">6.2.</span> El usuario asume todos los riesgos derivados del uso de la plataforma y de las transacciones con terceros.</p>
+          <p><span class="highlight">6.3.</span> En ningún caso el Marketplace será responsable por daños directos, indirectos, incidentales o punitivos.</p>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">7. Modificaciones de los Términos</h2>
+        <p class="terms-content">
+          Nos reservamos el derecho de modificar estos Términos en cualquier momento. Publicaremos la nueva versión con fecha de "Última actualización". El uso posterior implica aceptación.
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">8. Terminación</h2>
+        <p class="terms-content">
+          Podemos suspender o dar de baja cuentas que incumplan estos Términos, sin previo aviso y sin responsabilidad para nosotros.
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">9. Ley Aplicable y Jurisdicción</h2>
+        <p class="terms-content">
+          Estos Términos se rigen por las leyes de Bolivia. Para cualquier controversia, las partes se someten a los tribunales de Santa Cruz de la Sierra.
+        </p>
+      </div>
+    </section>
+
+    <!-- Política de Privacidad -->
+    <section>
+      <h1 class="section-title text-3xl font-light">2. Política de Privacidad</h1>
+      <p class="terms-content text-sm text-gray-600 mb-6">
+        <span class="highlight">Última actualización:</span> 26 de junio de 2025
+      </p>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">1. Responsable del Tratamiento</h2>
+        <p class="terms-content">
+          La empresa XYZ (en adelante, <span class="highlight">"nosotros"</span>), con domicilio en Santa Cruz, Bolivia, es responsable de la recolección y uso de sus datos personales.
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">2. Datos que Recopilamos</h2>
+        <ul class="terms-content list-disc list-inside space-y-2">
+          <li>Nombre y apellido</li>
+          <li>Correo electrónico</li>
+        </ul>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">3. Finalidades del Tratamiento</h2>
+        <ul class="terms-content list-disc list-inside space-y-2">
+          <li>Gestión de su cuenta y autenticación</li>
+          <li>Envío de comunicaciones relacionadas con el servicio</li>
+          <li>Mejora y personalización de la plataforma</li>
+        </ul>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">4. Base Legal</h2>
+        <p class="terms-content">
+          Tratamos sus datos con su consentimiento al momento del registro y para cumplir obligaciones contractuales.
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">5. Conservación de los Datos</h2>
+        <p class="terms-content">
+          Conservaremos sus datos mientras exista una cuenta activa o por los plazos legales exigibles.
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">6. Derechos ARCO</h2>
+        <p class="terms-content">
+          Usted puede ejercer, en cualquier momento, el derecho de Acceso, Rectificación, Cancelación u Oposición escribiendo a <span class="highlight">privacidad&#64;tudominio.bo</span>.
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">7. Seguridad</h2>
+        <p class="terms-content">
+          Implementamos medidas técnicas y organizativas para proteger sus datos contra pérdida, acceso no autorizado o alteración.
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">8. Compartición con Terceros</h2>
+        <p class="terms-content">
+          No vendemos, alquilamos ni compartimos su información con terceros, salvo por obligación legal o para prestarle el servicio (por ejemplo: proveedor de correo electrónico).
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="subsection-title text-xl font-medium">9. Cambios en la Política</h2>
+        <p class="terms-content">
+          Podremos actualizar este documento. Notificaremos cambios significativos en la web y por correo electrónico.
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <div class="border-t border-gray-200 mt-12 pt-8 text-center">
+      <p class="text-xs text-gray-500 font-light">IntelliSpace Marketplace</p>
+    </div>
+  </div>
+</div>
