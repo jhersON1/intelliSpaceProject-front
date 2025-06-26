@@ -16,6 +16,10 @@ export const routes: Routes = [
         loadChildren: () => import('./admin/admin.routes').then(m => m.adminRoutes),
     },
     {
+        path: 'terms-and-conditions',
+        loadComponent: () => import('./shared/pages/terms-and-conditions/terms-and-conditions.component').then(m => m.TermsAndConditionsComponent),
+    },
+    {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full'
