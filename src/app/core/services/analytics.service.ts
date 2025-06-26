@@ -11,7 +11,9 @@ import {
   QueueTheoryDemo,
   ProductAnalytics,
   ClickTracking,
-  StockHistory
+  StockHistory,
+  TrendingProductsResponse,
+  ProductTrendAnalysis
 } from '../types/analytics.interface';
 import { environment } from '@environments/environments';
 import { API_ROUTES } from '../constants';
@@ -514,6 +516,47 @@ export class AnalyticsService {
           error: error.message
         }, 'AnalyticsService.initializeProductsWithoutHistory');
         return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * 🔮 NUEVO: Obtiene productos trending usando Holt-Winters
+   */
+  getTrendingProducts(limit: number = 6): Observable<TrendingProductsResponse> {
+    const url = `${this.baseUrl}${API_ROUTES.ANALYTICS_TRENDING_PRODUCTS}`;
+    const params = new HttpParams().set('limit', limit.toString());
+    
+    this.logger.info('🔥 GETTING TRENDING PRODUCTS', {
+      url,
+      limit,
+      fullUrl: url + '?limit=' + limit
+    }, 'AnalyticsService.getTrendingProducts');
+
+    return this.http.get<TrendingProductsResponse>(url, { params }).pipe(
+      tap((response) => {
+        this.logger.info('✅ TRENDING PRODUCTS OBTAINED', {
+          total: response?.total || 0,
+          algorithm: response?.algorithm || 'unknown',
+          productsFound: response?.products?.length || 0,
+          fullResponse: response
+        }, 'AnalyticsService.getTrendingProducts');
+      }),
+      catchError((error) => {
+        this.logger.error('❌ ERROR GETTING TRENDING PRODUCTS', {
+          error: error.message,
+          status: error.status,
+          url,
+          fullError: error
+        }, 'AnalyticsService.getTrendingProducts');
+        
+        // Retornar respuesta vacía en caso de error
+        return of({
+          total: 0,
+          products: [],
+          generatedAt: new Date(),
+          algorithm: 'Holt-Winters'
+        } as TrendingProductsResponse);
       })
     );
   }
