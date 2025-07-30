@@ -11,7 +11,6 @@ import { catchError, forkJoin, of } from 'rxjs';
 interface ProductWithImage extends Product {
   imageUrl?: string | string[];
   imageAlt?: string;
-  // 🔥 Nuevas propiedades para trending
   trendLabel?: string;
   trendIcon?: string;
   trendRanking?: number;
@@ -32,15 +31,12 @@ export class DashboardComponent implements OnInit {
 
   products: ProductWithImage[] = [];
   loading = false;
-  useTrendingProducts = true; // 🔥 Toggle para usar productos trending (público para template)
+  useTrendingProducts = true;
 
   ngOnInit(): void {
     this.loadFeaturedProducts();
   }
 
-  /**
-   * 🔥 NUEVO: Carga productos trending o productos normales
-   */
   private loadFeaturedProducts(): void {
     this.loading = true;
     
@@ -51,9 +47,6 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  /**
-   * 🔥 NUEVO: Carga productos trending usando Holt-Winters
-   */
   private loadTrendingProducts(): void {
     console.log('🔥 Cargando productos trending para dashboard...');
     
@@ -83,14 +76,9 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  /**
-   * 🔥 NUEVO: Convierte ProductTrendAnalysis a ProductWithImage
-   */
   private convertTrendingToProducts(trendingProducts: ProductTrendAnalysis[]): void {
-    // Primero obtenemos los productos del servicio de productos
     const productIds = trendingProducts.map(tp => tp.productId);
     
-    // Crear observables para obtener cada producto
     const productRequests = productIds.map(id => 
       this.productService.getVendorProduct(id).pipe(
         catchError(() => of(null))
@@ -101,7 +89,6 @@ export class DashboardComponent implements OnInit {
       next: (products) => {
         const validProducts = products.filter(p => p !== null) as Product[];
         
-        // Combinar datos de producto con datos de trending
         const productsWithTrend: ProductWithImage[] = validProducts.map(product => {
           const trendData = trendingProducts.find(tp => tp.productId === product.id);
           return {
@@ -154,8 +141,7 @@ export class DashboardComponent implements OnInit {
       this.cd.markForCheck();
       return;
     }
-
-    // Crear observables para cargar todas las imágenes en paralelo
+    
     const imageRequests = products.map(product => {
       return this.visualService.findPrincipalImage(product.id).pipe(
         catchError(() => {

@@ -34,7 +34,6 @@ export class MessagingComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Pre-llenar el asunto con el nombre del producto
     if (this.product?.title) {
       const defaultSubject = `Consulta sobre: ${this.product.title}`;
       this.messageForm.patchValue({ subject: defaultSubject });
@@ -67,13 +66,12 @@ export class MessagingComponent implements OnInit {
         this.isSubmitting.set(false);
         this.messageForm.reset();
         
-        // Pre-llenar el asunto nuevamente
         if (this.product?.title) {
           const defaultSubject = `Consulta sobre: ${this.product.title}`;
           this.messageForm.patchValue({ subject: defaultSubject });
         }
 
-        // Ocultar mensaje de éxito después de 3 segundos
+
         setTimeout(() => {
           this.isSuccess.set(false);
           this.isExpanded.set(false);
@@ -90,7 +88,6 @@ export class MessagingComponent implements OnInit {
     this.isSuccess.set(false);
     this.errorMessage.set(null);
     
-    // Pre-llenar el asunto
     if (this.product?.title) {
       const defaultSubject = `Consulta sobre: ${this.product.title}`;
       this.messageForm.patchValue({ subject: defaultSubject });

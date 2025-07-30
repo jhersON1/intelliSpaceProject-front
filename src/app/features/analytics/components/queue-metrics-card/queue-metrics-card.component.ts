@@ -62,7 +62,6 @@ export class QueueMetricsCardComponent {
   metrics = input<QueueMetrics | null>(null);
   showDetails = input(false);
 
-  // Computed values
   formattedRho = computed(() => {
     const rho = this.metrics()?.rho;
     return rho !== undefined ? rho.toFixed(3) : '0.000';
@@ -118,7 +117,6 @@ export class QueueMetricsCardComponent {
 
   progressWidth = computed(() => {
     const rho = this.metrics()?.rho || 0;
-    // Limitar el ancho al 100% máximo
     return Math.min(rho * 100, 100);
   });
 }

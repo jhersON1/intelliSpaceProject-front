@@ -8,7 +8,7 @@ export interface ProductWithImage {
   description?: string;
   imageUrl?: string | string[];
   imageAlt?: string;
-  // Analytics data
+
   analytics?: {
     totalClicks: number;
     congestionStatus: 'ESTABLE' | 'ADVERTENCIA' | 'CRITICO';
@@ -24,20 +24,15 @@ export interface PaginationData {
   hasMore: boolean;
 }
 
-/**
- * Componente tonto para mostrar la lista de productos
- * Solo se encarga de la presentación, sin lógica de negocio
- */
 @Component({
   selector: 'app-product-grid',
   standalone: true,
   imports: [CommonModule],  template: `
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">      @for (product of products; track product.id) {
         <div class="product-card flex flex-col cursor-pointer relative" (click)="onProductClick(product)">
-          <!-- Analytics Badges -->
+
           @if (product.analytics) {
             <div class="absolute top-2 left-2 z-10 flex flex-col gap-1">
-              <!-- Congestion Status Badge -->
               @if (product.analytics.congestionStatus !== 'ESTABLE') {
                 <span [class]="getCongestionStatusClass(product.analytics.congestionStatus)" 
                       class="px-2 py-1 text-xs font-medium rounded-full">
@@ -49,7 +44,6 @@ export interface PaginationData {
                 </span>
               }
               
-              <!-- Popularity Badge -->
               @if (product.analytics.totalClicks > 100) {
                 <span class="bg-blue-100 text-blue-800 px-2 py-1 text-xs font-medium rounded-full">
                   🔥 {{ formatClicks(product.analytics.totalClicks) }}
@@ -57,7 +51,6 @@ export interface PaginationData {
               }
             </div>
             
-            <!-- Analytics Info Bottom -->
             <div class="absolute bottom-2 right-2 z-10">
               <div class="bg-black/70 text-white px-2 py-1 rounded-full text-xs">
                 ρ: {{ formatUtilization(product.analytics.utilizationFactor) }}
@@ -89,14 +82,13 @@ export interface PaginationData {
               <p class="text-sm text-neutral-400">{{ getProductDescription(product) }}</p>
             </div>
             
-            <!-- Analytics Summary Bar -->
             @if (product.analytics) {
               <div class="mt-3 pt-3 border-t border-gray-100">
                 <div class="flex items-center justify-between text-xs text-gray-500">
                   <span>{{ product.analytics.totalClicks }} views</span>
                   <span>λ: {{ formatRate(product.analytics.arrivalRate) }}/día</span>
                 </div>
-                <!-- Utilization Progress Bar -->
+
                 <div class="mt-1 w-full bg-gray-200 rounded-full h-1">
                   <div 
                     [class]="getUtilizationBarClass(product.analytics.utilizationFactor)"
@@ -158,7 +150,7 @@ export class ProductGridComponent {
   @Input() products: ProductWithImage[] = [];
   @Input() pagination: PaginationData | null = null;
   @Input() emptyMessage = 'No se encontraron productos disponibles.';
-  @Input() isLoading = false; // Nueva propiedad para controlar el estado de carga
+  @Input() isLoading = false;
   
   @Output() productClick = new EventEmitter<ProductWithImage>();
   @Output() pageChange = new EventEmitter<number>();
@@ -166,8 +158,8 @@ export class ProductGridComponent {
   onProductClick(product: ProductWithImage): void {
     this.productClick.emit(product);
   }
+
   onPageChange(page: number): void {
-    // Evitar múltiples clics si está cargando
     if (this.isLoading) {
       return;
     }
@@ -194,12 +186,10 @@ export class ProductGridComponent {
     const { currentPage, totalPages } = this.pagination;
     const pages: number[] = [];
     
-    // Mostrar máximo 5 páginas
     const maxPages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2));
     let endPage = Math.min(totalPages, startPage + maxPages - 1);
     
-    // Ajustar si no hay suficientes páginas al final
     if (endPage - startPage + 1 < maxPages) {
       startPage = Math.max(1, endPage - maxPages + 1);
     }
@@ -214,10 +204,8 @@ export class ProductGridComponent {
   onImageError(event: Event, product: ProductWithImage): void {
     const target = event.target as HTMLImageElement;
     if (target) {
-      // Ocultar la imagen que falló y mostrar el placeholder
       target.style.display = 'none';
       
-      // Encontrar el contenedor padre y añadir el placeholder
       const container = target.parentElement;
       if (container && !container.querySelector('.error-placeholder')) {
         const placeholder = document.createElement('div');
@@ -235,7 +223,6 @@ export class ProductGridComponent {
     }
   }
 
-  // Analytics helper methods
   getCongestionStatusClass(status: 'ESTABLE' | 'ADVERTENCIA' | 'CRITICO'): string {
     switch (status) {
       case 'CRITICO':

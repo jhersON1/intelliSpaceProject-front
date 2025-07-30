@@ -4,15 +4,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, interval } from 'rxjs';
 
 import { AnalyticsService } from '../../../../core/services/analytics.service';
-import { AuthService } from '../../../../auth/services/auth.service';
 import { LoggerService } from '../../../../core/services/logger.service';
-import { 
-  ProductStats, 
-  QueueMetrics,
-  ProductAnalytics 
-} from '../../../../core/types/analytics.interface';
+import { ProductStats } from '../../../../core/types/analytics.interface';
 
-// Import new advanced components
 import { HistoricalChartsComponent } from '../../components/historical-charts/historical-charts.component';
 import { PredictiveAnalyticsComponent } from '../../components/predictive-analytics/predictive-analytics.component';
 
@@ -267,14 +261,12 @@ import { PredictiveAnalyticsComponent } from '../../components/predictive-analyt
   `
 })
 export class AdvancedAnalyticsDashboardComponent implements OnInit, OnDestroy {
-  // Injected services
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private analyticsService = inject(AnalyticsService);
-  private authService = inject(AuthService);
   private logger = inject(LoggerService);
 
-  // Signals
   private destroy$ = new Subject<void>();
   productId = signal<string>('');
   productName = signal<string>('');
@@ -284,14 +276,12 @@ export class AdvancedAnalyticsDashboardComponent implements OnInit, OnDestroy {
   autoRefresh = signal(false);
   lastUpdated = signal(new Date());
 
-  // Computed signals
   currentQueueMetrics = computed(() => {
     const stats = this.productStats();
     return stats?.queueMetrics || null;
   });
 
   ngOnInit() {
-    // Get product ID from route
     this.route.paramMap.pipe(
       takeUntil(this.destroy$)
     ).subscribe(params => {
@@ -304,7 +294,6 @@ export class AdvancedAnalyticsDashboardComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Auto-refresh timer
     interval(30000).pipe(
       takeUntil(this.destroy$)
     ).subscribe(() => {
@@ -344,15 +333,14 @@ export class AdvancedAnalyticsDashboardComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (stats) => {
         this.productStats.set(stats);
-        
-        // Extract product name if available
+
         if (stats.analytics && 'product' in stats.analytics) {
           const product = (stats.analytics as any).product;
           if (product?.title) {
             this.productName.set(product.title);
           }
         }
-        
+
         this.lastUpdated.set(new Date());
         this.isLoading.set(false);
         this.logger.info('Advanced analytics loaded successfully', { productId });
@@ -365,7 +353,6 @@ export class AdvancedAnalyticsDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Helper methods for styling
   getCongestionClass(status?: string): string {
     switch (status) {
       case 'CRITICO': return 'bg-red-100 text-red-800';
@@ -390,6 +377,5 @@ export class AdvancedAnalyticsDashboardComponent implements OnInit, OnDestroy {
     return 'bg-green-500';
   }
 
-  // Expose Math for template
   Math = Math;
 }

@@ -2,9 +2,6 @@ import { Injectable, signal, computed } from '@angular/core';
 import { FormGroup, FormControl, AbstractControl } from '@angular/forms';
 import { FormFieldError, FormValidationState, FormSubmissionState } from '../types/form.types';
 
-/**
- * Servicio para manejo centralizado de errores de formularios
- */
 @Injectable({
   providedIn: 'root'
 })

@@ -217,7 +217,6 @@ export class PriorityProductsTableComponent {
       const parsedDate = new Date(date);
       const now = new Date();
       
-      // 🔧 FIX: Comparar solo fechas (sin horas) para cálculo preciso de días
       const parsedDateOnly = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
       const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       
@@ -225,7 +224,6 @@ export class PriorityProductsTableComponent {
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       
       if (diffDays === 0) {
-        // 🕐 Mostrar "Hoy" + hora cuando es el día actual
         const timeString = parsedDate.toLocaleTimeString('es-ES', {
           hour: '2-digit',
           minute: '2-digit',

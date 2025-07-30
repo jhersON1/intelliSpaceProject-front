@@ -13,9 +13,6 @@ export interface VirtualScrollConfig {
   tolerance?: number;
 }
 
-/**
- * Componente de virtual scrolling para optimizar listas largas
- */
 @Component({
   selector: 'app-virtual-scroll',
   standalone: true,
@@ -28,10 +25,8 @@ export interface VirtualScrollConfig {
       [style.overflow-y]="'auto'"
       [style.position]="'relative'">
       
-      <!-- Spacer superior -->
       <div [style.height.px]="topSpacerHeight()"></div>
       
-      <!-- Items visibles -->
       <div class="virtual-scroll-content">
         @for (item of visibleItems(); track item.id) {
           <div 
@@ -42,7 +37,6 @@ export interface VirtualScrollConfig {
         }
       </div>
       
-      <!-- Spacer inferior -->
       <div [style.height.px]="bottomSpacerHeight()"></div>
     </div>
   `,
@@ -75,12 +69,10 @@ export class VirtualScrollComponent implements AfterViewInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   
-  // Signals para el estado interno
   private readonly _scrollTop = signal(0);
   private readonly _startIndex = signal(0);
   private readonly _endIndex = signal(0);
 
-  // Signals computadas
   public readonly visibleItems = computed(() => {
     const start = this._startIndex();
     const end = Math.min(this._endIndex(), this.items.length);
@@ -140,7 +132,6 @@ export class VirtualScrollComponent implements AfterViewInit, OnDestroy {
     const visibleStart = Math.floor(scrollTop / itemHeight);
     const visibleEnd = Math.ceil((scrollTop + this.containerHeight) / itemHeight);
     
-    // Agregar buffer para smooth scrolling
     const startIndex = Math.max(0, visibleStart - bufferSize);
     const endIndex = Math.min(this.items.length, visibleEnd + bufferSize);
     
@@ -157,12 +148,10 @@ export class VirtualScrollComponent implements AfterViewInit, OnDestroy {
     const scrollHeight = element.scrollHeight;
     const clientHeight = element.clientHeight;
     
-    // Verificar si llegó al final
     if (scrollTop + clientHeight >= scrollHeight - 50) {
       this.scrollToEnd.emit();
     }
     
-    // Verificar si llegó al inicio
     if (scrollTop <= 50) {
       this.scrollToTop.emit();
     }

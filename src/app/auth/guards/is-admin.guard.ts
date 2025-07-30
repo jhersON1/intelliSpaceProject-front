@@ -17,12 +17,10 @@ export const isAdminGuard: CanActivateFn = (route, state) => {
     isAdmin: auth.isAdmin()
   }, 'isAdminGuard');
   
-  // Convertir el signal authStatus a observable y esperar hasta que no esté en 'checking'
   return toObservable(auth.authStatus).pipe(
-    filter(status => status !== AuthStatus.checking), // Esperar hasta que no esté verificando
-    take(1), // Tomar solo el primer valor válido
+    filter(status => status !== AuthStatus.checking),
+    take(1),
     map(status => {
-      // Primero verificar si está autenticado
       if (status !== AuthStatus.authenticated) {
         logger.warn('Usuario no autenticado, redirigiendo a login', { 
           url: state.url,
@@ -31,7 +29,6 @@ export const isAdminGuard: CanActivateFn = (route, state) => {
         return router.createUrlTree(['/auth/login']);
       }
       
-      // Verificar si es administrador
       if (auth.isAdmin()) {
         logger.info('Acceso permitido a ruta de administrador', { 
           url: state.url,
@@ -40,7 +37,6 @@ export const isAdminGuard: CanActivateFn = (route, state) => {
         return true;
       }
       
-      // Si no es administrador, denegar acceso y redirigir
       logger.warn('Acceso denegado a ruta de administrador - usuario no es administrador', { 
         url: state.url,
         userRole: auth.currentUser()?.role

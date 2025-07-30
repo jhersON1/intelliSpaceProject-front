@@ -10,10 +10,6 @@ import { TokenDecoderService } from './token-decoder.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { GlobalCleanupService } from '../../core/services/global-cleanup.service';
 
-/**
- * Servicio principal de autenticación que coordina las operaciones
- * Actúa como facade para los servicios especializados
- */
 @Injectable({
   providedIn: 'root'
 })
@@ -30,13 +26,10 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
   public readonly isVendor = this.authState.isVendor;
   public readonly isConsumer = this.authState.isConsumer;
   public readonly isAdmin = this.authState.isAdmin;constructor() {
-    // Inicialización inmediata pero segura
     this.initializeAuthState();
   }
   
-  /**
-   * Inicializa el estado de autenticación de forma segura
-   */
+
   private initializeAuthState(): void {
     try {
       const token = this.tokenService.getToken();
@@ -47,7 +40,6 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
         return;
       }
 
-      // Verificar si el token ha expirado
       if (this.tokenDecoder.isTokenExpired()) {
         this.logger.info('Token expirado en inicialización, limpiando estado', {}, 'AuthService');
         this.authState.clearAuthState();
@@ -55,7 +47,6 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
         return;
       }
 
-      // Intentar obtener información del usuario desde el token local
       const userInfo = this.tokenDecoder.getUserInfoFromToken();
       if (userInfo) {
         const user: User = {
@@ -77,17 +68,14 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
       this.tokenService.removeToken();
     }
   }
-  /**
-   * Establece la autenticación del usuario
-   */
+
   private setAuthentication(user: User, token: string): boolean {
     this.logger.info('Estableciendo autenticación de usuario', { userId: user.id }, 'AuthService');
     this.authState.setAuthenticatedUser(user);
     this.tokenService.setToken(token);
     return true;
-  }  /**
-   * Realiza el login del usuario
-   */
+  }  
+
   public login(email: string, password: string): Observable<boolean> {
     this.logger.info('Iniciando login', { email }, 'AuthService.login');
     
@@ -100,7 +88,7 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
           token: response?.token ? 'present' : 'missing' 
         }, 'AuthService.login');
       }),
-      map((response) => {        // Validación básica - solo requerimos id, email y token
+      map((response) => {
         if (!response?.id || !response?.email || !response?.token) {
           this.logger.error('Respuesta de login inválida', { 
             hasId: !!response?.id, 
@@ -117,7 +105,8 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
           roleValue: response.role,
           roleType: typeof response.role,
           allKeys: Object.keys(response || {})
-        });        // Extraer el rol del token JWT ya que el backend no lo envía en la respuesta
+        });
+
         const tokenPayload = this.tokenDecoder.decodeToken(response.token);
         const roleFromToken = tokenPayload?.success ? tokenPayload.payload?.rol : null;
 
@@ -127,25 +116,15 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
           tokenPayload: tokenPayload?.success ? tokenPayload.payload : 'Failed to decode'
         });
 
-        // Validar que el rol sea válido
         const validRole = (roleFromToken === 'ADMIN' || roleFromToken === 'VENDOR' || roleFromToken === 'CONSUMER') 
           ? roleFromToken 
           : 'CONSUMER';
 
-        // Crear objeto User desde la respuesta + token
         const user: User = {
           id: response.id,
           email: response.email,
-          role: validRole // Usar rol validado del token
+          role: validRole
         };
-        
-        console.log('AuthService: Created user object:', {
-          user: user,
-          actualRole: user.role,
-          isVendorCheck: user.role === 'VENDOR',
-          isConsumerCheck: user.role === 'CONSUMER',
-          isAdminCheck: user.role === 'ADMIN'
-        });
         
         return this.setAuthentication(user, response.token);
       }),
@@ -160,9 +139,6 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
     );
   }
 
-  /**
-   * Registra un nuevo usuario
-   */
   public register(userData: CreateUser): Observable<boolean> {
     return this.authHttp.register(userData).pipe(
       tap((response) => {
@@ -171,9 +147,8 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
       map(() => true),
       catchError(err => throwError(() => err.error.message))
     );
-  }  /**
-   * Verifica el estado de autenticación actual
-   */
+  }
+
   public checkAuthStatus(): Observable<boolean> {
     const token = this.tokenService.getToken();
 
@@ -183,7 +158,6 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
       return of(false);
     }
 
-    // Verificar si el token ha expirado
     if (this.tokenDecoder.isTokenExpired()) {
       this.logger.warn('Token expirado durante verificación', {}, 'AuthService.checkAuthStatus');
       this.authState.clearAuthState();
@@ -191,7 +165,6 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
       return of(false);
     }
 
-    // Intentar obtener información del usuario desde el token local
     const userInfo = this.tokenDecoder.getUserInfoFromToken();
     if (userInfo) {
       const user: User = {
@@ -209,7 +182,6 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
       return of(true);
     }
 
-    // Si no se puede obtener info del token local, verificar con el backend
     this.logger.debug('Verificando token con el backend', {}, 'AuthService.checkAuthStatus');
     return this.authHttp.checkToken().pipe(
       map(({ user, token: newToken }) => {
@@ -223,16 +195,13 @@ export class AuthService {  private readonly errorHandler = inject(ErrorHandling
         return of(false);
       })
     );
-  }/**
-   * Cierra la sesión del usuario
-   */
+  }
+
   public logout(): void {
     this.logger.info('Iniciando proceso de logout', {}, 'AuthService');
     
-    // Ejecutar limpieza global antes de limpiar el estado
     this.globalCleanup.executeCleanup();
     
-    // Limpiar tokens y estado de autenticación
     this.tokenService.removeToken();
     this.authState.clearAuthState();
     

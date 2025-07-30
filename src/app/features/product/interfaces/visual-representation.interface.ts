@@ -28,17 +28,14 @@ export interface CreateVisualRepresentationDto {
     type: TypeRepresentation;
     url?: string;
 
-    // Campos específicos de Image
     altText?: string;
     isPrincipal?: boolean;
 
-    // Campos específicos de Model3D
     format?: FormatModel3D;
     texture?: string;
     scale?: Record<string, number>;
     urlIOS3D?: string;
 
-    // Campos específicos de ExperienceAR
     instructions?: string;
     devicerequirements?: string[];
     urlIOSAR?: string;

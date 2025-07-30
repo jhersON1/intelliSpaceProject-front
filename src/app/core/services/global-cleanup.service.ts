@@ -1,10 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 
-/**
- * Servicio para manejar la limpieza global de la aplicación
- * Especialmente útil durante el logout para cancelar subscriptions activas
- */
 @Injectable({
   providedIn: 'root'
 })

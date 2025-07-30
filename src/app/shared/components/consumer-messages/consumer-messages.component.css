@@ -2,7 +2,6 @@
   min-height: 100vh;
 }
 
-/* Animaciones suaves */
 .transition-shadow {
   transition-property: box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -15,7 +14,6 @@
   transition-duration: 150ms;
 }
 
-/* Estilos para el spinner */
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -26,7 +24,6 @@
   animation: spin 1s linear infinite;
 }
 
-/* Hover effects */
 .hover\:shadow-md:hover {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
@@ -47,7 +44,6 @@
   background-color: #1d4ed8;
 }
 
-/* Message status badges */
 .bg-green-100 {
   background-color: #dcfce7;
 }
@@ -80,14 +76,12 @@
   color: #1d4ed8;
 }
 
-/* Focus states */
 button:focus,
 a:focus {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
-/* Card shadows */
 .shadow-sm {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
@@ -96,27 +90,23 @@ a:focus {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-/* Message content styling */
 .whitespace-pre-wrap {
   white-space: pre-wrap;
   word-wrap: break-word;
   line-height: 1.6;
 }
 
-/* Responsive spacing */
 @media (max-width: 640px) {
   .space-y-4 > * + * {
     margin-top: 1rem;
   }
 }
 
-/* Badge animation */
 .inline-flex {
   display: inline-flex;
   align-items: center;
 }
 
-/* Status indicators */
 .bg-green-100.text-green-800 {
   background-color: #dcfce7;
   color: #166534;

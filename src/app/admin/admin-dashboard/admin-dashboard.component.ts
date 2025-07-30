@@ -459,7 +459,7 @@ import { SystemLog, LogStats, LogFilters } from '../../shared/interfaces/logs.in
 })
 export class AdminDashboardComponent implements OnInit {
   private readonly logsService = inject(LogsService);
-  // Signals
+
   loading = signal(false);
   stats = signal<LogStats>({
     totalLogs: 0,
@@ -482,13 +482,11 @@ export class AdminDashboardComponent implements OnInit {
 
   logs = computed(() => this.logsResponse().logs);
   
-  // Filters
   filters: LogFilters = {
     page: 1,
     limit: 20
   };
 
-  // UI State
   showDetails: Record<string, boolean> = {};
 
   ngOnInit() {
@@ -522,7 +520,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   applyFilters() {
-    this.filters.page = 1; // Reset to first page when filtering
+    this.filters.page = 1;
     this.loadLogs();
   }
 
@@ -550,7 +548,6 @@ export class AdminDashboardComponent implements OnInit {
     const currentPage = this.logsResponse().page;
     const pages: number[] = [];
     
-    // Show max 5 pages around current page
     const start = Math.max(1, currentPage - 2);
     const end = Math.min(totalPages, currentPage + 2);
     
@@ -572,7 +569,6 @@ export class AdminDashboardComponent implements OnInit {
   resolveLog(logId: string) {
     this.logsService.resolveLog(logId).subscribe({
       next: () => {
-        // Update the local state
         const currentResponse = this.logsResponse();
         const updatedLogs = currentResponse.logs.map(log => 
           log.id === logId ? { ...log, resolved: true, resolvedAt: new Date() } : log
@@ -583,7 +579,6 @@ export class AdminDashboardComponent implements OnInit {
           logs: updatedLogs
         });
         
-        // Refresh stats
         this.loadStats();
       },
       error: (error) => {
@@ -641,7 +636,6 @@ export class AdminDashboardComponent implements OnInit {
       return String(details);
     }
   }
-
-  // Método para usar Object.entries en el template
+  
   Object = Object;
 }

@@ -65,11 +65,10 @@ export class AiSearchComponent implements OnDestroy {
   private readonly semanticSearchService = inject(SemanticSearchService);
   private readonly logger = inject(LoggerService);
   private readonly destroy$ = new Subject<void>();
-  // State signals
+
   private readonly _isFocused = signal(false);
   private readonly _searchQuery = signal('');
 
-  // Computed signals
   public readonly isFocused = computed(() => this._isFocused());
   public readonly isSearching = computed(() => this.semanticSearchService.isSearching());
   public readonly hasActiveSearch = computed(() => this.semanticSearchService.hasActiveSearch());
@@ -79,18 +78,12 @@ export class AiSearchComponent implements OnDestroy {
   });
   public readonly canSearch = computed(() => this._searchQuery().trim().length >= 3);
 
-  // Getter y setter para compatibilidad con ngModel
   get searchQuery(): string {
     return this._searchQuery();
   }
 
   set searchQuery(value: string) {
     this._searchQuery.set(value);
-  }
-
-  constructor() {
-    // Ya no hay auto-búsqueda, solo búsqueda manual con Enter
-    this.logger.debug('🤖 Componente AI Search inicializado - búsqueda solo con Enter');
   }
 
   ngOnDestroy() {
@@ -101,11 +94,12 @@ export class AiSearchComponent implements OnDestroy {
   onFocus() {
     this._isFocused.set(true);
   }
+
   onBlur() {
-    // Removemos el timeout problemático
     this._isFocused.set(false);
-  }  onSearchInput() {
-    // Ya no hay auto-búsqueda, simplemente actualizamos el estado visual
+  }  
+  
+  onSearchInput() {
     this.logger.debug('🖊️ Usuario escribiendo en búsqueda', { 
       length: this._searchQuery().length,
       canSearch: this.canSearch()
@@ -117,6 +111,7 @@ export class AiSearchComponent implements OnDestroy {
       this.performSearch();
     }
   }
+
   performSearch() {
     if (!this.canSearch()) {
       return;
@@ -134,6 +129,7 @@ export class AiSearchComponent implements OnDestroy {
       }
     });
   }
+  
   clearSearch() {
     this._searchQuery.set('');
     this.semanticSearchService.clearSearch();

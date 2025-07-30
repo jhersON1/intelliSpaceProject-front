@@ -10,9 +10,6 @@ export class VisualRepresentationService {
   private imageUploadService = inject(ImageUploadService);
   private arFileManager = inject(ARFileManagerService);
 
-  /**
-   * Crea todas las representaciones visuales para un producto
-   */
   createAllVisualRepresentations(
     productId: string, 
     imageUrls: string[], 
@@ -105,11 +102,11 @@ export class VisualRepresentationService {
         const model3DData: CreateVisualRepresentationDto = {
           productId: productId,
           type: TypeRepresentation.MODEL3D,
-          url: androidUrl,                                    // URL para Android (.glb)
-          urlIOS3D: iosUrl,                                  // URL para iOS (.usdz)
+          url: androidUrl,                                    
+          urlIOS3D: iosUrl,                                  
           format: this.getFormatFromFile(arFiles.model3D.android || arFiles.model3D.ios),
-          texture: undefined,                                 // Opcional
-          scale: { x: 1, y: 1, z: 1 }                        // Escala por defecto
+          texture: undefined,
+          scale: { x: 1, y: 1, z: 1 }
         };
         console.log('🚀 Creando Visual Representation para Model3D:', model3DData);
         requests.push(this.imageUploadService.createVisualRepresentation(model3DData));

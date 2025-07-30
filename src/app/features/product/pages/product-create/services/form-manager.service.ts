@@ -14,14 +14,10 @@ export class FormManagerService {
 
   private _productForm: FormGroup | null = null;
 
-  /**
-   * Inicializa el formulario de producto
-   */
   initializeProductForm(): FormGroup {
     console.log('📝 FormManagerService.initializeProductForm...');
     const baseForm = this.productFormBase.createBaseProductForm();
 
-    // Agregar controles adicionales para creación
     (baseForm as any).addControl('keywords', this.fb.array([]));
     (baseForm as any).addControl('imageUrls', this.fb.array([]));
 
@@ -149,7 +145,6 @@ export class FormManagerService {
    * Resetea los keywords a estado inicial
    */
   resetKeywords(): void {
-    // Obtener FormArray de keywords
     const keywordsFormArray = this.getImageUrlsArray();
     
     // Limpiar todos los keywords excepto el primero
@@ -157,7 +152,6 @@ export class FormManagerService {
       keywordsFormArray.removeAt(keywordsFormArray.length - 1);
     }
     
-    // Limpiar el primer keyword también
     keywordsFormArray.at(0)?.setValue('');
     
     console.log('✅ Keywords reseteados');

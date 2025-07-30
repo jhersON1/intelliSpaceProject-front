@@ -10,7 +10,6 @@ import { API_ROUTES } from 'src/app/core/constants';
 })
 export class Model3DService {
 
-  // Mapeo estático de productos a modelos 3D (solo uno por producto)
   private staticModels: { [productId: string]: Model3D } = {
     '8fa31403-3d9e-4dc9-bb6f-53e723e8cb08': {
       productId: '8fa31403-3d9e-4dc9-bb6f-53e723e8cb08',

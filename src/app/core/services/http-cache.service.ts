@@ -23,12 +23,11 @@ export class HttpCacheService {
   private readonly _accessOrder = signal<string[]>([]);
 
   private readonly defaultConfig: Required<CacheConfig> = {
-    ttl: 5 * 60 * 1000, // 5 minutos por defecto
+    ttl: 5 * 60 * 1000,
     maxSize: 100,
     strategy: 'lru'
   };
 
-  // Señales computadas
   public readonly cacheSize = computed(() => this._cache().size);
   public readonly cacheKeys = computed(() => Array.from(this._cache().keys()));
   public readonly hitRate = computed(() => {
@@ -56,13 +55,11 @@ export class HttpCacheService {
       return null;
     }
 
-    // Verificar si ha expirado
     if (Date.now() > entry.expiresAt) {
       this.delete(key);
       return null;
     }
 
-    // Actualizar orden de acceso para LRU
     this.updateAccessOrder(key);
 
     return entry.data;
@@ -83,7 +80,6 @@ export class HttpCacheService {
       lastModified: response?.headers.get('last-modified') || undefined
     };
 
-    // Verificar si necesitamos hacer espacio
     if (this._cache().size >= finalConfig.maxSize) {
       this.evict(finalConfig.strategy);
     }
@@ -230,8 +226,8 @@ export class HttpCacheService {
     if (accessOrder.length === 0) return;
 
     const keyToEvict = strategy === 'lru' 
-      ? accessOrder[0] // Menos recientemente usado
-      : accessOrder[0]; // First in, first out (mismo comportamiento en este caso)
+      ? accessOrder[0]
+      : accessOrder[0];
 
     this.delete(keyToEvict);
   }

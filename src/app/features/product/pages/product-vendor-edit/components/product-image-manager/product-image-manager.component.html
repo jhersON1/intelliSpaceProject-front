@@ -1,5 +1,5 @@
 <div class="space-y-3">
-  <!-- Header with counter -->
+
   @if (showCounter()) {
     <div class="flex items-center justify-between">
       <label class="block text-sm font-medium text-gray-700">
@@ -10,7 +10,7 @@
       </span>
     </div>
   }
-  <!-- Main Preview Area - Responsive height -->
+  
   <div class="h-48 sm:h-56 md:h-64 lg:h-72 border border-gray-300 bg-gray-50 flex items-center justify-center overflow-hidden">
     @if (selectedImageIndex() === -1 || !selectedImage()) {
       <div class="flex flex-col items-center text-gray-400 px-4">
@@ -35,7 +35,7 @@
     }
     
   </div>
-  <!-- Thumbnails Grid - Responsive grid -->
+
   @if (imageCount() > 0) {
     <div class="space-y-2">
       <h4 class="text-sm font-medium text-gray-700">Miniaturas</h4>
@@ -45,7 +45,6 @@
             class="relative group border-2 overflow-hidden transition-all duration-200 aspect-square"
             [class]="getThumbnailClasses($index)"
           >
-            <!-- Thumbnail Image -->
             <div 
               class="w-full h-full flex items-center justify-center cursor-pointer bg-gray-50"
               [class.cursor-not-allowed]="disabled()"
@@ -59,14 +58,12 @@
               >
             </div>
 
-            <!-- Status Badges -->
             @if (!image.isExisting) {
               <div class="absolute top-0 left-0 bg-green-500 text-white text-xs px-1 py-0.5 rounded-br font-medium">
                 NUEVA
               </div>
             }
 
-            <!-- Delete Button - Responsive size -->
             @if (!disabled()) {
               <button 
                 type="button"
@@ -92,7 +89,6 @@
     </div>
   }
 
-  <!-- File Upload Area -->
   <div class="space-y-2">
     <label
       class="block w-full cursor-pointer transition-all duration-200"
@@ -100,12 +96,10 @@
     >
       <div class="border-2 border-dashed p-4 text-center">
         <div class="flex flex-col items-center space-y-2">
-          <!-- Upload Icon -->
           <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
           
-          <!-- Upload Text -->
           <div class="text-sm">
             @if (canAddImages()) {
               <span class="font-medium">Agregar imágenes</span>
@@ -117,7 +111,6 @@
             }
           </div>
           
-          <!-- Remaining slots info -->
           @if (canAddImages() && remainingSlots() > 0) {
             <p class="text-xs text-gray-400">
               {{ remainingSlots() }} imagen(es) restante(s)
@@ -126,7 +119,6 @@
         </div>
       </div>
 
-      <!-- Hidden File Input -->
       <input 
         type="file" 
         class="hidden" 
@@ -137,7 +129,6 @@
       >
     </label>
 
-    <!-- Upload Instructions -->
     <div class="text-xs text-gray-500 space-y-1">
       <p>• Formatos aceptados: JPG, PNG, GIF, WebP</p>
       <p>• Tamaño máximo: {{ maxFileSize() }}MB por imagen</p>

@@ -32,12 +32,10 @@ export class SemanticSearchService {
   private readonly notificationState = inject(NotificationStateService);
   private readonly baseUrl = environment.baseUrl;
 
-  // Signal para el estado de búsqueda actual
   private readonly _isSearching = signal(false);
   private readonly _lastSearchQuery = signal<string>('');
   private readonly _lastSearchResults = signal<SemanticSearchResult[]>([]);
 
-  // Signals públicos computados
   public readonly isSearching = this._isSearching.asReadonly();
   public readonly lastSearchQuery = this._lastSearchQuery.asReadonly();
   public readonly lastSearchResults = this._lastSearchResults.asReadonly();
@@ -81,10 +79,8 @@ export class SemanticSearchService {
           usedThreshold: response.usedThreshold
         });
 
-        // Actualizar signals con los resultados
         this._lastSearchResults.set(response.products);
 
-        // Mostrar notificación de éxito
         if (response.totalFound > 0) {
           this.notificationState.success(
             `🎯 Encontré ${response.totalFound} producto${response.totalFound > 1 ? 's': ''} relacionado${response.totalFound > 1 ? 's': ''} con tu búsqueda`
@@ -101,7 +97,6 @@ export class SemanticSearchService {
           '🤖 Error en la búsqueda inteligente. Por favor, inténtalo de nuevo.'
         );
         
-        // Devolver respuesta vacía en caso de error
         return of({
           products: [],
           totalFound: 0,

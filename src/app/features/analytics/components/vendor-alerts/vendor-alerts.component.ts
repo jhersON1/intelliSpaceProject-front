@@ -106,19 +106,17 @@ import { ProductAlert } from '../../../../core/types/analytics.interface';
 export class VendorAlertsComponent {
   alerts = input<ProductAlert[]>([]);
 
-  // Sorted alerts by severity and date
   sortedAlerts = computed(() => {
     return [...this.alerts()].sort((a, b) => {
-      // Priority order: CRITICAL > HIGH > MEDIUM > LOW
       const severityOrder: Record<string, number> = { 'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 };
       const severityDiff = (severityOrder[a.severity] || 3) - (severityOrder[b.severity] || 3);
       
       if (severityDiff !== 0) return severityDiff;
       
-      // If same severity, sort by date (newest first)
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   });
+  
   onAlertClick(alert: ProductAlert): void {
     // Emit or navigate to product detail
     // TODO: Implementar navegación específica basada en el tipo de alerta

@@ -25,7 +25,6 @@ export class ProductVendorListComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private globalCleanupService = inject(GlobalCleanupService);
 
-  // Subject para manejar la destrucción del componente
   private readonly destroy$ = new Subject<void>();
 
   loading = signal(false);
@@ -38,14 +37,12 @@ export class ProductVendorListComponent implements OnInit, OnDestroy {
 
   totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
 
-  // Effect para cargar productos cuando cambia la página (solo después de inicializar)
   private loadProductsEffect = effect(() => {
     if (this.initialized()) {
       this.loadProducts();
     }
   });
   ngOnInit(): void {
-    // Suscribirse a la señal de limpieza global
     this.globalCleanupService.cleanup$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
@@ -106,7 +103,6 @@ export class ProductVendorListComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Crear observables para cargar todas las imágenes en paralelo
     const imageRequests = products.map(product => {
       return this.visualService.findPrincipalImage(product.id).pipe(
         catchError(() => {
@@ -139,6 +135,7 @@ export class ProductVendorListComponent implements OnInit, OnDestroy {
         }
       });
   }
+
   prevPage(): void {
     if (this.currentPage() > 1) {
       this.currentPage.set(this.currentPage() - 1);
@@ -146,7 +143,7 @@ export class ProductVendorListComponent implements OnInit, OnDestroy {
   }
 
   nextPage(): void {
-    // Usamos hasMore para determinar si hay una página siguiente disponible
+
     if (this.hasMore() || this.currentPage() < this.totalPages()) {
       this.currentPage.set(this.currentPage() + 1);
     }
@@ -171,7 +168,6 @@ export class ProductVendorListComponent implements OnInit, OnDestroy {
       for (let i = start; i <= end; i++) pages.push(i);
     }
     
-    // Si hay más páginas disponibles, asegurémonos de mostrar al menos la página siguiente
     if (this.hasMore() && pages.length > 0) {
       const lastPage = pages[pages.length - 1];
       if (currentPage === lastPage) {
@@ -189,6 +185,7 @@ export class ProductVendorListComponent implements OnInit, OnDestroy {
   editProduct(product: ProductWithImage): void {
     this.router.navigate(['/home/products', product.id]);
   }
+
   deleteProduct(product: ProductWithImage): void {
     if (confirm(`¿Estás seguro de que deseas eliminar el producto "${product.title}"?`)) {
       this.loading.set(true);
@@ -210,7 +207,6 @@ export class ProductVendorListComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Método para debug en el template
   onImageError(event: Event, product: ProductWithImage): void {
     const target = event.target as HTMLImageElement;
     if (target) {

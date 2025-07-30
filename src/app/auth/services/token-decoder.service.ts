@@ -4,30 +4,22 @@ import { userRole } from '../interfaces';
 import { LoggerService } from '../../core/services/logger.service';
 import { JwtPayload, TokenUserInfo, TokenDecodeResult } from '../../core/types/jwt.types';
 
-/**
- * Servicio responsable de decodificar y extraer información de tokens JWT
- */
 @Injectable({
   providedIn: 'root'
 })
 export class TokenDecoderService {
   private readonly tokenService = inject(TokenService);
-  private readonly logger = inject(LoggerService);  /**
-   * Decodifica el token JWT actual de forma segura
-   */
+  private readonly logger = inject(LoggerService);
+
   decodeCurrentToken(): TokenDecodeResult {
     const token = this.tokenService.getToken();
     if (!token) {
-      // No logear cuando no hay token - es normal después del logout o para usuarios no autenticados
       return { success: false, error: 'No token available' };
     }
 
     return this.decodeToken(token);
   }
 
-  /**
-   * Decodifica un token JWT específico
-   */
   decodeToken(token: string): TokenDecodeResult {
     if (!token) {
       return { success: false, error: 'No token provided' };
@@ -54,21 +46,18 @@ export class TokenDecoderService {
       this.logger.error('Error al decodificar token', { error }, 'TokenDecoderService');
       return { success: false, error: 'Invalid token format' };
     }
-  }  /**
-   * Obtiene el rol del usuario desde el token
-   */
+  }
+
   getUserRoleFromToken(): userRole | null {
     const result = this.decodeCurrentToken();
     
     if (!result.success || !result.payload?.rol) {
-      // Solo logear si hay token pero no se puede decodificar (error real)
       if (this.tokenService.getToken()) {
         this.logger.warn('No se encontró rol en el token válido', {}, 'TokenDecoderService');
       }
       return null;
     }
 
-    // Retornar el rol tal como viene del token (como string)
     const roleString = result.payload.rol;
     console.log('TokenDecoderService: Role from token:', { roleString, type: typeof roleString });
     
@@ -81,9 +70,6 @@ export class TokenDecoderService {
     return null;
   }
 
-  /**
-   * Verifica si el token ha expirado
-   */
   isTokenExpired(): boolean {
     const result = this.decodeCurrentToken();
     
@@ -95,9 +81,6 @@ export class TokenDecoderService {
     return result.payload.exp < currentTime;
   }
 
-  /**
-   * Obtiene información adicional del usuario desde el token
-   */
   getUserInfoFromToken(): TokenUserInfo | null {
     const result = this.decodeCurrentToken();
     

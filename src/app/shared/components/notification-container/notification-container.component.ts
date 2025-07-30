@@ -2,9 +2,6 @@ import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationStateService, NotificationState } from '../../../core/services/notification-state.service';
 
-/**
- * Componente para mostrar notificaciones globales
- */
 @Component({
   selector: 'app-notification-container',
   standalone: true,
@@ -115,7 +112,6 @@ import { NotificationStateService, NotificationState } from '../../../core/servi
         animation-fill-mode: forwards;
       }
       
-      /* Adaptaciones para pantallas muy pequeñas */
       @media (max-width: 320px) {
         .fixed.top-4.right-4 {
           top: 0.5rem;
@@ -126,7 +122,6 @@ import { NotificationStateService, NotificationState } from '../../../core/servi
         }
       }
       
-      /* Mejoras para tablets */
       @media (min-width: 768px) and (max-width: 1024px) {
         .fixed.top-4.right-4 {
           max-width: 20rem;

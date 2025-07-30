@@ -1,19 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, of, catchError, map, tap, throwError } from 'rxjs';
-import { 
-  ClickTrackingDto, 
-  StockUpdateDto, 
-  QueueMetrics, 
-  ProductStats, 
-  VendorDashboard, 
+import { Observable, of, catchError, tap, throwError } from 'rxjs';
+import {
+  ClickTrackingDto,
+  StockUpdateDto,
+  QueueMetrics,
+  ProductStats,
+  VendorDashboard,
   PriorityProduct,
   QueueTheoryDemo,
-  ProductAnalytics,
   ClickTracking,
   StockHistory,
-  TrendingProductsResponse,
-  ProductTrendAnalysis
+  TrendingProductsResponse
 } from '../types/analytics.interface';
 import { environment } from '@environments/environments';
 import { API_ROUTES } from '../constants';
@@ -31,16 +29,16 @@ export class AnalyticsService {
   private readonly cacheService = inject(HttpCacheService);
   private readonly tokenService = inject(TokenService);
   private readonly authService = inject(AuthService);
-  
+
   private readonly baseUrl: string = environment.baseUrl;
 
   /**
    * Registra un click o interacción en un producto
    * FASE 2: Tracking automático de clicks
-   */  trackProductInteraction(trackingData: ClickTrackingDto): Observable<ClickTracking> {
+   */  
+  trackProductInteraction(trackingData: ClickTrackingDto): Observable<ClickTracking> {
     const url = `${this.baseUrl}${API_ROUTES.ANALYTICS_TRACK_CLICK}`;
-    
-    // Enriquecer datos automáticamente
+
     const enrichedData: ClickTrackingDto = {
       ...trackingData,
       userAgent: trackingData.userAgent || navigator.userAgent,
@@ -61,8 +59,7 @@ export class AnalyticsService {
           productId: enrichedData.productId,
           result
         }, 'AnalyticsService.trackProductInteraction');
-        
-        // Invalidar caché relacionado
+
         this.invalidateProductCache(trackingData.productId);
       }),
       catchError(error => {
@@ -73,8 +70,7 @@ export class AnalyticsService {
           productId: enrichedData.productId,
           errorDetails: error
         }, 'AnalyticsService.trackProductInteraction');
-        
-        // Retornar un objeto mock en caso de error para no romper la UX
+
         return of({
           id: 'mock-' + Date.now(),
           productId: enrichedData.productId,
@@ -103,7 +99,7 @@ export class AnalyticsService {
           productId: stockData.productId,
           changeType: stockData.changeType
         }, 'AnalyticsService.trackStockChange');
-        
+
         this.invalidateProductCache(stockData.productId);
         this.invalidateVendorCache();
       }),
@@ -123,7 +119,7 @@ export class AnalyticsService {
   getProductStats(productId: string): Observable<ProductStats> {
     const cacheKey = `product_stats_${productId}`;
     const cached = this.cacheService.get<ProductStats>(cacheKey);
-    
+
     if (cached) {
       this.logger.debug('Product stats retrieved from cache', { productId }, 'AnalyticsService.getProductStats');
       return of(cached);
@@ -137,8 +133,7 @@ export class AnalyticsService {
           productId,
           congestionStatus: stats.queueMetrics?.status
         }, 'AnalyticsService.getProductStats');
-        
-        // Caché de 5 minutos para estadísticas
+
         this.cacheService.set(cacheKey, stats, { ttl: 5 * 60 * 1000 });
       }),
       catchError(error => {
@@ -157,7 +152,7 @@ export class AnalyticsService {
   getQueueMetrics(productId: string, period: number = 30): Observable<QueueMetrics> {
     const cacheKey = `queue_metrics_${productId}_${period}`;
     const cached = this.cacheService.get<QueueMetrics>(cacheKey);
-    
+
     if (cached) {
       return of(cached);
     }
@@ -172,8 +167,7 @@ export class AnalyticsService {
           rho: metrics.rho,
           status: metrics.status
         }, 'AnalyticsService.getQueueMetrics');
-        
-        // Caché de 10 minutos para métricas de cola
+
         this.cacheService.set(cacheKey, metrics, { ttl: 10 * 60 * 1000 });
       }),
       catchError(error => {
@@ -181,8 +175,7 @@ export class AnalyticsService {
           error: error.message,
           productId
         }, 'AnalyticsService.getQueueMetrics');
-        
-        // Retornar métricas por defecto
+
         return of({
           lambda: 0,
           mu: 0,
@@ -200,7 +193,7 @@ export class AnalyticsService {
   getClickHistory(productId: string, limit: number = 100): Observable<ClickTracking[]> {
     const cacheKey = `click_history_${productId}_${limit}`;
     const cached = this.cacheService.get<ClickTracking[]>(cacheKey);
-    
+
     if (cached) {
       this.logger.debug('Click history retrieved from cache', { productId, limit }, 'AnalyticsService.getClickHistory');
       return of(cached);
@@ -214,8 +207,7 @@ export class AnalyticsService {
           productId,
           recordCount: history.length
         }, 'AnalyticsService.getClickHistory');
-        
-        // Caché de 10 minutos para históricos
+
         this.cacheService.set(cacheKey, history, { ttl: 10 * 60 * 1000 });
       }),
       catchError(error => {
@@ -234,7 +226,7 @@ export class AnalyticsService {
   getStockHistory(productId: string, limit: number = 50): Observable<StockHistory[]> {
     const cacheKey = `stock_history_${productId}_${limit}`;
     const cached = this.cacheService.get<StockHistory[]>(cacheKey);
-    
+
     if (cached) {
       this.logger.debug('Stock history retrieved from cache', { productId, limit }, 'AnalyticsService.getStockHistory');
       return of(cached);
@@ -248,8 +240,7 @@ export class AnalyticsService {
           productId,
           recordCount: history.length
         }, 'AnalyticsService.getStockHistory');
-        
-        // Caché de 10 minutos para históricos
+
         this.cacheService.set(cacheKey, history, { ttl: 10 * 60 * 1000 });
       }),
       catchError(error => {
@@ -268,7 +259,7 @@ export class AnalyticsService {
   getPriorityProducts(limit: number = 10): Observable<PriorityProduct[]> {
     const cacheKey = `priority_products_${limit}`;
     const cached = this.cacheService.get<PriorityProduct[]>(cacheKey);
-    
+
     if (cached) {
       return of(cached);
     }
@@ -281,7 +272,7 @@ export class AnalyticsService {
         this.logger.debug('Priority products retrieved', {
           count: products.length
         }, 'AnalyticsService.getPriorityProducts');
-          // Caché de 2 minutos para mayor responsividad
+
         this.cacheService.set(cacheKey, products, { ttl: 2 * 60 * 1000 });
       }),
       catchError(error => {
@@ -299,7 +290,7 @@ export class AnalyticsService {
   getCriticalProducts(): Observable<PriorityProduct[]> {
     const cacheKey = 'critical_products';
     const cached = this.cacheService.get<PriorityProduct[]>(cacheKey);
-    
+
     if (cached) {
       return of(cached);
     }
@@ -311,8 +302,7 @@ export class AnalyticsService {
         this.logger.debug('Critical products retrieved', {
           count: products.length
         }, 'AnalyticsService.getCriticalProducts');
-        
-        // Caché de 2 minutos para productos críticos
+
         this.cacheService.set(cacheKey, products, { ttl: 2 * 60 * 1000 });
       }),
       catchError(error => {
@@ -323,6 +313,7 @@ export class AnalyticsService {
       })
     );
   }
+
   /**
    * Obtiene el dashboard del vendedor (requiere autenticación)
    */
@@ -334,7 +325,7 @@ export class AnalyticsService {
 
     const cacheKey = 'vendor_dashboard';
     const cached = this.cacheService.get<VendorDashboard>(cacheKey);
-    
+
     if (cached) {
       this.logger.debug('Returning cached vendor dashboard', {
         totalProducts: cached.totalProducts,
@@ -353,14 +344,14 @@ export class AnalyticsService {
     }, 'AnalyticsService.getVendorDashboard');
 
     return this.http.get<VendorDashboard>(url, { headers }).pipe(
-      tap(dashboard => {        this.logger.info('📊 VENDOR DASHBOARD RETRIEVED', {
+      tap(dashboard => {
+        this.logger.info('📊 VENDOR DASHBOARD RETRIEVED', {
           totalProducts: dashboard.totalProducts,
           totalInteractions: dashboard.totalInteractions,
           criticalProducts: dashboard.criticalProducts,
           averageUtilization: dashboard.averageUtilization,
           dashboard
         }, 'AnalyticsService.getVendorDashboard');
-          // Caché de 2 minutos para dashboard
         this.cacheService.set(cacheKey, dashboard, { ttl: 2 * 60 * 1000 });
       }),
       catchError(error => {
@@ -388,8 +379,7 @@ export class AnalyticsService {
     return this.http.post<{ message: string }>(url, {}, { headers }).pipe(
       tap(() => {
         this.logger.debug('Metrics recalculated successfully', {}, 'AnalyticsService.recalculateMetrics');
-        
-        // Limpiar todo el caché de analytics
+
         this.clearAnalyticsCache();
       }),
       catchError(error => {
@@ -400,6 +390,7 @@ export class AnalyticsService {
       })
     );
   }
+
   /**
    * Obtiene demo educativa de teoría de colas para un producto
    */
@@ -418,9 +409,6 @@ export class AnalyticsService {
     );
   }
 
-  /**
-   * ✅ MÉTODO PARA DEBUGGING - Fuerza recálculo de métricas de todos los productos
-   */
   forceRecalculateAllMetrics(): Observable<any> {
     if (!this.authService.isAuthenticated()) {
       return of({ error: 'User not authenticated' });
@@ -434,8 +422,7 @@ export class AnalyticsService {
     return this.http.post<any>(url, {}, { headers }).pipe(
       tap((result) => {
         this.logger.info('✅ METRICS RECALCULATION COMPLETED', { result }, 'AnalyticsService.forceRecalculateAllMetrics');
-        
-        // Limpiar caché para forzar refetch
+
         this.cacheService.clear();
       }),
       catchError(error => {
@@ -448,9 +435,7 @@ export class AnalyticsService {
     );
   }
 
-  /**
-   * ✅ MÉTODO PARA DEBUGGING - Fuerza recálculo de métricas de un producto específico
-   */
+
   forceRecalculateProductMetrics(productId: string): Observable<any> {
     if (!this.authService.isAuthenticated()) {
       return of({ error: 'User not authenticated' });
@@ -463,12 +448,11 @@ export class AnalyticsService {
 
     return this.http.post<any>(url, {}, { headers }).pipe(
       tap((result) => {
-        this.logger.info('✅ PRODUCT METRICS RECALCULATION COMPLETED', { 
+        this.logger.info('✅ PRODUCT METRICS RECALCULATION COMPLETED', {
           productId,
-          result 
+          result
         }, 'AnalyticsService.forceRecalculateProductMetrics');
-        
-        // Invalidar caché del producto específico
+
         this.invalidateProductCache(productId);
       }),
       catchError(error => {
@@ -482,16 +466,10 @@ export class AnalyticsService {
     );
   }
 
-  /**
-   * ✅ MÉTODO PARA DEBUGGING - Limpia el caché del dashboard
-   */
   clearDashboardCache(): void {
-    this.logger.info('🧹 CLEARING DASHBOARD CACHE', {}, 'AnalyticsService.clearDashboardCache');    this.cacheService.clear();
+    this.logger.info('🧹 CLEARING DASHBOARD CACHE', {}, 'AnalyticsService.clearDashboardCache'); this.cacheService.clear();
   }
 
-  /**
-   * ✅ NUEVO: Inicializa productos sin historial de analytics
-   */
   initializeProductsWithoutHistory(): Observable<any> {
     if (!this.authService.isAuthenticated()) {
       return throwError(() => new Error('Usuario no autenticado'));
@@ -507,8 +485,7 @@ export class AnalyticsService {
         this.logger.info('Productos inicializados exitosamente', {
           response
         }, 'AnalyticsService.initializeProductsWithoutHistory');
-        
-        // Limpiar caché después de la inicialización
+
         this.clearAnalyticsCache();
       }),
       catchError((error) => {
@@ -520,13 +497,10 @@ export class AnalyticsService {
     );
   }
 
-  /**
-   * 🔮 NUEVO: Obtiene productos trending usando Holt-Winters
-   */
   getTrendingProducts(limit: number = 6): Observable<TrendingProductsResponse> {
     const url = `${this.baseUrl}${API_ROUTES.ANALYTICS_TRENDING_PRODUCTS}`;
     const params = new HttpParams().set('limit', limit.toString());
-    
+
     this.logger.info('🔥 GETTING TRENDING PRODUCTS', {
       url,
       limit,
@@ -549,8 +523,7 @@ export class AnalyticsService {
           url,
           fullError: error
         }, 'AnalyticsService.getTrendingProducts');
-        
-        // Retornar respuesta vacía en caso de error
+
         return of({
           total: 0,
           products: [],
@@ -560,8 +533,6 @@ export class AnalyticsService {
       })
     );
   }
-
-  // Métodos privados de utilidad
 
   private getAuthHeaders(): HttpHeaders {
     const token = this.tokenService.getToken();
@@ -583,13 +554,12 @@ export class AnalyticsService {
     this.logger.debug('Vendor cache invalidated', {}, 'AnalyticsService.invalidateVendorCache');
   }
   private clearAnalyticsCache(): void {
-    // Limpiar todo el caché relacionado con analytics
     this.cacheService.invalidatePattern(/^product_stats_/);
     this.cacheService.invalidatePattern(/^queue_metrics_/);
     this.cacheService.invalidatePattern(/^priority_products_/);
     this.cacheService.delete('critical_products');
     this.cacheService.delete('vendor_dashboard');
-    
+
     this.logger.debug('All analytics cache cleared', {}, 'AnalyticsService.clearAnalyticsCache');
   }
 }

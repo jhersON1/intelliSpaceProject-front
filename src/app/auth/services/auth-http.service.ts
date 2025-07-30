@@ -7,9 +7,6 @@ import { LoggerService } from '../../core/services/logger.service';
 import { API_ROUTES } from '../../core/constants';
 import { environment } from '@environments/environments';
 
-/**
- * Servicio responsable de las operaciones HTTP relacionadas con autenticación
- */
 @Injectable({
   providedIn: 'root'
 })
@@ -18,9 +15,7 @@ export class AuthHttpService {
   private readonly tokenService = inject(TokenService);
   private readonly logger = inject(LoggerService);
   private readonly baseUrl: string = environment.baseUrl;
-  /**
-   * Realiza el login del usuario
-   */
+
   login(email: string, password: string): Observable<LoginResponse> {
     const url = `${this.baseUrl}${API_ROUTES.LOGIN}`;
     const body = { email, password };
@@ -49,9 +44,6 @@ export class AuthHttpService {
     );
   }
 
-  /**
-   * Registra un nuevo usuario
-   */
   register(userData: CreateUser): Observable<any> {
     const url = `${this.baseUrl}${API_ROUTES.REGISTER}`;
 
@@ -72,9 +64,6 @@ export class AuthHttpService {
     );
   }
 
-  /**
-   * Verifica la validez del token actual
-   */
   checkToken(): Observable<CheckTokenResponse> {
     const url = `${this.baseUrl}${API_ROUTES.CHECK_TOKEN}`;
     const token = this.tokenService.getToken();

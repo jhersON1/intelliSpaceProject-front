@@ -22,7 +22,6 @@ interface ProductAnalyticsData {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <!-- Modal Overlay -->
     @if (isOpen()) {
       <div class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-[9999] flex items-center justify-center p-4"
            (click)="closeModal()">
@@ -51,7 +50,6 @@ interface ProductAnalyticsData {
 
           <!-- Content -->
           <div class="px-6 py-4">
-            <!-- Loading State -->
             @if (loading()) {
               <div class="flex justify-center items-center py-12">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -63,7 +61,6 @@ interface ProductAnalyticsData {
             @if (!loading() && stats()) {
               <div class="space-y-6">
                 
-                <!-- Estado General -->
                 <div class="bg-gray-50 rounded-lg p-6">
                   <h4 class="font-semibold text-gray-800 mb-4 flex items-center">
                     📊 <span class="ml-2">Estado General</span>
@@ -223,29 +220,23 @@ interface ProductAnalyticsData {
   `
 })
 export class ProductAnalyticsModalComponent implements OnInit {
-  // Inputs
   isOpen = input<boolean>(false);
   product = input<PriorityProduct | null>(null);
   
-  // Outputs
   close = output<void>();
-  
-  // Services
+
   private analyticsService = inject(AnalyticsService);
   
-  // State
   loading = signal<boolean>(false);
   stats = signal<ProductAnalyticsData | null>(null);
 
   constructor() {
-    // Watch for changes in isOpen and product using effect
     effect(() => {
       this.loadProductStats();
     });
   }
 
   ngOnInit() {
-    // Initial load
     this.loadProductStats();
   }
 

@@ -16,212 +16,204 @@
             class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal border-b border-black/50 transition-all duration-200">
             Home
           </a>
-          
+
           <!-- Mostrar Login solo si NO está autenticado -->
           @if (!isAuthenticated()) {
-            <a href="#/auth/login"
-              class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
-              Login
-            </a>
+          <a href="#/auth/login"
+            class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
+            Login
+          </a>
           }
-          
+
           <a href="#/home/products"
             class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
             Productos
           </a>
-            <!-- Mostrar opciones de vendor solo si está autenticado Y es vendor -->
+          <!-- Mostrar opciones de vendor solo si está autenticado Y es vendor -->
           @if (isAuthenticated() && isVendor()) {
-            <a href="#/home/products-create"
-              class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
-              Crear Producto
-            </a>
-            <a href="#/home/my-products"
-              class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
-              Mis Productos
-            </a>            <a href="#/home/vendor/analytics"
-              class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
-              Analytics
-            </a>            <a href="#/home/vendor/analytics/export"
-              class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
-              Reportes
-            </a>
+          <a href="#/home/products-create"
+            class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
+            Crear Producto
+          </a>
+          <a href="#/home/my-products"
+            class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
+            Mis Productos
+          </a> <a href="#/home/vendor/analytics"
+            class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
+            Analytics
+          </a> <a href="#/home/vendor/analytics/export"
+            class="text-black text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-black/50 transition-all duration-200">
+            Reportes
+          </a>
           }
 
           <!-- Mostrar opciones de admin solo si está autenticado Y es admin -->
           @if (isAuthenticated() && isAdmin()) {
-            <a href="#/admin/dashboard"
-              class="text-purple-600 text-sm lg:text-base font-medium font-['Poppins'] leading-normal hover:border-b hover:border-purple-600/50 transition-all duration-200">
-              🔧 Admin Dashboard
-            </a>
+          <a href="#/admin/dashboard"
+            class="text-purple-600 text-sm lg:text-base font-medium font-['Poppins'] leading-normal hover:border-b hover:border-purple-600/50 transition-all duration-200">
+            🔧 Admin Dashboard
+          </a>
           }
-          
+
           <!-- Mostrar Logout solo si está autenticado -->
           @if (isAuthenticated()) {
-            <button (click)="logout()"
-              class="text-red-600 text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-red-600/50 transition-all duration-200 bg-transparent border-none cursor-pointer">
-              Cerrar Sesión
-            </button>
+          <button (click)="logout()"
+            class="text-red-600 text-sm lg:text-base font-normal font-['Poppins'] leading-normal hover:border-b hover:border-red-600/50 transition-all duration-200 bg-transparent border-none cursor-pointer">
+            Cerrar Sesión
+          </button>
           }
         </div>
       </div>
 
       <!-- Right side actions -->
-      <div class="flex items-center space-x-2 sm:space-x-3">        <!-- Desktop AI Search -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
         <div class="hidden md:block relative">
-          <app-ai-search 
-            placeholder="🤖Ej. Quiero un sofá cómodo"
-            (searchPerformed)="onSearchPerformed()"
+          <app-ai-search placeholder="🤖Ej. Quiero un sofá cómodo" (searchPerformed)="onSearchPerformed()"
             (searchCleared)="onSearchCleared()">
           </app-ai-search>
         </div>
 
         <!-- Mobile Search Button -->
-        <button type="button" class="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors duration-200" 
-                (click)="toggleMobileSearch()" 
-                [attr.aria-label]="'Buscar'">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button type="button" class="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+          (click)="toggleMobileSearch()" [attr.aria-label]="'Buscar'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
-        </button>        <!-- User Profile/Account Button (solo si está autenticado) -->
+        </button>
         @if (isAuthenticated()) {
-          <button type="button" class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
-                  [attr.aria-label]="'Perfil de usuario'">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </button>
+        <button type="button" class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+          [attr.aria-label]="'Perfil de usuario'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </button>
         }
 
-        <!-- Messages Button (solo para vendors) -->
         @if (isAuthenticated() && isVendor()) {
-          <button type="button" 
-                  (click)="navigateToMessages()"
-                  class="relative p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
-                  [attr.aria-label]="'Mensajes'">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.438L3 21l2.438-5.094A8.959 8.959 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z" />
-            </svg>
-            @if (unreadMessagesCount() > 0) {
-              <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-medium min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
-                {{ unreadMessagesCount() > 99 ? '99+' : unreadMessagesCount() }}
-              </span>
-            }
-          </button>
-        }<!-- Notifications (solo si está autenticado) -->
+        <button type="button" (click)="navigateToMessages()"
+          class="relative p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+          [attr.aria-label]="'Mensajes'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.438L3 21l2.438-5.094A8.959 8.959 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z" />
+          </svg>
+          @if (unreadMessagesCount() > 0) {
+          <span
+            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-medium min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
+            {{ unreadMessagesCount() > 99 ? '99+' : unreadMessagesCount() }}
+          </span>
+          }
+        </button>
+        }
         @if (isAuthenticated()) {
-          <app-notification-panel></app-notification-panel>
+        <app-notification-panel></app-notification-panel>
         }
 
-        <!-- Mobile Menu Button -->
-        <button type="button" class="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors duration-200" 
-                (click)="toggleMobileMenu()"
-                [attr.aria-label]="isMobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'">
+        <button type="button" class="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+          (click)="toggleMobileMenu()" [attr.aria-label]="isMobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'">
           @if(!isMobileMenuOpen){
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
           }
 
           @if(isMobileMenuOpen){
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
           }
         </button>
       </div>
-    </div>    <!-- Mobile AI Search Bar -->
+    </div>
+
     @if(isMobileSearchOpen){
-      <div class="md:hidden mt-3 px-1 transition-all duration-300 ease-in-out">
-        <app-ai-search 
-          placeholder="🤖 Buscar con IA + Enter..."
-          [isMobile]="true"
-          (searchPerformed)="onSearchPerformed()"
-          (searchCleared)="onSearchCleared()">
-        </app-ai-search>
-      </div>
+    <div class="md:hidden mt-3 px-1 transition-all duration-300 ease-in-out">
+      <app-ai-search placeholder="🤖 Buscar con IA + Enter..." [isMobile]="true" (searchPerformed)="onSearchPerformed()"
+        (searchCleared)="onSearchCleared()">
+      </app-ai-search>
+    </div>
     }
 
-    <!-- Mobile Menu -->
     @if(isMobileMenuOpen) {
-      <div class="md:hidden mt-3 pb-3 transition-all duration-300 ease-in-out border-t border-gray-200">
-        <div class="py-2 space-y-1">
-          <a href="#/home"
-            class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
-            🏠 Home
-          </a>
-          
-          <!-- Login solo si NO está autenticado -->
-          @if (!isAuthenticated()) {
-            <a href="#/auth/login"
-              class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
-              🔐 Iniciar Sesión
-            </a>
-          }
-          
-          <a href="#/home/products"
-            class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
-            📦 Productos
-          </a>
-            <!-- Opciones de vendor solo si está autenticado Y es vendor -->          @if (isAuthenticated() && isVendor()) {
-            <a href="#/home/products-create"
-              class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
-              ➕ Crear Producto
-            </a>
-            <a href="#/home/my-products"
-              class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
-              📋 Mis Productos
-            </a>
-            <a href="#/home/vendor/analytics"
-              class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
-              📊 Analytics
-            </a>            <a href="#/home/vendor/analytics/export"
-              class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
-              📋 Reportes
-            </a>
-            <button (click)="navigateToMessages()"
-              class="w-full text-left block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200 bg-transparent border-none cursor-pointer">
-              💬 Mensajes
-              @if (unreadMessagesCount() > 0) {
-                <span class="ml-2 bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full">
-                  {{ unreadMessagesCount() }}
-                </span>              }            </button>
-          }
+    <div class="md:hidden mt-3 pb-3 transition-all duration-300 ease-in-out border-t border-gray-200">
+      <div class="py-2 space-y-1">
+        <a href="#/home"
+          class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
+          🏠 Home
+        </a>
 
-          <!-- Opciones de admin solo si está autenticado Y es admin -->
-          @if (isAuthenticated() && isAdmin()) {
-            <a href="#/admin/dashboard"
-              class="block py-3 px-4 text-purple-600 text-base font-medium font-['Poppins'] leading-normal hover:bg-purple-50 rounded-lg transition-colors duration-200">
-              🔧 Admin Dashboard
-            </a>
+        @if (!isAuthenticated()) {
+        <a href="#/auth/login"
+          class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
+          🔐 Iniciar Sesión
+        </a>
+        }
+
+        <a href="#/home/products"
+          class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
+          📦 Productos
+        </a>
+        <!-- Opciones de vendor solo si está autenticado Y es vendor --> @if (isAuthenticated() && isVendor()) {
+        <a href="#/home/products-create"
+          class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
+          ➕ Crear Producto
+        </a>
+        <a href="#/home/my-products"
+          class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
+          📋 Mis Productos
+        </a>
+        <a href="#/home/vendor/analytics"
+          class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
+          📊 Analytics
+        </a> <a href="#/home/vendor/analytics/export"
+          class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
+          📋 Reportes
+        </a>
+        <button (click)="navigateToMessages()"
+          class="w-full text-left block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200 bg-transparent border-none cursor-pointer">
+          💬 Mensajes
+          @if (unreadMessagesCount() > 0) {
+          <span class="ml-2 bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full">
+            {{ unreadMessagesCount() }}
+          </span> } </button>
+        }
+
+        @if (isAuthenticated() && isAdmin()) {
+        <a href="#/admin/dashboard"
+          class="block py-3 px-4 text-purple-600 text-base font-medium font-['Poppins'] leading-normal hover:bg-purple-50 rounded-lg transition-colors duration-200">
+          🔧 Admin Dashboard
+        </a>
+        }
+
+        @if (isAuthenticated() && !isVendor()) {
+        <a href="#/home/my-messages"
+          class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
+          📬 Mis Mensajes
+        </a>
+        }
+
+        @if (isAuthenticated()) {
+        <div class="px-4 py-2 border-t border-gray-200 mt-2">
+          @if (currentUser()) {
+          <p class="text-sm text-gray-600 mb-2">
+            👋 Hola, {{ currentUser()?.email }}
+          </p>
           }
-          
-          <!-- Opciones para consumers autenticados -->
-          @if (isAuthenticated() && !isVendor()) {
-            <a href="#/home/my-messages"
-              class="block py-3 px-4 text-black text-base font-normal font-['Poppins'] leading-normal hover:bg-gray-50 rounded-lg transition-colors duration-200">
-              📬 Mis Mensajes
-            </a>
-          }
-          
-          <!-- Usuario autenticado info y logout -->
-          @if (isAuthenticated()) {
-            <div class="px-4 py-2 border-t border-gray-200 mt-2">
-              @if (currentUser()) {
-                <p class="text-sm text-gray-600 mb-2">
-                  👋 Hola, {{ currentUser()?.email }}
-                </p>
-              }
-              <button (click)="logout()"
-                class="w-full text-left py-3 px-4 text-red-600 text-base font-normal font-['Poppins'] leading-normal hover:bg-red-50 rounded-lg transition-colors duration-200 bg-transparent border-none cursor-pointer">
-                🚪 Cerrar Sesión
-              </button>
-            </div>
-          }
+          <button (click)="logout()"
+            class="w-full text-left py-3 px-4 text-red-600 text-base font-normal font-['Poppins'] leading-normal hover:bg-red-50 rounded-lg transition-colors duration-200 bg-transparent border-none cursor-pointer">
+            🚪 Cerrar Sesión
+          </button>
         </div>
+        }
       </div>
+    </div>
     }
 
   </div>

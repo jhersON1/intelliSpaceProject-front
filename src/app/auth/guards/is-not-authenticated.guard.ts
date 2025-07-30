@@ -16,12 +16,10 @@ export const isNotAuthenticatedGuard: CanActivateFn = (route, state) => {
     currentStatus: auth.authStatus() 
   }, 'isNotAuthenticatedGuard');
   
-  // Convertir el signal authStatus a observable y esperar hasta que no esté en 'checking'
   return toObservable(auth.authStatus).pipe(
-    filter(status => status !== AuthStatus.checking), // Esperar hasta que no esté verificando
-    take(1), // Tomar solo el primer valor válido
+    filter(status => status !== AuthStatus.checking),
+    take(1),
     map(status => {
-      // Si no está autenticado, permitir acceso
       if (status === AuthStatus.notAuthenticated) {
         logger.info('Acceso permitido a ruta pública', { 
           url: state.url 
@@ -29,7 +27,6 @@ export const isNotAuthenticatedGuard: CanActivateFn = (route, state) => {
         return true;
       }
       
-      // Si está autenticado, redirigir a home
       logger.info('Usuario autenticado accediendo a ruta pública, redirigiendo a home', { 
         url: state.url,
         status 

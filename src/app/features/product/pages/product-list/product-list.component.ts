@@ -10,19 +10,15 @@ import { VisualRepresentationService } from '../../services/visual-representatio
 import { LoadingStateService } from '../../../../core/services/loading-state.service';
 import { NotificationStateService } from '../../../../core/services/notification-state.service';
 import { LoggerService } from '../../../../core/services';
-// Import analytics service and types
+
 import { AnalyticsService } from '../../../../core/services/analytics.service';
 import { AuthService } from '../../../../auth/services/auth.service';
 import { ProductAnalytics } from '../../../../core/types/analytics.interface';
-// 🆕 Import semantic search service
 import { SemanticSearchService } from '../../../../core/services/semantic-search.service';
 
 import { ProductGridComponent, ProductWithImage, PaginationData } from '../../components/product-grid/product-grid.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 
-/**
- * Componente inteligente que maneja la lógica de negocio para la lista de productos
- */
 @Component({
   selector: 'app-product-list',
   imports: [CommonModule, FormsModule, ProductGridComponent, LoadingStateComponent],  template: `
@@ -71,7 +67,6 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
           }
         </button>      </div>
 
-      <!-- 🆕 Banner de búsqueda semántica activa -->
       @if (isSemanticSearchActive()) {
         <div class="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4">
           <div class="flex items-center justify-between">
@@ -150,7 +145,7 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
             </div>
           }
         </div>
-      </div><!-- Estados de carga y error usando @if -->
+      </div>
       @if (isLoading() || hasError()) {
         <app-loading-state
           [isLoading]="isLoading()"
@@ -161,7 +156,6 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
           errorMessage="No se pudieron cargar los productos. Por favor, inténtalo de nuevo.">
         </app-loading-state>
       } @else {
-        <!-- Grid de productos -->
         <app-product-grid
           [products]="productsWithImages()"
           [pagination]="paginationData()"
@@ -183,14 +177,11 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
   private readonly logger = inject(LoggerService);
   private readonly analyticsService = inject(AnalyticsService);
   private readonly authService = inject(AuthService);
-  // 🆕 Inject semantic search service
   private readonly semanticSearchService = inject(SemanticSearchService);
 
-  // Subject para manejo de suscripciones
   private readonly destroy$ = new Subject<void>();
   private readonly pageChange$ = new Subject<number>();
 
-  // Signals para el estado del componente
   private readonly _products = signal<Product[]>([]);
   private readonly _productsWithImages = signal<ProductWithImage[]>([]);
   private readonly _productAnalytics = signal<Map<string, ProductAnalytics>>(new Map());
@@ -201,19 +192,17 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
   private readonly _hasError = signal(false);
   private readonly _sortBy = signal<'default' | 'popularity' | 'congestion' | 'alphabetic'>('default');
   private readonly _filterBy = signal<'all' | 'critical' | 'stable' | 'warning'>('all');
-  // Signals computadas públicas
+
   public readonly productsWithImages = computed(() => this._productsWithImages());
   public readonly isLoading = computed(() => this.loadingState.isLoadingOperation('loadProducts'));
   public readonly hasError = computed(() => this._hasError());
   public readonly sortBy = computed(() => this._sortBy());
   public readonly filterBy = computed(() => this._filterBy());
-  
-  // 🆕 Semantic search computed signals
+
   public readonly isSemanticSearchActive = computed(() => this.semanticSearchService.hasActiveSearch());
   public readonly semanticSearchQuery = computed(() => this.semanticSearchService.lastSearchQuery());
   public readonly isSemanticSearching = computed(() => this.semanticSearchService.isSearching());
   
-  // Analytics computed signals
   public readonly analyticsEnabled = computed(() => this._productAnalytics().size > 0);
   public readonly criticalProductsCount = computed(() => {
     return Array.from(this._productAnalytics().values())
@@ -240,12 +229,10 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
     };
   });
 
-  // Configuración
   private readonly pageSize = 10;  ngOnInit(): void {
     this.setupPageChangeHandler();
     this.setupRouteListener();
     
-    // Carga inicial
     if (this.semanticSearchService.hasActiveSearch()) {
       this.logger.info('🤖 Búsqueda semántica activa detectada en init, cargando resultados');
       this.loadSemanticSearchResults();
@@ -297,18 +284,19 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
           this.notificationState.error('Error al cambiar de página. Por favor, inténtalo de nuevo.');
         }
       });
-  }  /**
+  } 
+  
+  /**
    * Refresca los productos limpiando el caché
    */
   refreshProducts(): void {
-    // 🆕 Si hay una búsqueda semántica activa, limpiarla y volver a productos normales
+
     if (this.semanticSearchService.hasActiveSearch()) {
       this.logger.info('🧹 Limpiando búsqueda semántica y volviendo a productos normales');
       this.semanticSearchService.clearSearch();
       this.notificationState.info('🔄 Volviendo a mostrar todos los productos disponibles');
     }
     
-    // Invalidar caché de productos para forzar nueva carga
     const pattern = /^products_/;
     const invalidatedCount = this.productService['cacheService'].invalidatePattern(pattern);
     this.logger.info('Caché de productos invalidado', { invalidatedCount });
@@ -317,7 +305,9 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
     this.loadProducts();
     this.loadProductAnalytics(); // Agregar carga de analytics
     this.notificationState.success('Productos actualizados desde el servidor');
-  }/**
+  }
+  
+  /**
    * Carga los productos (versión síncrona para uso interno)
    */
   private loadProducts(): void {
@@ -325,7 +315,7 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
       .pipe(takeUntil(this.destroy$))      .subscribe({
         next: () => {
           this.logger.info('Productos cargados exitosamente desde loadProducts');
-          // Cargar analytics después de cargar productos
+
           this.loadProductAnalytics();
         },
         error: (error: any) => {
@@ -362,7 +352,7 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
           return of(undefined);
         }
       }),
-      map(() => void 0), // Convertir a void
+      map(() => void 0),
       catchError((error) => {
         this.logger.error('Error al cargar productos', error);
         this._hasError.set(true);
@@ -371,7 +361,9 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
         return of(void 0);
       })
     );
-  }  /**
+  }
+  
+  /**
    * Carga las imágenes de los productos en paralelo (versión observable)
    */
   private loadProductsWithImagesObservable(products: Product[]): Observable<void> {
@@ -380,15 +372,14 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
       return of(void 0);
     }
 
-    // Crear observables para cargar todas las imágenes en paralelo
     const imageRequests = products.map(product => {
       return this.visualService.findPrincipalImage(product.id).pipe(
         catchError((error: any) => {
-          // No loguear como error, es normal que algunos productos no tengan imagen
+
           this.logger.debug('Producto sin imagen principal', { productId: product.id });
           return of(null);
         }),
-        takeUntil(this.destroy$) // Cancelar si el componente se destruye
+        takeUntil(this.destroy$)
       );
     });
 
@@ -409,7 +400,6 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
       }),
       catchError((error: any) => {
         this.logger.error('Error crítico al cargar imágenes de productos', error);
-        // Continuar sin imágenes
         const productsWithoutImages: ProductWithImage[] = products.map(p => ({ 
           ...p, 
           imageAlt: p.title 
@@ -458,7 +448,6 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
     }
   }
 
-  // Event handlers para el ProductGridComponent
   /**
    * Maneja el clic en un producto
    */
@@ -470,16 +459,16 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
     this.trackProductClick(product.id);
     
     this.router.navigate(['/home/products', product.id, 'detail']);
-  }/**
+  }
+  
+  /**
    * Maneja el cambio de página
    */
   onPageChange(page: number): void {
-    // Evitar cambios innecesarios
     if (page === this._currentPage()) {
       return;
     }
     
-    // Usar el Subject con debounce para evitar múltiples llamadas rápidas
     this.pageChange$.next(page);
   }
 
@@ -519,7 +508,6 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
     const analytics = this._productAnalytics();
     let sortedProducts = [...products];
 
-    // Aplicar filtros
     if (this._filterBy() !== 'all') {
       sortedProducts = sortedProducts.filter(product => {
         const productAnalytics = analytics.get(product.id);
@@ -538,7 +526,6 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
       });
     }
 
-    // Aplicar ordenamiento
     switch (this._sortBy()) {
       case 'popularity':
         sortedProducts.sort((a, b) => {
@@ -562,11 +549,9 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
         sortedProducts.sort((a, b) => a.title.localeCompare(b.title));
         break;
       default:
-        // Mantener orden original
         break;
     }
 
-    // Enriquecer productos con analytics antes de establecer
     const enrichedSortedProducts: ProductWithImage[] = sortedProducts.map(product => ({
       ...product,
       analytics: analytics.get(product.id) ? {
@@ -578,7 +563,9 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
     }));
 
     this._productsWithImages.set(enrichedSortedProducts);
-  }  /**
+  } 
+  
+  /**
    * Carga analytics para los productos actuales (solo si está autenticado)
    */
   private loadProductAnalytics(): void {
@@ -596,7 +583,7 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
     // Cargar analytics de todos los productos en paralelo
     const analyticsRequests = productIds.map(id => 
       this.analyticsService.getProductStats(id).pipe(
-        map(stats => stats.analytics), // Extraer solo el ProductAnalytics
+        map(stats => stats.analytics),
         catchError(error => {
           this.logger.warn('Error loading analytics for product', { productId: id, error });
           return of(null);
@@ -618,6 +605,7 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
       this.applySortingAndFiltering();
     });
   }
+
   /**
    * Enriquece los productos con datos de analytics
    */
@@ -639,7 +627,7 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
   }
 
   /**
-   * 🆕 Carga y procesa los resultados de búsqueda semántica
+   * Carga y procesa los resultados de búsqueda semántica
    */
   private loadSemanticSearchResults(): void {
     const semanticResults = this.semanticSearchService.lastSearchResults();
@@ -654,23 +642,19 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
       count: semanticResults.length 
     });
 
-    // Extraer productos de los resultados semánticos
     const products = semanticResults.map(result => result.product);
     
-    // Actualizar signals básicos
     this._products.set(products);
     this._totalItems.set(products.length);
-    this._hasMore.set(false); // Los resultados semánticos no tienen paginación
+    this._hasMore.set(false);
     this._currentPage.set(1);
     this.calculateTotalPages();
     
-    // Cargar imágenes para los productos encontrados
     this.loadProductsWithImagesObservable(products)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
           this.logger.info('✅ Resultados de búsqueda semántica cargados con imágenes');
-          // Cargar analytics si está autenticado
           this.loadProductAnalytics();
         },
         error: (error) => {
@@ -680,7 +664,7 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
   }
 
   /**
-   * ✅ MÉTODO DE TRACKING: Registra clicks en productos desde la lista
+   * MÉTODO DE TRACKING: Registra clicks en productos desde la lista
    * Implementa la fundamentación teórica: λ = clicks/día
    */
   private trackProductClick(productId: string): void {
@@ -711,7 +695,7 @@ export class ProductListComponent implements OnInit, OnDestroy {  private readon
   }
 
   /**
-   * 🆕 Método público para refrescar la vista cuando cambia la búsqueda semántica
+   * Método público para refrescar la vista cuando cambia la búsqueda semántica
    */
   public refreshForSemanticSearch(): void {
     if (this.semanticSearchService.hasActiveSearch()) {

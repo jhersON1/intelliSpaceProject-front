@@ -15,7 +15,6 @@ export class ArModelSectionComponent {
 
   @Input() productForm!: FormGroup;
 
-  // Propiedades de AR desde ARFileManagerService
   readonly currentARFiles = this.arFileManager.currentARFiles;
   readonly isUploadingAR = this.arFileManager.isUploadingAR;
 

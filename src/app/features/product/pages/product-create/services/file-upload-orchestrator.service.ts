@@ -31,16 +31,11 @@ export class FileUploadOrchestratorService {
     const hasModel3D = model3DFilesToUpload.length > 0;
     const hasExperienceAR = experienceARFilesToUpload.length > 0;
 
-    console.log('🔄 FileUploadOrchestratorService.uploadAllFiles iniciado');
-    console.log('📸 Imágenes a subir:', imagesToUpload.length, imagesToUpload.map(f => f.name));
-    console.log('🎯 Archivos Model3D a subir:', model3DFilesToUpload.length, model3DFilesToUpload.map(f => f.name));
-    console.log('🚀 Archivos ExperienceAR a subir:', experienceARFilesToUpload.length, experienceARFilesToUpload.map(f => f.name));
-    console.log('✅ hasImages:', hasImages, 'hasModel3D:', hasModel3D, 'hasExperienceAR:', hasExperienceAR);
-
     if (!hasImages && !hasModel3D && !hasExperienceAR) {
       console.log('⚠️ No hay archivos para subir');
       return of({ imageUrls: [], model3DUrls: [], experienceARUrls: [] });
-    }    // Crear requests separados para cada tipo de archivo
+    } 
+
     const uploadRequests: Observable<ImageUploadResponse>[] = [];
     
     if (hasImages) {
@@ -70,7 +65,6 @@ export class FileUploadOrchestratorService {
           this.imageManager.setUploadingState(false);
           this.arFileManager.setUploadingState(false);
           
-          // Procesar respuestas por posición
           let requestIndex = 0;
           let imageUrls: string[] = [];
           let model3DUrls: string[] = [];
@@ -128,25 +122,20 @@ export class FileUploadOrchestratorService {
       return this.createProductDirectly(formData, [], [], []);
     }
 
-    // Crear array de requests para ejecutar en paralelo
     const uploadRequests: Observable<any>[] = [];
 
-    // Agregar request de imágenes si hay
     if (hasImages) {
       uploadRequests.push(this.imageUploadService.uploadMultipleImages(imagesToUpload));
     }
 
-    // Agregar request de Model3D si hay
     if (hasModel3D) {
       uploadRequests.push(this.imageUploadService.uploadModel3DFiles(model3DFilesToUpload));
     }
 
-    // Agregar request de ExperienceAR si hay
     if (hasExperienceAR) {
       uploadRequests.push(this.imageUploadService.uploadExperienceARFiles(experienceARFilesToUpload));
     }
 
-    // Ejecutar todos los uploads en paralelo
     return forkJoin(uploadRequests).pipe(
       switchMap((responses: any[]) => {
         console.log('✅ Todos los uploads completados:', responses);
@@ -155,7 +144,6 @@ export class FileUploadOrchestratorService {
         let model3DUrls: string[] = [];
         let experienceARUrls: string[] = [];
         
-        // Extraer URLs de cada tipo de response
         let requestIndex = 0;
         
         if (hasImages) {
@@ -179,8 +167,6 @@ export class FileUploadOrchestratorService {
    * Crea el producto directamente sin uploads
    */
   private createProductDirectly(formData: any, imageUrls: string[], model3DUrls: string[], experienceARUrls: string[]): Observable<any> {
-    // Esto se implementaría usando el VisualRepresentationService
-    // Por ahora retornamos un observable de éxito
     return of({
       success: true,
       message: 'Producto creado exitosamente',

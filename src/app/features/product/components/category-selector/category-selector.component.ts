@@ -20,11 +20,8 @@ export class CategorySelectorComponent {
   
   expandedCategories = signal<Record<string, boolean>>({});
   
-  ngOnInit(): void {}
-  
-  // Método para controlar la expansión/contracción de categorías
   toggleExpansion(categoryId: string, event: Event) {
-    event.stopPropagation(); // Evita que se propague al checkbox
+    event.stopPropagation();
     
     const currentState = this.expandedCategories();
     this.expandedCategories.set({
@@ -33,13 +30,12 @@ export class CategorySelectorComponent {
     });
   }
   
-  // Método para verificar si una categoría está expandida
   isCategoryExpanded(categoryId: string): boolean {
     return !!this.expandedCategories()[categoryId];
   }
   
   toggleCategorySelection(categoryId: string, event: Event) {
-    event.stopPropagation(); // Evita conflictos con la expansión
+    event.stopPropagation();
     
     const currentSelections = [...this.selectedCategories];
     const index = currentSelections.indexOf(categoryId);

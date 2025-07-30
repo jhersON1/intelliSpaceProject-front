@@ -9,7 +9,6 @@ import { AnalyticsService } from '../../../../core/services/analytics.service';
 import { LoggerService } from '../../../../core/services/logger.service';
 import { ClickTracking, StockHistory } from '../../../../core/types/analytics.interface';
 
-// Registrar los componentes de Chart.js
 Chart.register(...registerables);
 
 interface ChartData {
@@ -164,14 +163,11 @@ interface ChartData {
 export class HistoricalChartsComponent implements OnInit, OnDestroy {
   @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
 
-  // Injected services
   private analyticsService = inject(AnalyticsService);
   private logger = inject(LoggerService);
 
-  // Inputs
   productId = input.required<string>();
 
-  // Signals
   private destroy$ = new Subject<void>();
   isLoading = signal(false);
   error = signal<string | null>(null);
@@ -187,7 +183,6 @@ export class HistoricalChartsComponent implements OnInit, OnDestroy {
   private chart: Chart | null = null;
 
   constructor() {
-    // Effect para cargar datos cuando cambia el productId o período
     effect(() => {
       const productId = this.productId();
       const period = this.periodDays();
@@ -196,7 +191,6 @@ export class HistoricalChartsComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Effect para actualizar el gráfico cuando cambian los datos o el tipo de gráfico
     effect(() => {
       const data = this.chartData();
       const activeChart = this.activeChart();
@@ -238,7 +232,7 @@ export class HistoricalChartsComponent implements OnInit, OnDestroy {
     
     // Cargar histórico de clicks y stock
     forkJoin({
-      clicks: this.analyticsService.getClickHistory(productId, period * 10), // Más datos para análisis
+      clicks: this.analyticsService.getClickHistory(productId, period * 10),
       stock: this.analyticsService.getStockHistory(productId, period * 5),
       stats: this.analyticsService.getProductStats(productId)
     }).pipe(
@@ -261,10 +255,8 @@ export class HistoricalChartsComponent implements OnInit, OnDestroy {
     const endDate = new Date();
     const startDate = subDays(endDate, period);
 
-    // Agrupar datos por día
     const dailyData: { [date: string]: ChartData } = {};
 
-    // Inicializar con fechas vacías
     for (let i = 0; i < period; i++) {
       const date = subDays(endDate, period - i - 1);
       const dateStr = format(date, 'yyyy-MM-dd');
@@ -302,7 +294,6 @@ export class HistoricalChartsComponent implements OnInit, OnDestroy {
     // Calcular factor de utilización simulado (basado en clicks vs stock)
     Object.values(dailyData).forEach(day => {
       if (day.clicks > 0 && day.stockLevel > 0) {
-        // Simulación básica: más clicks con menos stock = mayor utilización
         day.utilizationFactor = Math.min((day.clicks / Math.max(day.stockLevel, 1)) * 0.1, 1);
       }
     });
@@ -310,7 +301,6 @@ export class HistoricalChartsComponent implements OnInit, OnDestroy {
     const processedData = Object.values(dailyData).sort((a, b) => a.date.localeCompare(b.date));
     this.chartData.set(processedData);
 
-    // Calcular insights
     this.calculateInsights(processedData);
   }
 
@@ -347,7 +337,6 @@ export class HistoricalChartsComponent implements OnInit, OnDestroy {
     const data = this.chartData();
     if (data.length === 0) return;
 
-    // Destruir gráfico existente
     if (this.chart) {
       this.chart.destroy();
     }

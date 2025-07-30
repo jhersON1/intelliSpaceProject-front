@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { PriorityProduct } from '../../../../core/types/analytics.interface';
 import { AnalyticsService } from '../../../../core/services/analytics.service';
 
-// Interface temporal para los datos reales del backend
 interface ProductAnalyticsData {
   productId: string;
   totalClicks: number;
@@ -363,29 +362,23 @@ interface MuCalculationDetails {
   `
 })
 export class ProductAnalyticsModalComponent implements OnInit {
-  // Inputs
   isOpen = input<boolean>(false);
   product = input<PriorityProduct | null>(null);
   
-  // Outputs
   close = output<void>();
   
-  // Services
   private analyticsService = inject(AnalyticsService);
   
-  // State
   loading = signal<boolean>(false);
   stats = signal<ProductAnalyticsData | null>(null);
 
   constructor() {
-    // Watch for changes in isOpen and product using effect
     effect(() => {
       this.loadProductStats();
     });
   }
 
   ngOnInit() {
-    // Initial load
     this.loadProductStats();
   }
 
@@ -487,7 +480,6 @@ export class ProductAnalyticsModalComponent implements OnInit {
   getMuDetails(): MuCalculationDetails {
     const currentStats = this.stats();
     if (!currentStats?.queueMetrics?.muCalculationDetails) {
-      // Retornar valores por defecto si no hay detalles
       return {
         calculationMethod: 'No hay datos disponibles',
         repositionsCount: 0,

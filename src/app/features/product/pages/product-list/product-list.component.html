@@ -12,7 +12,6 @@
       <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
     </div>
   } @else if (displayedProducts.length === 0) {
-    <!-- Empty state -->
     <div class="bg-white shadow-md p-8 text-center">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -20,7 +19,7 @@
       <h2 class="text-xl font-semibold text-gray-700 mb-2">No hay productos disponibles</h2>
       <p class="text-gray-500">Vuelve a intentarlo más tarde o prueba con otra búsqueda.</p>
     </div>
-  } @else {    <!-- Products grid -->
+  } @else {
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       @for (product of displayedProducts; track product.id) {
         <div class="product-card flex flex-col cursor-pointer" (click)="viewDetails(product)">
@@ -83,7 +82,6 @@
         </nav>
       </div>
       
-      <!-- Información de página actual -->
       <div class="flex justify-center mt-4 text-sm text-gray-600">
         @if (hasMore) {
           <span>Página {{ currentPage }} de muchas páginas ({{ totalItems }}+ elementos)</span>

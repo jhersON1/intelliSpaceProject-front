@@ -7,7 +7,6 @@ import { FormManagerService } from '../../services/form-manager.service';
 
 @Component({
   selector: 'app-product-form-section',
-  standalone: true,
   imports: [CommonModule, ReactiveFormsModule, CategorySelectorComponent],
   templateUrl: './product-form-section.component.html',
 })
@@ -18,13 +17,11 @@ export class ProductFormSectionComponent implements OnInit {
   @Input() productForm!: FormGroup;
   @Output() categoriesChange = new EventEmitter<string[]>();
 
-  // Propiedades expuestas del servicio
   readonly productStatuses = this.productFormBase.productStatuses;
   readonly hierarchicalCategories = this.productFormBase.hierarchicalCategories;
   readonly selectedCategories = this.productFormBase.selectedCategories;
 
   ngOnInit(): void {
-    // Cargar las categorías cuando se inicializa el componente
     this.loadCategories();
   }
 
@@ -32,9 +29,6 @@ export class ProductFormSectionComponent implements OnInit {
     return this.formManager.keywordControls;
   }
 
-  /**
-   * Carga las categorías disponibles desde el servicio.
-   */
   private loadCategories(): void {
     this.productFormBase.loadCategories().subscribe({
       next: () => {
@@ -46,24 +40,15 @@ export class ProductFormSectionComponent implements OnInit {
     });
   }
 
-  /**
-   * Maneja los cambios en la selección de categorías.
-   */
   onCategoriesChange(categories: string[]): void {
     this.formManager.onCategoriesChange(categories);
     this.categoriesChange.emit(categories);
   }
 
-  /**
-   * Agrega un nuevo campo de keyword.
-   */
   addKeyword(): void {
     this.formManager.addKeyword();
   }
 
-  /**
-   * Elimina un campo de keyword específico.
-   */
   removeKeyword(index: number): void {
     this.formManager.removeKeyword(index);
   }

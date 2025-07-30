@@ -183,16 +183,6 @@ export class RegisterComponent {
     if (this.registrationForm.valid && !this.passwordsDontMatch()) {
       const { confirmPassword, acceptTerms, ...body } = this.registrationForm.value;
       
-      // Debug: log para verificar qué se está enviando
-      console.log('🔍 DEBUG - Datos del formulario antes de enviar:', {
-        formValue: this.registrationForm.value,
-        bodyToSend: body,
-        currentRole: this.currentRole(),
-        isConsumer: this.isConsumer(),
-        isVendor: this.isVendor(),
-        acceptedTerms: acceptTerms
-      });
-
       this.authService.register(body as CreateUser).subscribe({
         next: () => {
           console.log('✅ Registro exitoso');

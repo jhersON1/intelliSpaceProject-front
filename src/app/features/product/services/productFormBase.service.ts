@@ -19,6 +19,7 @@ export class ProductFormBase {
   public isSubmitting = signal(false);
 
   public productStatuses = Object.values(ProductStatus);
+
   /**
    * Validador personalizado para el stock según el estado del producto
    */
@@ -34,28 +35,25 @@ export class ProductFormBase {
       return { required: true };
     }
 
-    // El stock debe ser un número no negativo
     if (stock < 0) {
       return { min: { min: 0, actual: stock } };
     }
 
-    // Si el estado es "Agotado", el stock puede ser 0
     if (state === ProductStatus.SOLD_OUT && stock === 0) {
       return null;
     }
 
-    // Si el estado es "Disponible", el stock debe ser mayor a 0
     if (state === ProductStatus.AVAILABLE && stock === 0) {
       return { stockZeroNotAllowed: true };
     }
 
-    // Si el stock es mayor a 0, siempre es válido
     if (stock > 0) {
       return null;
     }
 
     return null;
   }
+
   /**
    * Carga todas las categorías y construye la jerarquía
    */
@@ -130,7 +128,6 @@ export class ProductFormBase {
       idCategory: [[] as string[], [Validators.required]]
     });
 
-    // Añadir listener para revalidar stock cuando cambie el estado
     form.get('state')?.valueChanges.subscribe(() => {
       const stockControl = form.get('stock');
       if (stockControl) {

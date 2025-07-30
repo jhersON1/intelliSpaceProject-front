@@ -22,7 +22,6 @@ export class ConsumerMessagesComponent implements OnInit {
   errorMessage = signal<string | null>(null);
 
   ngOnInit() {
-    // Verificar si es consumer
     if (!this.authService.isConsumer()) {
       this.router.navigate(['/']);
       return;

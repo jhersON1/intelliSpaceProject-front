@@ -9,7 +9,7 @@ export interface Model3D {
     y: number;
     z: number;
   };
-  // Campos adicionales del proyecto React
+
   altText?: string;
   isPrincipal?: boolean;
 }
@@ -69,8 +69,6 @@ export interface ExperienceARResponse {
   devicerequirements: string[];
   urlIOSAR: string;
 }
-
-// lo nuevo
 
 export enum FormatModel3D {
     GLB = '.glb',

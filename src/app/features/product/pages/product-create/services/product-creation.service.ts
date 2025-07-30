@@ -26,9 +26,6 @@ export class ProductCreationService {
   readonly formError = signal<string | null>(null);
   readonly formSuccess = signal<boolean>(false);
 
-  /**
-   * Método principal para crear un producto completo
-   */
   createProductComplete(productForm: FormGroup): Observable<any> {
     console.log('🚀 ProductCreationService.createProductComplete iniciado');
     
@@ -52,7 +49,6 @@ export class ProductCreationService {
           
           this.productService.createProduct(productData).subscribe({
             next: (createdProduct) => {
-              console.log('✅ Producto creado exitosamente:', createdProduct);
               
               // Paso 3: Crear las representaciones visuales
               this.visualRepresentationService.createAllVisualRepresentations(
@@ -62,13 +58,11 @@ export class ProductCreationService {
                 uploadResult.experienceARUrls
               ).subscribe({
                 next: (visualRepresentations) => {
-                  console.log('✅ Representaciones visuales creadas:', visualRepresentations);
                   this.handleSuccessfulCreation();
                   observer.next(createdProduct);
                   observer.complete();
                 },
                 error: (error) => {
-                  console.error('❌ Error al crear representaciones visuales:', error);
                   this.handleCreationError(error);
                   observer.error(error);
                 }
@@ -98,8 +92,7 @@ export class ProductCreationService {
     
     this.isSubmitting.set(true);
     this.formError.set(null);
-    
-    // Delegar al servicio de orquestación de uploads
+
     return this.fileUploadOrchestrator.uploadAllFilesAndCreateProduct(
       formData,
       images,
@@ -169,9 +162,7 @@ export class ProductCreationService {
   /**
    * Maneja errores durante la creación del producto
    */
-  private handleCreationError(error: any): void {
-    console.error('💥 Error en la creación del producto:', error);
-    
+  private handleCreationError(error: any): void { 
     this.isSubmitting.set(false);
     const errorMessage = error?.error?.message || 'Ocurrió un error al crear el producto.';
     this.formError.set(errorMessage);
@@ -181,8 +172,7 @@ export class ProductCreationService {
    * Maneja errores durante la subida de archivos
    */
   private handleFileUploadError(error: any): void {
-    console.error('💥 Error en la subida de archivos:', error);
-    
+  
     this.isSubmitting.set(false);
     const errorMessage = error?.error?.message || 'Error al subir los archivos. Inténtelo nuevamente.';
     this.formError.set(errorMessage);

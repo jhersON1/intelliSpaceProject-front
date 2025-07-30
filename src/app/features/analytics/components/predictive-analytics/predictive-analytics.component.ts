@@ -270,21 +270,17 @@ interface PredictionModel {
   `
 })
 export class PredictiveAnalyticsComponent implements OnInit, OnDestroy {
-  // Injected services
   private analyticsService = inject(AnalyticsService);
   private logger = inject(LoggerService);
 
-  // Inputs
   productId = input.required<string>();
 
-  // Signals
   private destroy$ = new Subject<void>();
   isLoading = signal(false);
   error = signal<string | null>(null);
   predictions = signal<PredictionModel | null>(null);
 
   constructor() {
-    // Effect para recargar predicciones cuando cambia el productId
     effect(() => {
       const productId = this.productId();
       if (productId) {
@@ -295,8 +291,7 @@ export class PredictiveAnalyticsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadPredictions();
-    
-    // Auto-refresh cada 5 minutos
+
     timer(0, 300000).pipe(
       takeUntil(this.destroy$)
     ).subscribe(() => {
@@ -322,7 +317,6 @@ export class PredictiveAnalyticsComponent implements OnInit, OnDestroy {
     this.isLoading.set(true);
     this.error.set(null);
 
-    // Cargar datos para generar predicciones
     this.analyticsService.getProductStats(productId).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
@@ -386,14 +380,14 @@ export class PredictiveAnalyticsComponent implements OnInit, OnDestroy {
       demandForecast: {
         next7Days,
         next30Days,
-        confidence: Math.min(0.9, 0.5 + (currentClicks / 100)), // Más datos = más confianza
+        confidence: Math.min(0.9, 0.5 + (currentClicks / 100)),
         trend
       },
       stockPrediction: {
         estimatedDepletionDate: daysUntilDepletion < 999 ? 
           new Date(Date.now() + daysUntilDepletion * 24 * 60 * 60 * 1000) : null,
         daysUntilDepletion: Math.min(daysUntilDepletion, 999),
-        recommendedReorderPoint: Math.ceil(dailyConsumption * 14), // 2 semanas de buffer
+        recommendedReorderPoint: Math.ceil(dailyConsumption * 14),
         urgencyLevel
       },
       queueTheoryPrediction: {
@@ -405,7 +399,6 @@ export class PredictiveAnalyticsComponent implements OnInit, OnDestroy {
     };
   }
 
-  // Helper methods for styling
   getTrendClass(trend: string): string {
     switch (trend) {
       case 'increasing': return 'text-green-600';

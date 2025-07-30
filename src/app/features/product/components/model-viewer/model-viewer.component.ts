@@ -28,7 +28,6 @@ export class ModelViewerComponent implements OnInit, AfterViewInit {
   
   @ViewChild('modelViewer', { static: false }) modelViewerRef!: ElementRef;
   
-  // Propiedades originales para compatibilidad con otras partes del código
   @Input() set model(value: Model3D | null) {
     this.model3D.set(value);
   }
@@ -37,7 +36,6 @@ export class ModelViewerComponent implements OnInit, AfterViewInit {
     this.currentProductId.set(value);
   }
 
-  // Nuevas propiedades @Input para compatibilidad con product-detail
   @Input() set modelUrl(value: string | null) {
     if (value) {
       this.directModelUrl.set(value);
@@ -62,19 +60,16 @@ export class ModelViewerComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Signals del componente
   model3D = signal<Model3D | null>(null);
   currentProductId = signal<string>('');
   showHelp = signal<boolean>(false);
   isFullscreen = signal<boolean>(false);
   loadingMessage = signal<string>('Cargando modelo 3D...');
   
-  // Nuevos signals para datos directos
   directModelUrl = signal<string>('');
   directFormat = signal<string>('');
   directIosUrl = signal<string>('');
   directProductTitle = signal<string>('');  
-  // Datos mock de anotaciones
   annotations = signal<ModelAnnotation[]>([]);
 
   ngOnInit(): void {
@@ -88,7 +83,6 @@ export class ModelViewerComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Métodos auxiliares para determinar qué datos usar
   getCurrentModelUrl(): string {
     const directUrl = this.directModelUrl();
     const modelUrl = this.model3D()?.url;

@@ -12,7 +12,6 @@ export interface LoadingOperation {
 export class LoadingStateService {
   private readonly _loadingOperations = signal<Map<string, LoadingOperation>>(new Map());
   
-  // Señales públicas computadas
   public readonly isLoading = computed(() => this._loadingOperations().size > 0);
   public readonly loadingCount = computed(() => this._loadingOperations().size);
   public readonly currentOperations = computed(() => 

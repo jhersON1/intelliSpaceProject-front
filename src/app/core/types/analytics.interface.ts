@@ -147,7 +147,7 @@ export interface AlgorithmExplanation {
   estadoActual: string;
 }
 
-// 🔮 NUEVAS INTERFACES PARA HOLT-WINTERS TRENDING PRODUCTS
+// HOLT-WINTERS TRENDING PRODUCTS
 export interface HoltWintersComponents {
   level: number;        // L_t - Nivel ajustado
   trend: number;        // T_t - Tendencia ajustada  
@@ -160,7 +160,7 @@ export interface ProductTrendAnalysis {
   productId: string;
   productTitle: string;
   currentComponents: HoltWintersComponents;
-  trendLabel: string; // "🔥 TENDENCIA HOT", "📈 EN TENDENCIA", etc.
+  trendLabel: string;
   trendIcon: string;
   periodsAnalyzed: number;
   lastUpdate: Date;

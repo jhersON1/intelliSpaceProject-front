@@ -38,10 +38,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
       const vendor = this.authService.isVendor();
       const result = authenticated && vendor;
       
-      // Debug logging temporal
-      console.log('Navbar isVendor computed:', { authenticated, vendor, result });
-      
       return result;
+
     } catch (error) {
       console.warn('Error evaluating isVendor:', error);
       return false;
@@ -55,6 +53,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       const result = authenticated && admin;
       
       return result;
+
     } catch (error) {
       console.warn('Error evaluating isAdmin:', error);
       return false;
@@ -63,7 +62,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   
   public readonly currentUser = computed(() => {
     try {
+
       return this.authService.isAuthenticated() ? this.authService.currentUser() : null;
+
     } catch (error) {
       console.warn('Error evaluating currentUser:', error);
       return null;
@@ -80,11 +81,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
       const isVend = this.isVendor();
       const user = this.currentUser();
       
-      // Forzar detección de cambios cuando cambien los valores
       console.log('Navbar effect triggered:', { isAuth, isVend, user });
       this.cdr.markForCheck();
 
-      // Cargar conteo de mensajes si es vendor
       if (isAuth && isVend) {
         this.loadUnreadMessagesCount();
       } else {
@@ -94,11 +93,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Cargar conteo inicial si es vendor
     if (this.isAuthenticated() && this.isVendor()) {
       this.loadUnreadMessagesCount();
       
-      // Actualizar cada 30 segundos
       interval(30000)
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => {
@@ -162,22 +159,22 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.router.navigate(['/home']);
     }, 100);
   }
+
   /**
    * Maneja cuando se realiza una búsqueda desde el navbar
    */
   onSearchPerformed(): void {
-    // Navegar a la página de productos con un parámetro que indique refrescar
     this.router.navigate(['/home/products'], { 
-      queryParams: { refresh: Date.now() } // Usar timestamp para forzar refresco
+      queryParams: { refresh: Date.now() }
     });
     this.isMobileSearchOpen = false;
     this.isMobileMenuOpen = false;
   }
+
   /**
    * Maneja cuando se limpia la búsqueda desde el navbar
    */
   onSearchCleared(): void {
-    // Opcional: podrías navegar de vuelta a la página inicial o mantener los productos normales
     console.log('🧹 Búsqueda limpiada desde navbar');
   }
 

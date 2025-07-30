@@ -266,11 +266,8 @@ import { LoggerService } from '../../../../core/services/logger.service';
 })
 export class ExportDashboardComponent {
   private exportService = inject(ExportService);
-  private analyticsService = inject(AnalyticsService);
-  private authService = inject(AuthService);
   private logger = inject(LoggerService);
 
-  // Form fields
   selectedReportType = 'vendor';
   selectedProductId = '';
   selectedFormat: 'PDF' | 'EXCEL' | 'CSV' = 'PDF';
@@ -280,19 +277,16 @@ export class ExportDashboardComponent {
   includeRawData = false;
   customTitle = '';
 
-  // State signals
   isGenerating = signal(false);
   availableProducts = signal<{id: string, name: string}[]>([]);
   recentReports = signal<any[]>([]);
 
-  // Format options
   availableFormats = [
     { value: 'PDF' as const, label: 'PDF', icon: '📄' },
     { value: 'EXCEL' as const, label: 'Excel', icon: '📊' },
     { value: 'CSV' as const, label: 'CSV', icon: '📝' }
   ];
 
-  // Computed properties
   previewData = computed(() => {
     if (!this.selectedReportType) return null;
 
@@ -373,10 +367,8 @@ export class ExportDashboardComponent {
           throw new Error('Invalid report type');
       }
 
-      // Download the file
       this.exportService.downloadFile(blob, filename);
 
-      // Add to recent reports
       this.addToRecentReports({
         id: Date.now().toString(),
         title: options.customTitle || this.getDefaultTitle(),
@@ -402,8 +394,6 @@ export class ExportDashboardComponent {
    */
   private async loadAvailableProducts() {
     try {
-      // This would typically come from a products service
-      // For now, we'll use some mock data
       const products = [
         { id: '1', name: 'Producto Demo 1' },
         { id: '2', name: 'Producto Demo 2' },
@@ -439,7 +429,6 @@ export class ExportDashboardComponent {
     const updated = [report, ...current].slice(0, 5);
     this.recentReports.set(updated);
     
-    // Save to localStorage (without blob data to avoid size issues)
     const toStore = updated.map(r => ({
       id: r.id,
       title: r.title,

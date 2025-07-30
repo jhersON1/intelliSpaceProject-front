@@ -1,7 +1,3 @@
-/**
- * Tipos para formularios tipados y validaciones
- */
-
 export interface FormFieldError {
   key: string;
   message: string;

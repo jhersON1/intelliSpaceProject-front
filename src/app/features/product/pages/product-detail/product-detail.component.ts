@@ -31,7 +31,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {  private rout
   private analyticsService = inject(AnalyticsService);
   private authService = inject(AuthService);
 
-  // Subject para manejar la destrucción del componente
   private readonly destroy$ = new Subject<void>();
 
   product = signal<Product | null>(null);
@@ -41,7 +40,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {  private rout
   visualRepresentations = signal<VisualRepresentation[]>([]);
   currentImageIndex = signal(0);
   currentImage = signal<string | null>(null);
-  isMobileDevice = signal(false);  // Nuevos signals para 3D/AR - corregidos para manejar arrays
+  isMobileDevice = signal(false);
   model3DResponse = signal<Model3DResponse[]>([]);
   experienceARResponse = signal<ExperienceARResponse[]>([]);
   loading3D = signal(false);
@@ -52,7 +51,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {  private rout
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     );
 
-    // Suscribirse a cambios de ruta con limpieza automática
     this.route.paramMap
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
@@ -65,7 +63,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {  private rout
         }
       });
 
-    // Suscribirse a la señal de limpieza global
     this.globalCleanupService.cleanup$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
@@ -96,7 +93,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {  private rout
     console.log('🔄 loadProduct called with ID:', id);
     this.loading.set(true);
 
-    // ✅ NUEVA ESTRATEGIA: Solo el producto es crítico, el resto es opcional
     // Primero cargar el producto (crítico)
     this.productsService.getProductDetail(id)
       .pipe(takeUntil(this.destroy$))
@@ -105,7 +101,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {  private rout
           this.product.set(product);
           this.loading.set(false);
 
-          // ✅ TRACKING AUTOMÁTICO: Registrar la vista del producto (según la fundamentación teórica)
           // Esto cuenta como demanda/interés del usuario (λ = clicks/día)
           this.trackInteraction('CLICK', 'Product viewed (automatic)');
 
@@ -118,7 +113,9 @@ export class ProductDetailComponent implements OnInit, OnDestroy {  private rout
           this.router.navigate(['/products']);
         }
       });
-  }  /**
+  }  
+  
+  /**
    * Carga recursos opcionales (imágenes, 3D, AR) sin afectar la carga del producto
    */
   private loadOptionalResources(id: string): void {
@@ -330,7 +327,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {  private rout
       return;
     }
 
-    // ⚡ NUEVA VERIFICACIÓN: Evitar clicks duplicados muy rápidos (spam)
     const now = Date.now();
     const cacheKey = `${product.id}_${type}_${description || 'general'}`;
     
@@ -350,7 +346,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {  private rout
     const trackingData = {
       productId: product.id,
       interactionType: type,
-      duration: 1, // Duración base, se puede ajustar
+      duration: 1,
       userAgent: navigator.userAgent,
       referrer: document.referrer || undefined
     };
@@ -380,6 +376,5 @@ export class ProductDetailComponent implements OnInit, OnDestroy {  private rout
     });
   }
   
-  // Cache estático para prevenir spam de clicks
   private static clickCache: Map<string, number>;
 }

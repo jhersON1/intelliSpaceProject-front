@@ -1,8 +1,5 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
-/**
- * Validadores personalizados para formularios
- */
 export class CustomValidators {
   
   /**
@@ -17,7 +14,9 @@ export class CustomValidators {
         ? null 
         : { productCode: { value: control.value, pattern: 'XX-0000 o XXX-000000' } };
     };
-  }  /**
+  }  
+  
+  /**
    * Validador para precios (debe ser positivo)
    */
   static positivePrice(): ValidatorFn {
@@ -30,6 +29,7 @@ export class CustomValidators {
         : { positivePrice: { value: control.value } };
     };
   }
+
   /**
    * Validador para URLs (formato básico)
    */
@@ -45,6 +45,7 @@ export class CustomValidators {
       }
     };
   }
+
   /**
    * Validador para longitud mínima de palabras
    */
@@ -71,7 +72,6 @@ export class CustomValidators {
       const file = control.value as File;
       const errors: ValidationErrors = {};
 
-      // Validar tamaño
       if (file.size > maxSizeKB * 1024) {
         errors['fileSize'] = { 
           actualSize: Math.round(file.size / 1024), 
@@ -79,7 +79,6 @@ export class CustomValidators {
         };
       }
 
-      // Validar tipo
       if (!allowedTypes.includes(file.type)) {
         errors['fileType'] = { 
           actualType: file.type, 

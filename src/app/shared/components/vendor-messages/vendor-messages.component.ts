@@ -7,7 +7,6 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-vendor-messages',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './vendor-messages.component.html',
   styleUrls: ['./vendor-messages.component.css']
@@ -24,7 +23,6 @@ export class VendorMessagesComponent implements OnInit {
   selectedMessage = signal<Message | null>(null);
 
   ngOnInit() {
-    // Verificar si es vendor
     if (!this.authService.isVendor()) {
       this.router.navigate(['/']);
       return;
@@ -63,18 +61,15 @@ export class VendorMessagesComponent implements OnInit {
   selectMessage(message: Message) {
     this.selectedMessage.set(message);
     
-    // Marcar como leído si no está leído
     if (!message.isRead) {
       this.messagingService.markAsRead(message.id).subscribe({
         next: (updatedMessage) => {
-          // Actualizar el mensaje en la lista
           const currentMessages = this.messages();
           const messageIndex = currentMessages.findIndex(m => m.id === message.id);
           if (messageIndex !== -1) {
             currentMessages[messageIndex] = updatedMessage;
             this.messages.set([...currentMessages]);
           }
-          // Actualizar contador de no leídos
           this.loadUnreadCount();
         },
         error: (error: any) => {

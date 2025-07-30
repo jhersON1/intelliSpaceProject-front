@@ -29,7 +29,7 @@ export class ProductCreateComponent implements OnInit {
   private imageManager = inject(ImageManagerService);
   private arFileManager = inject(ARFileManagerService);
   private productCreationService = inject(ProductCreationService);
-  private formManager = inject(FormManagerService);  // Exponer propiedades de los servicios para el template
+  private formManager = inject(FormManagerService);
   readonly isSubmitting = this.productCreationService.isSubmitting;
   readonly formError = this.productCreationService.formError;
   readonly formSuccess = this.productCreationService.formSuccess;
@@ -48,10 +48,6 @@ export class ProductCreateComponent implements OnInit {
     console.log('🚀 ProductCreateComponent inicializado');
   }
 
-  // =============================================
-  // MÉTODOS DE MANEJO DE ARCHIVOS AR
-  // =============================================
-
   public onModel3DFileSelected(event: Event, platform: 'android' | 'ios'): void {
     this.arFileManager.onModel3DFileSelected(event, platform);
   }
@@ -67,10 +63,6 @@ export class ProductCreateComponent implements OnInit {
   public removeExperienceARFile(platform: 'android' | 'ios'): void {
     this.arFileManager.removeExperienceARFile(platform);
   }
-
-  // =============================================
-  // MÉTODOS DE ENVÍO DE FORMULARIO
-  // =============================================
 
   /**
    * Maneja el envío del formulario de creación de producto.

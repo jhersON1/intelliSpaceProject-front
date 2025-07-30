@@ -5,18 +5,8 @@ import { AnalyticsService } from './analytics.service';
 import { ProductStats, VendorDashboard, ProductAnalytics } from '../types/analytics.interface';
 import * as XLSX from 'xlsx';
 
-// Extended interface for export
 interface ExportProductAnalytics extends ProductAnalytics {
   name?: string;
-}
-
-// Import types for pdfmake
-interface TDocumentDefinitions {
-  content: any[];
-  pageSize?: string;
-  pageOrientation?: string;
-  styles?: any;
-  defaultStyle?: any;
 }
 
 export interface ExportOptions {
@@ -51,7 +41,7 @@ export interface ChartData {
   type: 'line' | 'bar' | 'pie';
   title: string;
   data: any;
-  imageData?: string; // Base64 image for PDF exports
+  imageData?: string;
 }
 
 @Injectable({
@@ -93,14 +83,12 @@ export class ExportService {
    */
   private async generateVendorReport(vendorId: string, options: ExportOptions): Promise<Blob> {
     try {
-      // Get vendor dashboard data
       const dashboardData = await this.analyticsService.getVendorDashboard().toPromise();
       
       if (!dashboardData) {
         throw new Error('No data available for vendor');
       }
 
-      // Handle the actual structure returned by backend
       const products = (dashboardData as any).topProducts || dashboardData.products || [];
       
       const exportData: ExportData = {
@@ -133,12 +121,12 @@ export class ExportService {
       throw error;
     }
   }
+
   /**
    * Generate product report data
    */
   private async generateProductReport(productId: string, options: ExportOptions): Promise<Blob> {
     try {
-      // Get product stats
       const productStats = await this.analyticsService.getProductStats(productId).toPromise();
       
       if (!productStats) {
@@ -159,7 +147,7 @@ export class ExportService {
         },
         products: [{
           id: analytics.id,
-          name: productId, // Using productId as name since ProductAnalytics doesn't have name
+          name: productId,
           totalClicks: analytics.totalClicks,
           totalViews: analytics.totalViews,
           totalSearches: analytics.totalSearches,
@@ -220,7 +208,6 @@ export class ExportService {
         return charts;
       }
 
-      // Utilization distribution chart
       charts.push({
         type: 'bar',
         title: 'Distribución de Utilización por Producto',
@@ -245,6 +232,7 @@ export class ExportService {
 
     return charts;
   }
+
   /**
    * Generate chart data for product
    */
@@ -254,7 +242,6 @@ export class ExportService {
     try {
       const analytics = productStats.analytics;
       
-      // Simple interaction chart
       charts.push({
         type: 'pie',
         title: 'Distribución de Interacciones',
@@ -293,13 +280,12 @@ export class ExportService {
         throw new Error(`Unsupported export format: ${format}`);
     }
   }
+
   /**
    * Generate PDF using modern approach
    */
   private async generatePDF(data: ExportData): Promise<Blob> {
     try {
-      // For now, use simple text approach since pdfmake has complex setup
-      // This provides a working solution without ESM issues
       return this.generateTextBasedPDF(data);
       
     } catch (error) {

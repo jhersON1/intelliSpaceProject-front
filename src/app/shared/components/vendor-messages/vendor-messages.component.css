@@ -2,14 +2,12 @@
   min-height: 100vh;
 }
 
-/* Animaciones suaves */
 .transition-colors {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
 
-/* Estilos para el spinner */
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -20,7 +18,6 @@
   animation: spin 1s linear infinite;
 }
 
-/* Hover effects */
 .hover\:bg-gray-50:hover {
   background-color: #f9fafb;
 }
@@ -41,7 +38,6 @@
   color: #b91c1c;
 }
 
-/* Custom scrollbar for message list */
 .message-list {
   max-height: 600px;
   overflow-y: auto;
@@ -64,7 +60,6 @@
   background: #94a3b8;
 }
 
-/* Badge for unread messages */
 .unread-badge {
   position: relative;
 }
@@ -81,13 +76,11 @@
   border: 2px solid white;
 }
 
-/* Message bubble styling */
 .message-content {
   line-height: 1.6;
   word-wrap: break-word;
 }
 
-/* Responsive adjustments */
 @media (max-width: 1024px) {
   .grid-cols-1.lg\:grid-cols-3 {
     grid-template-columns: 1fr;
@@ -99,18 +92,15 @@
   }
 }
 
-/* Focus states */
 button:focus {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
-/* Card shadows */
 .shadow-sm {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-/* Border utilities */
 .border-l-4 {
   border-left-width: 4px;
 }
@@ -119,7 +109,6 @@ button:focus {
   border-left-color: #3b82f6;
 }
 
-/* Prose styling for message content */
 .prose {
   color: #374151;
   max-width: none;
@@ -139,7 +128,6 @@ button:focus {
   margin-bottom: 0;
 }
 
-/* Whitespace preservation */
 .whitespace-pre-wrap {
   white-space: pre-wrap;
 }

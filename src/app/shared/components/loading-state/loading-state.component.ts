@@ -11,24 +11,20 @@ import { CommonModule } from '@angular/common';
   template: `
     @if (isLoading) {
       <div class="flex flex-col items-center justify-center py-12">
-        <!-- Spinner -->
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
         
-        <!-- Mensaje de carga -->
         @if (message) {
           <p class="text-gray-600 text-center">{{ message }}</p>
         }
         
-        <!-- Skeleton loading para productos -->
         @if (showSkeleton) {
           <div class="w-full mt-8">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               @for (item of skeletonItems; track $index) {
                 <div class="bg-white rounded-lg shadow-md animate-pulse">
-                  <!-- Imagen skeleton -->
+
                   <div class="aspect-square bg-gray-200 rounded-t-lg"></div>
                   
-                  <!-- Contenido skeleton -->
                   <div class="p-4">
                     <div class="h-4 bg-gray-200 rounded mb-2"></div>
                     <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -41,7 +37,6 @@ import { CommonModule } from '@angular/common';
         }
       </div>
     } @else if (hasError) {
-      <!-- Estado de error -->
       <div class="flex flex-col items-center justify-center py-12">
         <svg class="h-12 w-12 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -79,8 +74,6 @@ export class LoadingStateComponent {
   }
 
   onRetry(): void {
-    // Emitir evento para que el componente padre maneje el retry
-    // En una implementación real, esto sería un @Output() EventEmitter
     window.location.reload();
   }
 }

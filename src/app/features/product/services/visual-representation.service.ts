@@ -26,7 +26,6 @@ export class VisualRepresentationService {
     return this.http.get<VisualRepresentation>(`${this.baseUrl}${API_ROUTES.GET_PRINCIPAL_IMAGE}/${productId}`)
       .pipe(
         catchError((error: HttpErrorResponse) => {
-          // Solo loguear como debug si es 404 (no encontrado), que es normal
           if (error.status === 404) {
             this.logger.debug('Producto sin imagen principal', { productId });
           } else {
@@ -48,7 +47,6 @@ export class VisualRepresentationService {
     return this.http.get<VisualRepresentation[]>(`${this.baseUrl}${API_ROUTES.GET_ALL_IMAGES}/${productId}`)
       .pipe(
         catchError((error: HttpErrorResponse) => {
-          // Solo loguear como debug si es 404 (no encontrado), que es normal
           if (error.status === 404) {
             this.logger.debug('Producto sin imágenes', { productId });
           } else {

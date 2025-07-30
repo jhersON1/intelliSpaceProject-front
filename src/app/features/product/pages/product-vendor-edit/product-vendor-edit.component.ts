@@ -21,7 +21,6 @@ import { GlobalCleanupService } from '../../../../core/services/global-cleanup.s
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductVendorEditComponent implements OnInit, OnDestroy {
-   // Dependency injection
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -32,13 +31,10 @@ export class ProductVendorEditComponent implements OnInit, OnDestroy {
   private readonly productOperationsService = inject(ProductOperationsService);
   private readonly globalCleanupService = inject(GlobalCleanupService);
 
-  // Subject para manejar la destrucción del componente
   private readonly destroy$ = new Subject<void>();
 
-  // Constants
   readonly ProductStatus = ProductStatus;
-  
-  // Computed properties from services
+
   readonly hierarchicalCategories = this.formBaseService.hierarchicalCategories;
   readonly selectedCategories = this.formBaseService.selectedCategories;
   readonly images = this.imageStateService.images;
@@ -46,11 +42,9 @@ export class ProductVendorEditComponent implements OnInit, OnDestroy {
   readonly selectedImage = this.imageStateService.selectedImage;
   readonly selectedImageIndex = this.imageStateService.selectedImageIndex;
 
-  // Local state
   readonly isLoading = signal<boolean>(false);
   readonly form: FormGroup = this.createEditForm();
 
-  // Form array getter
   get imageUrlsArray(): FormArray {
     return this.form.get('imageUrls') as FormArray;
   }
@@ -60,7 +54,6 @@ export class ProductVendorEditComponent implements OnInit, OnDestroy {
     this.setupStateStockLogic();
   }
   ngOnInit(): void {
-    // Suscribirse a la señal de limpieza global
     this.globalCleanupService.cleanup$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
@@ -91,7 +84,6 @@ export class ProductVendorEditComponent implements OnInit, OnDestroy {
     this.form.reset();
   }
 
-  // Public methods for template
   public onFileSelected(event: Event): void {
     const files = this.getFilesFromEvent(event);
     if (!files?.length) return;
@@ -137,7 +129,6 @@ export class ProductVendorEditComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Private methods
   private setupImageSyncEffect(): void {
     effect(() => {
       const currentImages = this.images();
@@ -147,12 +138,10 @@ export class ProductVendorEditComponent implements OnInit, OnDestroy {
     });
   }
   private setupStateStockLogic(): void {
-    // Suscribirse a cambios de estado para manejar stock automáticamente
     const stateControl = this.form.get('state');
     const stockControl = this.form.get('stock');
     
     if (stateControl && stockControl) {
-      // Cuando el estado cambia a "Agotado", poner stock = 0
       stateControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(state => {
         if (state === ProductStatus.SOLD_OUT) {
           stockControl.setValue(0);
@@ -160,7 +149,6 @@ export class ProductVendorEditComponent implements OnInit, OnDestroy {
         }
       });
 
-      // Cuando stock = 0, cambiar estado a "Agotado"
       stockControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(stock => {
         if (stock === 0 && stateControl.value === ProductStatus.AVAILABLE) {
           stateControl.setValue(ProductStatus.SOLD_OUT);
@@ -297,7 +285,6 @@ export class ProductVendorEditComponent implements OnInit, OnDestroy {
     const state = this.imageStateService.getState();
     const productId = this.form.value.id;
 
-    // Ejecutar operaciones de imágenes
     if (state.pendingDelete.length > 0) {
       const deleteResult = await this.productOperationsService.deleteImages(state.pendingDelete);
       if (!deleteResult.success) {
@@ -312,7 +299,6 @@ export class ProductVendorEditComponent implements OnInit, OnDestroy {
       }
     }
 
-    // Actualizar datos del producto
     const updateData = this.buildUpdateData();
     const updateResult = await this.productOperationsService.updateProduct(productId, updateData);
     

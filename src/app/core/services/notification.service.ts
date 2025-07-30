@@ -36,7 +36,6 @@ export class NotificationService {
   private authService = inject(AuthService);
   private analyticsService = inject(AnalyticsService);
 
-  // Signals para el estado de notificaciones
   notifications = signal<Notification[]>([]);
   unreadCount = signal(0);
   isConnected = signal(false);
@@ -49,12 +48,11 @@ export class NotificationService {
     checkInterval: 30
   });
 
-  // Computed signals
-  criticalNotifications = computed(() => 
+  criticalNotifications = computed(() =>
     this.notifications().filter(n => !n.isRead && (n.type === 'critical' || n.priority === 'critical'))
   );
 
-  recentNotifications = computed(() => 
+  recentNotifications = computed(() =>
     this.notifications()
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
       .slice(0, 10)
@@ -69,7 +67,6 @@ export class NotificationService {
     this.setupNotificationPermissions();
     this.startPolling();
 
-    // Actualizar contador cuando cambian las notificaciones usando effect
     effect(() => {
       const notifications = this.notifications();
       const unread = notifications.filter(n => !n.isRead).length;
@@ -93,11 +90,11 @@ export class NotificationService {
    */
   startPolling() {
     const settings = this.settings();
-    
-    // Detener polling anterior si existe
+
     if (this.pollingSubscription) {
       this.pollingSubscription.unsubscribe();
-    }    // Solo hacer polling si el usuario está autenticado
+    }
+
     this.pollingSubscription = interval(settings.checkInterval * 1000).pipe(
       filter(() => this.authService.isAuthenticated()),
       switchMap(() => this.checkCriticalProducts())
@@ -126,16 +123,15 @@ export class NotificationService {
     return this.analyticsService.getCriticalProducts().pipe(
       map(criticalProducts => {
         const settings = this.settings();
-        
+
         criticalProducts.forEach(product => {
           const analytics = (product as any).analytics;
           if (!analytics) return;
 
           const rho = analytics.utilizationFactor || 0;
-          
-          // Verificar si ya existe una notificación reciente para este producto
-          const existingNotification = this.notifications().find(n => 
-            n.productId === product.id && 
+
+          const existingNotification = this.notifications().find(n =>
+            n.productId === product.id &&
             n.type === 'critical' &&
             (Date.now() - n.timestamp.getTime()) < 3600000
           );
@@ -145,7 +141,7 @@ export class NotificationService {
           if (rho >= settings.criticalProductThreshold) {
             this.addNotification({
               id: this.generateId(),
-              title: '🚨 Producto Crítico',              message: `${product.name} necesita reposición urgente (ρ=${rho.toFixed(2)})`,
+              title: '🚨 Producto Crítico', message: `${product.name} necesita reposición urgente (ρ=${rho.toFixed(2)})`,
               type: 'critical',
               productId: product.id,
               productName: product.name,
@@ -157,7 +153,7 @@ export class NotificationService {
           } else if (rho >= settings.warningProductThreshold) {
             this.addNotification({
               id: this.generateId(),
-              title: '⚠️ Producto en Advertencia',              message: `${product.name} requiere atención (ρ=${rho.toFixed(2)})`,
+              title: '⚠️ Producto en Advertencia', message: `${product.name} requiere atención (ρ=${rho.toFixed(2)})`,
               type: 'warning',
               productId: product.id,
               productName: product.name,
@@ -178,22 +174,22 @@ export class NotificationService {
   addNotification(notification: Notification) {
     const currentNotifications = this.notifications();
     const updatedNotifications = [notification, ...currentNotifications];
-    
+
     if (updatedNotifications.length > 50) {
       updatedNotifications.splice(50);
     }
-    
+
     this.notifications.set(updatedNotifications);
     this.notificationSubject.next(notification);
 
     this.showBrowserNotification(notification);
-    
+
     this.playNotificationSound(notification);
 
-    this.logger.info('Notification added', { 
-      id: notification.id, 
+    this.logger.info('Notification added', {
+      id: notification.id,
       type: notification.type,
-      priority: notification.priority 
+      priority: notification.priority
     });
   }
 
@@ -202,7 +198,7 @@ export class NotificationService {
    */
   markAsRead(notificationId: string) {
     const notifications = this.notifications();
-    const updated = notifications.map(n => 
+    const updated = notifications.map(n =>
       n.id === notificationId ? { ...n, isRead: true } : n
     );
     this.notifications.set(updated);
@@ -248,10 +244,9 @@ export class NotificationService {
     const currentSettings = this.settings();
     const updatedSettings = { ...currentSettings, ...newSettings };
     this.settings.set(updatedSettings);
-    
+
     localStorage.setItem('notification-settings', JSON.stringify(updatedSettings));
-    
-    // Reiniciar polling si cambió el intervalo
+
     if (newSettings.checkInterval) {
       this.startPolling();
     }
@@ -271,7 +266,7 @@ export class NotificationService {
    */
   private showBrowserNotification(notification: Notification) {
     const settings = this.settings();
-    
+
     if (!settings.enableDesktop || Notification.permission !== 'granted') {
       return;
     }
@@ -302,7 +297,7 @@ export class NotificationService {
    */
   private playNotificationSound(notification: Notification) {
     const settings = this.settings();
-    
+
     if (!settings.enableSound) return;
 
     try {
@@ -313,7 +308,6 @@ export class NotificationService {
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
-      // Frecuencias según prioridad
       const frequencies: { [key: string]: number } = {
         'critical': 800,
         'high': 600,
@@ -330,21 +324,20 @@ export class NotificationService {
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.3);
 
-      // Doble beep para críticas
       if (notification.priority === 'critical') {
         setTimeout(() => {
           const oscillator2 = audioContext.createOscillator();
           const gainNode2 = audioContext.createGain();
-          
+
           oscillator2.connect(gainNode2);
           gainNode2.connect(audioContext.destination);
-          
+
           oscillator2.frequency.setValueAtTime(1000, audioContext.currentTime);
           oscillator2.type = 'sine';
-          
+
           gainNode2.gain.setValueAtTime(0.1, audioContext.currentTime);
           gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-          
+
           oscillator2.start(audioContext.currentTime);
           oscillator2.stop(audioContext.currentTime + 0.3);
         }, 400);

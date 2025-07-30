@@ -15,7 +15,6 @@ export class ImageSectionComponent {
 
   @Input() productForm!: FormGroup;
 
-  // Propiedades de imagen desde ImageManagerService
   readonly images = this.imageManager.images;
   readonly selectedImageIndex = this.imageManager.selectedImageIndex;
   readonly selectedImage = this.imageManager.selectedImage;

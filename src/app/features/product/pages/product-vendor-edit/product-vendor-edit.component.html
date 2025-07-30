@@ -153,7 +153,6 @@
           </div>
         </section>
 
-        <!-- Images and Keywords Section -->
         <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           <!-- Images -->
@@ -181,7 +180,6 @@
                 }
               </div>
 
-              <!-- Thumbnails -->
               @if (images().length > 0) {
                 <div class="flex flex-wrap gap-2 mt-3">
                   @for (image of images(); track $index) {
@@ -190,7 +188,6 @@
                       [class.border-indigo-500]="$index === selectedImageIndex()"
                       [class.border-2]="$index === selectedImageIndex()"
                     >
-                      <!-- Thumbnail -->
                       <div 
                         class="w-16 h-16 flex items-center justify-center overflow-hidden cursor-pointer"
                         (click)="selectImage($index)"
@@ -202,14 +199,12 @@
                         >
                       </div>
 
-                      <!-- New Image Badge -->
                       @if (!image.isExisting) {
                         <div class="absolute top-0 left-0 bg-green-500 text-white text-xs px-1 rounded-br">
                           NUEVA
                         </div>
                       }
 
-                      <!-- Delete Button -->
                       <button 
                         type="button"
                         class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
@@ -222,7 +217,6 @@
                 </div>
               }
 
-              <!-- File Input -->
               <div class="flex items-center">
                 <label
                   class="cursor-pointer bg-white border border-gray-300 text-gray-700 py-2 px-4 w-full text-center hover:bg-gray-50 flex items-center justify-center"

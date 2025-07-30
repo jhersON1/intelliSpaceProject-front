@@ -36,47 +36,45 @@ export class ProductsService {
   private readonly baseUrl: string = environment.baseUrl;
   public findAllProducts(limit = 10, offset = 0): Observable<PaginatedResponse<Product>> {
     const cacheKey = `products_${limit}_${offset}`;
-    
-    // Intentar obtener del caché primero
+
     const cachedData = this.cacheService.get<PaginatedResponse<Product>>(cacheKey);
     if (cachedData) {
-      this.logger.debug('Productos obtenidos del caché', { 
+      this.logger.debug('Productos obtenidos del caché', {
         cacheKey,
-        count: cachedData.data.length 
+        count: cachedData.data.length
       }, 'ProductsService.findAllProducts');
       return of(cachedData);
     }
 
     const params = new HttpParams()
       .set('limit', limit.toString())
-      .set('offset', offset.toString());    return this.http.get<Product[]>(`${this.baseUrl}${API_ROUTES.CONSUMER_PRODUCTS}`, { params }).pipe(
-      tap(products => {
-        this.logger.debug('Productos recibidos del backend', { 
-          count: products.length, 
-          limit, 
-          offset 
-        }, 'ProductsService.findAllProducts');
-        
-        const hasMore = products.length === limit;
-        this.logger.debug('Información de paginación', { hasMore }, 'ProductsService.findAllProducts');
-      }),
-      map((products: Product[]) => {
-        const hasMore = products.length === limit;
-        const response: PaginatedResponse<Product> = {
-          data: products,
-          total: hasMore ? (offset + limit + 1) : (offset + products.length),
-          limit,
-          offset,
-          hasMore
-        };
+      .set('offset', offset.toString()); return this.http.get<Product[]>(`${this.baseUrl}${API_ROUTES.CONSUMER_PRODUCTS}`, { params }).pipe(
+        tap(products => {
+          this.logger.debug('Productos recibidos del backend', {
+            count: products.length,
+            limit,
+            offset
+          }, 'ProductsService.findAllProducts');
 
-        // Almacenar en caché con TTL de 2 minutos para listas de productos
-        this.cacheService.set(cacheKey, response, { ttl: 2 * 60 * 1000 });
-        
-        return response;
-      })
-    );
-  }  public findVendorProducts(limit = 10, offset = 0): Observable<PaginatedResponse<Product>> {
+          const hasMore = products.length === limit;
+          this.logger.debug('Información de paginación', { hasMore }, 'ProductsService.findAllProducts');
+        }),
+        map((products: Product[]) => {
+          const hasMore = products.length === limit;
+          const response: PaginatedResponse<Product> = {
+            data: products,
+            total: hasMore ? (offset + limit + 1) : (offset + products.length),
+            limit,
+            offset,
+            hasMore
+          };
+
+          this.cacheService.set(cacheKey, response, { ttl: 2 * 60 * 1000 });
+
+          return response;
+        })
+      );
+  } public findVendorProducts(limit = 10, offset = 0): Observable<PaginatedResponse<Product>> {
     if (!this.authService.isAuthenticated()) {
       return of({
         data: [],
@@ -97,39 +95,39 @@ export class ProductsService {
 
     const params = new HttpParams()
       .set('limit', limit.toString())
-      .set('offset', offset.toString());return this.http.get<Product[]>(url, { params, headers }).pipe(
-      tap(products => {
-        this.logger.debug('Productos del vendor recibidos del backend', { 
-          count: products.length 
-        }, 'ProductsService.findVendorProducts');
-      }),
-      map((products: Product[]) => {
-        const hasMore = products.length === limit;
-        const estimatedTotal = hasMore ? (offset + limit + 1) : (offset + products.length);
-        
-        return {
-          data: products,
-          total: estimatedTotal,
-          limit: limit,
-          offset: offset,
-          hasMore: hasMore
-        } as PaginatedResponse<Product>;
-      })
-    );
+      .set('offset', offset.toString()); return this.http.get<Product[]>(url, { params, headers }).pipe(
+        tap(products => {
+          this.logger.debug('Productos del vendor recibidos del backend', {
+            count: products.length
+          }, 'ProductsService.findVendorProducts');
+        }),
+        map((products: Product[]) => {
+          const hasMore = products.length === limit;
+          const estimatedTotal = hasMore ? (offset + limit + 1) : (offset + products.length);
+
+          return {
+            data: products,
+            total: estimatedTotal,
+            limit: limit,
+            offset: offset,
+            hasMore: hasMore
+          } as PaginatedResponse<Product>;
+        })
+      );
   }
 
   public getVendorProduct(id: string): Observable<Product> {
     const url = `${this.baseUrl}${API_ROUTES.GET_VENDOR_PRODUCT}/${id}`;
 
     return this.http.get<Product>(url);
-  }  public createProduct(createProduct: CreateProduct): Observable<Product> {
+  } public createProduct(createProduct: CreateProduct): Observable<Product> {
     const loadingKey = 'createProduct';
     this.loadingState.startLoading(loadingKey, 'Creando producto...');
     this.logger.info('Iniciando creación de producto', { productTitle: createProduct.title }, 'ProductsService.createProduct');
-    
+
     const token = this.tokenService.getToken();
     this.logger.debug('Token de autenticación obtenido', { hasToken: !!token }, 'ProductsService.createProduct');
-    
+
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
@@ -141,24 +139,24 @@ export class ProductsService {
     return this.http.post<Product>(url, createProduct, { headers }).pipe(
       tap({
         next: (response) => {
-          this.logger.info('Producto creado exitosamente', { 
+          this.logger.info('Producto creado exitosamente', {
             productId: response.id,
-            productTitle: response.title 
+            productTitle: response.title
           }, 'ProductsService.createProduct');
           this.notificationState.success(`Producto "${response.title}" creado exitosamente`);
         },
         error: (error) => {
-          this.logger.error('Error al crear producto', { 
+          this.logger.error('Error al crear producto', {
             status: error.status,
             message: error.message,
-            details: error.error 
+            details: error.error
           }, 'ProductsService.createProduct');
           this.notificationState.error('Error al crear el producto. Inténtalo de nuevo.');
         }
       }),
       finalize(() => this.loadingState.stopLoading(loadingKey))
     );
-  }  public updateProduct(productId: string, body: UpdateProduct): Observable<Product> {
+  } public updateProduct(productId: string, body: UpdateProduct): Observable<Product> {
     const token = this.tokenService.getToken();
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -167,23 +165,19 @@ export class ProductsService {
 
     const url = `${this.baseUrl}${API_ROUTES.UPDATE_VENDOR_PRODUCT}/${productId}`;
 
-    // ✅ TRACKING AUTOMÁTICO: Registrar actividad cuando se actualiza un producto
-    // Esto cuenta como demanda/actividad del vendedor según la fundamentación teórica
     return this.http.patch<Product>(url, body, { headers }).pipe(
       tap((updatedProduct) => {
-        // Si se actualizó el stock, registrar como actividad
         if (body.stock !== undefined) {
           this.trackProductManagement(productId, 'Stock updated');
         }
-        
-        // Invalidar caché relacionado
+
         this.invalidateProductCache(productId);
       })
     );
   }
 
   /**
-   * ✅ MÉTODO DE TRACKING: Registra actividad de gestión de productos
+   * MÉTODO DE TRACKING: Registra actividad de gestión de productos
    * Esto genera actividad que puede ser interpretada como demanda
    */
   private trackProductManagement(productId: string, action: string): void {
@@ -193,7 +187,7 @@ export class ProductsService {
       duration: 1,
       userAgent: navigator.userAgent,
       referrer: document.referrer || undefined
-    };    this.analyticsService.trackProductInteraction(trackingData).subscribe({
+    }; this.analyticsService.trackProductInteraction(trackingData).subscribe({
       next: (result) => {
         // Analytics successfully tracked
       },
@@ -210,14 +204,14 @@ export class ProductsService {
     this.cacheService.invalidatePattern(`product_${productId}`);
     this.cacheService.invalidatePattern('products_');
     this.cacheService.invalidatePattern('vendor_products_');
-  }public deleteProduct(productId: string): Observable<void> {
+  } public deleteProduct(productId: string): Observable<void> {
     const loadingKey = `deleteProduct_${productId}`;
     this.loadingState.startLoading(loadingKey, 'Eliminando producto...');
     this.logger.info('Iniciando eliminación de producto', { productId }, 'ProductsService.deleteProduct');
-    
+
     const token = this.tokenService.getToken();
     this.logger.debug('Token de autenticación obtenido', { hasToken: !!token }, 'ProductsService.deleteProduct');
-    
+
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
@@ -233,11 +227,11 @@ export class ProductsService {
           this.notificationState.success('Producto eliminado exitosamente');
         },
         error: (error) => {
-          this.logger.error('Error al eliminar producto', { 
+          this.logger.error('Error al eliminar producto', {
             productId,
             status: error.status,
             message: error.message,
-            details: error.error 
+            details: error.error
           }, 'ProductsService.deleteProduct');
           this.notificationState.error('Error al eliminar el producto. Inténtalo de nuevo.');
         }

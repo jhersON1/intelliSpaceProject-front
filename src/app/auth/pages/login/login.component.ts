@@ -32,7 +32,6 @@ export class LoginComponent {
   });
 
   constructor() {
-    // Suscribirse a cambios en los campos del formulario
     Object.keys(this.loginForm.controls).forEach(field => {
       this.loginForm.get(field)?.valueChanges
         .pipe(takeUntilDestroyed())
@@ -81,7 +80,6 @@ export class LoginComponent {
           console.log('Login successful:', success);
           this.isAuthenticating.set(false);
           
-          // Dar tiempo para que el AuthService actualice el estado antes de redirigir
           setTimeout(() => {
             this.router.navigate(['/home']);
           }, 150);

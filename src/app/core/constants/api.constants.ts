@@ -7,7 +7,7 @@ export const API_ROUTES = {
   CREATE_VENDOR_PRODUCTS: '/products/create', 
   FIND_VENDOR_PRODUCTS: '/products/vendor-products',
   GET_VENDOR_PRODUCT: '/products',
-  UPDATE_VENDOR_PRODUCT: '/products', // ✅ CORREGIDO - Debe ser solo /products para PATCH /:id
+  UPDATE_VENDOR_PRODUCT: '/products',
   DELETE_VENDOR_PRODUCT: '/products/delete-product',
   GET_PRODUCT_DETAIL: '/products',
 
@@ -29,11 +29,11 @@ export const API_ROUTES = {
   ANALYTICS_CLICK_HISTORY: '/analytics/product',
   ANALYTICS_PRIORITY_PRODUCTS: '/analytics/priority-products',
   ANALYTICS_CRITICAL_PRODUCTS: '/analytics/critical-products',
-  ANALYTICS_VENDOR_DASHBOARD: '/analytics/vendor-dashboard',  ANALYTICS_RECALCULATE_METRICS: '/analytics/recalculate-metrics',
+  ANALYTICS_VENDOR_DASHBOARD: '/analytics/vendor-dashboard',
+  ANALYTICS_RECALCULATE_METRICS: '/analytics/recalculate-metrics',
   ANALYTICS_INITIALIZE_PRODUCTS: '/analytics/initialize-products',
   ANALYTICS_TRENDING_PRODUCTS: '/analytics/trending-products',
 
-  // Admin/Logs endpoints
   ADMIN_LOGS: '/admin/logs',
   ADMIN_LOGS_STATS: '/admin/logs/stats',
   ADMIN_LOGS_RESOLVE: '/admin/logs',

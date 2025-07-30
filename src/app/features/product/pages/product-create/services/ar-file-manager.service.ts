@@ -1,8 +1,4 @@
 import { Injectable, signal } from '@angular/core';
-
-/**
- * Interfaz para definir la estructura de un archivo AR seleccionado.
- */
 export interface ARFile {
   file: File;
   url: string;
@@ -13,31 +9,22 @@ export interface ARFile {
   type?: ARFileType;
 }
 
-/**
- * Interfaz para los archivos AR organizados por tipo y plataforma.
- */
 export interface ARFiles {
   model3D: {
-    android: ARFile | null;  // .glb para Android
-    ios: ARFile | null;      // .usdz para iOS
+    android: ARFile | null;
+    ios: ARFile | null;
   };
   experienceAR: {
-    android: ARFile | null;  // .glb para Android  
-    ios: ARFile | null;      // .usdz para iOS
+    android: ARFile | null;
+    ios: ARFile | null;
   };
 }
 
-/**
- * Tipos de archivo AR disponibles.
- */
 export enum ARFileType {
   MODEL_3D = 'MODEL_3D',
   EXPERIENCE_AR = 'EXPERIENCE_AR'
 }
 
-/**
- * Plataformas soportadas para AR.
- */
 export type ARPlatform = 'android' | 'ios';
 
 @Injectable({
@@ -52,9 +39,6 @@ export class ARFileManagerService {
   
   readonly isUploadingAR = signal<boolean>(false);
 
-  /**
-   * Maneja la selección de archivos AR
-   */
   onARFileSelected(eventData: { event: Event; type: ARFileType; platform: ARPlatform }): void {
     console.log('🎯 ARFileManagerService.onARFileSelected recibido:', eventData);
     
@@ -65,7 +49,6 @@ export class ARFileManagerService {
     
     if (!file) return;
 
-    // Crear la representación del archivo AR
     const reader = new FileReader();
     reader.onload = () => {
       const arFile: ARFile = {
@@ -89,12 +72,9 @@ export class ARFileManagerService {
     
     reader.readAsDataURL(file);
     
-    // Limpiar el input
     input.value = '';
   }
-  /**
-   * Maneja la eliminación de archivos AR
-   */
+
   onARFileRemoved(type: ARFileType, platform: ARPlatform): void {
     this.currentARFiles.update(current => {
       const fileType = type === ARFileType.MODEL_3D ? 'model3D' : 'experienceAR';
@@ -108,17 +88,11 @@ export class ARFileManagerService {
     });
   }
 
-  /**
-   * Maneja la actualización de archivos AR
-   */
   onARFilesUpdated(files: ARFiles): void {
     console.log('🔄 ARFileManagerService.onARFilesUpdated recibido:', files);
     this.currentARFiles.set(files);
   }
 
-  /**
-   * Obtiene solo los archivos Model3D para subir
-   */
   getModel3DFilesToUpload(): File[] {
     const files: File[] = [];
     const model3DFiles = this.currentARFiles().model3D;
@@ -133,9 +107,6 @@ export class ARFileManagerService {
     return files;
   }
 
-  /**
-   * Obtiene solo los archivos ExperienceAR para subir
-   */
   getExperienceARFilesToUpload(): File[] {
     const files: File[] = [];
     const experienceARFiles = this.currentARFiles().experienceAR;
@@ -261,7 +232,6 @@ export class ARFileManagerService {
     if (file) {
       console.log(`📁 Archivo ExperienceAR seleccionado para ${platform}:`, file.name);
       
-      // Crear el objeto ARFile (ExperienceAR no tiene formato específico)
       const arFile: ARFile = {
         file: file,
         url: '',
@@ -272,7 +242,6 @@ export class ARFileManagerService {
         type: ARFileType.EXPERIENCE_AR
       };
       
-      // Actualizar el estado
       const currentFiles = this.currentARFiles();
       if (platform === 'android') {
         currentFiles.experienceAR.android = arFile;
@@ -311,14 +280,12 @@ export class ARFileManagerService {
     
     const currentFiles = this.currentARFiles();
     
-    // Limpiar URLs de preview para Model3D
     Object.values(currentFiles.model3D).forEach(arFile => {
       if (arFile?.preview && arFile.type === ARFileType.MODEL_3D) {
         URL.revokeObjectURL(arFile.preview);
       }
     });
-    
-    // Resetear estado
+
     this.currentARFiles.set({
       model3D: {
         android: null,
@@ -329,7 +296,5 @@ export class ARFileManagerService {
         ios: null
       }
     });
-    
-    console.log('✅ Archivos AR limpiados');
   }
 }

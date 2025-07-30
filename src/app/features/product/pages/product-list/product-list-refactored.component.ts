@@ -14,9 +14,6 @@ import { LoggerService } from '../../../../core/services';
 import { ProductGridComponent, ProductWithImage, PaginationData } from '../../components/product-grid/product-grid.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 
-/**
- * Componente inteligente que maneja la lógica de negocio para la lista de productos
- */
 @Component({
   selector: 'app-product-list',
   imports: [CommonModule, FormsModule, ProductGridComponent, LoadingStateComponent],
@@ -27,7 +24,6 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
         <p class="text-gray-600">Descubre nuestra colección de productos</p>
       </div>
 
-      <!-- Estados de carga y error -->
       <app-loading-state
         [isLoading]="isLoading()"
         [hasError]="hasError()"
@@ -58,7 +54,6 @@ export class ProductListComponent implements OnInit {
   private readonly notificationState = inject(NotificationStateService);
   private readonly logger = inject(LoggerService);
 
-  // Signals para el estado del componente
   private readonly _products = signal<Product[]>([]);
   private readonly _productsWithImages = signal<ProductWithImage[]>([]);
   private readonly _currentPage = signal(1);
@@ -67,7 +62,6 @@ export class ProductListComponent implements OnInit {
   private readonly _hasMore = signal(false);
   private readonly _hasError = signal(false);
 
-  // Signals computadas públicas
   public readonly productsWithImages = computed(() => this._productsWithImages());
   public readonly isLoading = computed(() => this.loadingState.isLoadingOperation('loadProducts'));
   public readonly hasError = computed(() => this._hasError());
@@ -83,16 +77,12 @@ export class ProductListComponent implements OnInit {
     };
   });
 
-  // Configuración
   private readonly pageSize = 10;
 
   ngOnInit(): void {
     this.loadProducts();
   }
 
-  /**
-   * Carga los productos y sus imágenes
-   */
   private loadProducts(): void {
     const loadingKey = 'loadProducts';
     this._hasError.set(false);
@@ -123,9 +113,6 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  /**
-   * Carga las imágenes para los productos
-   */
   private loadProductImages(products: Product[]): void {
     const imageRequests = products.map(product =>
       this.visualService.findAllImages(product.id).pipe(

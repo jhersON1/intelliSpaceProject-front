@@ -11,12 +11,11 @@ import { ScrollToTopService } from './core/services';
   selector: 'app-root',
   imports: [ NavbarComponent, FooterComponent, RouterOutlet, NotificationContainerComponent ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
 })
 export class AppComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
-  private scrollToTopService = inject(ScrollToTopService); // Inicializa el servicio
+  private scrollToTopService = inject(ScrollToTopService);
 
   public finishedAuthCheck = computed<boolean>( () => {
     if ( this.authService.authStatus() === AuthStatus.checking ) {

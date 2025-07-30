@@ -253,11 +253,9 @@ export class VendorDashboardComponent implements OnInit, OnDestroy {
   autoRefresh = signal(false);
   hasMorePriorityProducts = signal(false);
 
-  // Computed values
   priorityTableTitle = signal('Productos Prioritarios');
   criticalTableTitle = signal('Productos Críticos - Atención Inmediata');
 
-  // Expose signal function for template
   signal = signal;
   ngOnInit(): void {
     this.logger.info('Iniciando Vendor Dashboard', {}, 'VendorDashboardComponent');
@@ -268,7 +266,6 @@ export class VendorDashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // 🔄 LIMPIAR CACHÉ AL CARGAR EL DASHBOARD
     this.logger.info('🧹 CLEARING CACHE ON DASHBOARD LOAD', {}, 'VendorDashboardComponent');
     this.analyticsService.clearDashboardCache();
 
@@ -289,7 +286,6 @@ export class VendorDashboardComponent implements OnInit, OnDestroy {
       userId: this.authService.currentUser()?.id
     }, 'VendorDashboardComponent');
 
-    // Load all dashboard data in parallel
     forkJoin({
       dashboard: this.analyticsService.getVendorDashboard(),
       priorityProducts: this.analyticsService.getPriorityProducts(10),
@@ -328,16 +324,11 @@ export class VendorDashboardComponent implements OnInit, OnDestroy {
   refreshDashboard(): void {
     this.logger.info('🔄 REFRESHING DASHBOARD - CLEARING CACHE', {}, 'VendorDashboardComponent');
     
-    // Limpiar caché antes de recargar
     this.analyticsService.clearDashboardCache();
     
-    // Recargar datos
     this.loadDashboardData();
   }
 
-  /**
-   * ✅ MÉTODO TEMPORAL PARA DEBUGGING - Fuerza recálculo de todas las métricas
-   */
   forceRecalculateMetrics(): void {
     this.isLoading.set(true);
       this.logger.info('🔧 INICIANDO PROCESO COMPLETO: INICIALIZACIÓN + RECÁLCULO', {}, 'VendorDashboardComponent.forceRecalculateMetrics');
@@ -374,7 +365,6 @@ export class VendorDashboardComponent implements OnInit, OnDestroy {
     
     if (target.checked) {
       this.logger.debug('Auto-refresh enabled', {}, 'VendorDashboardComponent');
-      // Set up auto-refresh every 30 seconds
       interval(30000).pipe(
         takeUntil(this.destroy$)
       ).subscribe(() => {
